@@ -1,0 +1,871 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                      String                   @id @default(cuid())
+  email                   String                   @unique
+  password                String
+  firstName               String
+  lastName                String
+  role                    UserRole                 @default(USER)
+  emailVerified           Boolean                  @default(false)
+  lastLoginAt             DateTime?
+  loginAttempts           Int                      @default(0)
+  lockedUntil             DateTime?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  lastActivity            DateTime?
+  source                  String?
+  emailVerificationTokens EmailVerificationToken[]
+  notificationPreferences NotificationPreference?
+  notifications           Notification[]
+  orders                  Order[]
+  passwordResetTokens     PasswordResetToken[]
+  createdProducts         Product[]                @relation("ProductCreator")
+  reviewHelpfulVotes      ReviewHelpfulVote[]
+  moderationActions       ReviewModerationLog[]    @relation("ReviewModerator")
+  handledReports          ReviewReport[]           @relation("ReportHandler")
+  reviewReports           ReviewReport[]
+  reviews                 Review[]
+  supportAgent            SupportAgent?            @relation("SupportAgent")
+  supportAttachments      SupportAttachment[]      @relation("SupportAttachments")
+  readMessages            SupportMessageRead[]     @relation("ReadMessages")
+  supportMessages         SupportMessage[]         @relation("SupportMessages")
+  assignedTickets         SupportTicket[]          @relation("AssignedTickets")
+  supportTickets          SupportTicket[]          @relation("UserTickets")
+  vendorTickets           SupportTicket[]          @relation("VendorTickets")
+  websocketConnections    WebSocketConnection[]
+  wishlists               Wishlist[]
+
+  @@map("users")
+}
+
+model Product {
+  id                 String           @id @default(cuid())
+  name               String
+  slug               String           @unique
+  description        String?
+  shortDescription   String?
+  price              Decimal          @db.Decimal(10, 2)
+  originalPrice      Decimal?         @db.Decimal(10, 2)
+  fileName           String?
+  filePath           String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  publishedAt        DateTime?
+  stock              Int              @default(0)
+  lowStockThreshold  Int              @default(5)
+  trackInventory     Boolean          @default(false)
+  allowBackorder     Boolean          @default(false)
+  viewCount          Int              @default(0)
+  downloadCount      Int              @default(0)
+  rating             Decimal          @default(0) @db.Decimal(3, 2)
+  reviewCount        Int              @default(0)
+  isActive           Boolean          @default(true)
+  isFeatured         Boolean          @default(false)
+  isDigital          Boolean          @default(true)
+  seoTitle           String?
+  seoDescription     String?
+  createdBy          String?
+  categoryId         String?
+  averageRating      Float            @default(0)
+  ratingDistribution Json?
+  wishlistCount      Int              @default(0)
+  notifications      Notification[]
+  orderItems         OrderItem[]
+  images             ProductImage[]
+  variants           ProductVariant[]
+  category           Category?        @relation(fields: [categoryId], references: [id])
+  creator            User?            @relation("ProductCreator", fields: [createdBy], references: [id])
+  reviews            Review[]
+  supportTickets     SupportTicket[]
+  wishlists          Wishlist[]
+  tags               Tag[]            @relation("ProductToTag")
+
+  @@map("products")
+}
+
+model Category {
+  id             String     @id @default(cuid())
+  name           String     @unique
+  slug           String     @unique
+  description    String?
+  parentId       String?
+  isActive       Boolean    @default(true)
+  sortOrder      Int        @default(0)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  parent         Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children       Category[] @relation("CategoryHierarchy")
+  products       Product[]
+
+  @@map("categories")
+}
+
+model ProductVariant {
+  id            String      @id @default(cuid())
+  productId     String
+  name          String
+  price         Decimal     @db.Decimal(10, 2)
+  originalPrice Decimal?    @db.Decimal(10, 2)
+  fileName      String
+  filePath      String
+  downloadCount Int         @default(0)
+  maxDownloads  Int?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderItems    OrderItem[]
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  color     String?
+  createdAt DateTime  @default(now())
+  products  Product[] @relation("ProductToTag")
+
+  @@map("tags")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  altText   String?
+  sortOrder Int      @default(0)
+  isMain    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId], name: "unique_user_product_wishlist")
+  @@index([userId])
+  @@index([productId])
+  @@map("wishlists")
+}
+
+model Review {
+  id             String                @id @default(cuid())
+  productId      String
+  userId         String?
+  customerEmail  String
+  customerName   String
+  rating         Int
+  title          String?
+  isVerified     Boolean               @default(false)
+  isApproved     Boolean               @default(false)
+  helpfulCount   Int                   @default(0)
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  content        String?
+  isPinned       Boolean               @default(false)
+  moderatorNotes String?
+  orderId        String?
+  reportCount    Int                   @default(0)
+  notifications  Notification[]
+  helpfulVotes   ReviewHelpfulVote[]
+  adminActions   ReviewModerationLog[]
+  reports        ReviewReport[]
+  order          Order?                @relation(fields: [orderId], references: [id])
+  product        Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user           User?                 @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productId], name: "unique_user_product_review")
+  @@index([productId, isApproved])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([rating])
+  @@index([isVerified])
+  @@map("reviews")
+}
+
+model ReviewHelpfulVote {
+  id        String   @id @default(cuid())
+  userId    String?
+  reviewId  String
+  isHelpful Boolean
+  ipAddress String?
+  createdAt DateTime @default(now())
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, reviewId], name: "unique_user_review_vote")
+  @@unique([ipAddress, reviewId], name: "unique_ip_review_vote")
+  @@map("review_helpful_votes")
+}
+
+model ReviewReport {
+  id            String       @id @default(cuid())
+  reason        ReportReason
+  description   String?
+  status        ReportStatus @default(PENDING)
+  userId        String?
+  reviewId      String
+  reporterEmail String?
+  reporterName  String?
+  handledBy     String?
+  handledAt     DateTime?
+  adminNotes    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  handler       User?        @relation("ReportHandler", fields: [handledBy], references: [id])
+  review        Review       @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([reviewId])
+  @@map("review_reports")
+}
+
+model ReviewModerationLog {
+  id          String           @id @default(cuid())
+  action      ModerationAction
+  reason      String?
+  notes       String?
+  reviewId    String
+  moderatorId String
+  createdAt   DateTime         @default(now())
+  moderator   User             @relation("ReviewModerator", fields: [moderatorId], references: [id])
+  review      Review           @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@index([moderatorId])
+  @@map("review_moderation_logs")
+}
+
+model Order {
+  id                    String           @id @default(cuid())
+  customerEmail         String
+  customerFirstName     String?
+  customerLastName      String?
+  total                 Decimal          @db.Decimal(10, 2)
+  status                OrderStatus      @default(PENDING)
+  currency              String           @default("EUR")
+  exchangeRate          Decimal?         @db.Decimal(10, 4)
+  originalAmount        Decimal?         @db.Decimal(10, 2)
+  paymentProvider       PaymentProvider?
+  stripePaymentIntentId String?
+  paypalOrderId         String?
+  paymentStatus         PaymentStatus    @default(PENDING)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  userId                String?
+  downloadCount         Int              @default(0)
+  downloadLimit         Int              @default(4)
+  downloadExpiresAt     DateTime?
+  notifications         Notification[]
+  orderItems            OrderItem[]
+  user                  User?            @relation(fields: [userId], references: [id])
+  reviews               Review[]
+  supportTickets        SupportTicket[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String          @id @default(cuid())
+  quantity  Int             @default(1)
+  price     Decimal         @db.Decimal(10, 2)
+  orderId   String
+  productId String?
+  variantId String?
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product?        @relation(fields: [productId], references: [id])
+  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@map("order_items")
+}
+
+model DiscountCode {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  description   String?
+  discountType  DiscountType
+  discountValue Decimal      @db.Decimal(10, 2)
+  isActive      Boolean      @default(true)
+  validFrom     DateTime?
+  validUntil    DateTime?
+  maxUses       Int?
+  currentUses   Int          @default(0)
+  createdAt     DateTime     @default(now())
+
+  @@map("discount_codes")
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  page      String
+  userAgent String?
+  ipAddress String?
+  country   String?
+  createdAt DateTime @default(now())
+
+  @@map("page_views")
+}
+
+model EmailQueue {
+  id          String      @id @default(cuid())
+  to          String
+  subject     String
+  htmlContent String
+  textContent String?
+  emailType   EmailType
+  status      EmailStatus @default(PENDING)
+  attempts    Int         @default(0)
+  lastAttempt DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@map("email_queue")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  used      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verification_tokens")
+}
+
+model Notification {
+  id             String               @id @default(cuid())
+  userId         String?
+  type           NotificationType
+  title          String
+  message        String
+  data           Json?
+  priority       NotificationPriority @default(NORMAL)
+  category       NotificationCategory
+  isRead         Boolean              @default(false)
+  readAt         DateTime?
+  isDelivered    Boolean              @default(false)
+  deliveredAt    DateTime?
+  deliveryMethod DeliveryMethod?
+  scheduledFor   DateTime?
+  orderId        String?
+  productId      String?
+  reviewId       String?
+  userId_ref     String?
+  source         String?
+  actionUrl      String?
+  expiresAt      DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  order          Order?               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product?             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  review         Review?              @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user           User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@index([isRead, userId])
+  @@index([scheduledFor])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  enableWebSocket     Boolean  @default(true)
+  enableEmail         Boolean  @default(true)
+  enablePush          Boolean  @default(false)
+  orderUpdates        Boolean  @default(true)
+  paymentAlerts       Boolean  @default(true)
+  productUpdates      Boolean  @default(true)
+  reviewNotifications Boolean  @default(true)
+  promotions          Boolean  @default(false)
+  systemAlerts        Boolean  @default(true)
+  inventoryAlerts     Boolean  @default(false)
+  quietHours          Json?
+  instantDelivery     Boolean  @default(true)
+  batchDelivery       Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model NotificationTemplate {
+  id               String               @id @default(cuid())
+  type             NotificationType     @unique
+  category         NotificationCategory
+  websocketTitle   String
+  websocketMessage String
+  emailSubject     String?
+  emailTemplate    String?
+  pushTitle        String?
+  pushMessage      String?
+  priority         NotificationPriority @default(NORMAL)
+  isActive         Boolean              @default(true)
+  requiresAction   Boolean              @default(false)
+  autoExpire       Boolean              @default(false)
+  expirationHours  Int?
+  variables        Json?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@map("notification_templates")
+}
+
+model WebSocketConnection {
+  id                 String    @id @default(cuid())
+  userId             String
+  socketId           String    @unique
+  userAgent          String?
+  ipAddress          String?
+  isActive           Boolean   @default(true)
+  lastPing           DateTime  @default(now())
+  connectedAt        DateTime  @default(now())
+  disconnectedAt     DateTime?
+  subscribedChannels Json?
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([socketId])
+  @@map("websocket_connections")
+}
+
+model SupportTicket {
+  id               String               @id @default(cuid())
+  ticketNumber     String               @unique
+  subject          String
+  description      String
+  status           TicketStatus         @default(OPEN)
+  priority         TicketPriority       @default(MEDIUM)
+  category         TicketCategory
+  businessModel    BusinessModel
+  tenantId         String?
+  userId           String
+  assignedToId     String?
+  vendorId         String?
+  orderId          String?
+  productId        String?
+  firstResponseAt  DateTime?
+  lastResponseAt   DateTime?
+  resolvedAt       DateTime?
+  closedAt         DateTime?
+  escalatedAt      DateTime?
+  escalatedFrom    String?
+  escalationReason String?
+  tags             String[]             @default([])
+  metadata         Json?                @default("{}")
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  attachments      SupportAttachment[]
+  messages         SupportMessage[]
+  satisfaction     SupportSatisfaction?
+  slaConfig        SupportSLA?
+  assignedTo       User?                @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  order            Order?               @relation(fields: [orderId], references: [id])
+  product          Product?             @relation(fields: [productId], references: [id])
+  user             User                 @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  vendor           User?                @relation("VendorTickets", fields: [vendorId], references: [id])
+
+  @@index([status, priority])
+  @@index([userId])
+  @@index([assignedToId])
+  @@index([vendorId])
+  @@index([businessModel, tenantId])
+  @@index([category, status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([priority, createdAt])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id          String               @id @default(cuid())
+  content     String
+  isInternal  Boolean              @default(false)
+  ticketId    String
+  authorId    String
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  attachments SupportAttachment[]
+  readBy      SupportMessageRead[]
+  author      User                 @relation("SupportMessages", fields: [authorId], references: [id], onDelete: Cascade)
+  ticket      SupportTicket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+  @@index([authorId])
+  @@map("support_messages")
+}
+
+model SupportMessageRead {
+  id        String         @id @default(cuid())
+  messageId String
+  userId    String
+  readAt    DateTime       @default(now())
+  message   SupportMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User           @relation("ReadMessages", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("support_message_reads")
+}
+
+model SupportAttachment {
+  id           String          @id @default(cuid())
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  ticketId     String?
+  messageId    String?
+  uploadedById String
+  createdAt    DateTime        @default(now())
+  message      SupportMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  ticket       SupportTicket?  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  uploadedBy   User            @relation("SupportAttachments", fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([messageId])
+  @@map("support_attachments")
+}
+
+model SupportSLA {
+  id                  String        @id @default(cuid())
+  ticketId            String        @unique
+  firstResponseSLA    Int
+  resolutionSLA       Int
+  firstResponseDue    DateTime
+  resolutionDue       DateTime
+  firstResponseMet    Boolean       @default(false)
+  resolutionMet       Boolean       @default(false)
+  firstResponseBreach Boolean       @default(false)
+  resolutionBreach    Boolean       @default(false)
+  totalBreachTime     Int           @default(0)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  ticket              SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([firstResponseDue])
+  @@index([resolutionDue])
+  @@map("support_sla")
+}
+
+model SupportSatisfaction {
+  id              String        @id @default(cuid())
+  ticketId        String        @unique
+  rating          Int
+  feedback        String?
+  responseTime    Int?
+  helpfulness     Int?
+  professionalism Int?
+  resolution      Int?
+  submittedAt     DateTime      @default(now())
+  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([rating])
+  @@index([submittedAt])
+  @@map("support_satisfaction")
+}
+
+model SupportConfig {
+  id                 String        @id @default(cuid())
+  businessModel      BusinessModel
+  tenantId           String?
+  mode               String
+  escalationEnabled  Boolean       @default(true)
+  chatEnabled        Boolean       @default(true)
+  slaTracking        Boolean       @default(true)
+  lowPrioritySLA     Int           @default(1440)
+  mediumPrioritySLA  Int           @default(480)
+  highPrioritySLA    Int           @default(120)
+  urgentPrioritySLA  Int           @default(30)
+  businessHoursStart String        @default("09:00")
+  businessHoursEnd   String        @default("17:00")
+  businessDays       String[]      @default(["monday", "tuesday", "wednesday", "thursday", "friday"])
+  timezone           String        @default("UTC")
+  autoAssignEnabled  Boolean       @default(false)
+  roundRobinEnabled  Boolean       @default(false)
+  emailNotifications Boolean       @default(true)
+  escalationEmails   Boolean       @default(true)
+  maxTicketsPerHour  Int           @default(10)
+  maxTicketsPerDay   Int           @default(50)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@unique([businessModel, tenantId])
+  @@index([businessModel])
+  @@map("support_config")
+}
+
+model SupportAgent {
+  id                   String           @id @default(cuid())
+  userId               String           @unique
+  role                 SupportRole      @default(ADMIN)
+  businessModel        BusinessModel
+  tenantId             String?
+  categories           TicketCategory[]
+  maxConcurrentTickets Int              @default(10)
+  isActive             Boolean          @default(true)
+  isAvailable          Boolean          @default(true)
+  totalTickets         Int              @default(0)
+  avgResponseTime      Int              @default(0)
+  avgResolutionTime    Int              @default(0)
+  satisfactionRating   Float            @default(0)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  user                 User             @relation("SupportAgent", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([businessModel, tenantId])
+  @@index([isActive, isAvailable])
+  @@map("support_agents")
+}
+
+model SupportAnalytics {
+  id                    String        @id @default(cuid())
+  businessModel         BusinessModel
+  tenantId              String?
+  date                  DateTime      @db.Date
+  hour                  Int?
+  ticketsCreated        Int           @default(0)
+  ticketsResolved       Int           @default(0)
+  ticketsClosed         Int           @default(0)
+  avgResponseTime       Int           @default(0)
+  avgResolutionTime     Int           @default(0)
+  slaBreaches           Int           @default(0)
+  avgSatisfaction       Float         @default(0)
+  totalRatings          Int           @default(0)
+  lowPriorityTickets    Int           @default(0)
+  mediumPriorityTickets Int           @default(0)
+  highPriorityTickets   Int           @default(0)
+  urgentPriorityTickets Int           @default(0)
+  technicalTickets      Int           @default(0)
+  billingTickets        Int           @default(0)
+  generalTickets        Int           @default(0)
+  productTickets        Int           @default(0)
+  accountTickets        Int           @default(0)
+  bugReports            Int           @default(0)
+  featureRequests       Int           @default(0)
+  createdAt             DateTime      @default(now())
+
+  @@unique([businessModel, tenantId, date, hour])
+  @@index([businessModel, tenantId, date])
+  @@map("support_analytics")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  COMPLETED
+  FAILED
+  REFUNDED
+  DISPUTED
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum EmailType {
+  ORDER_CONFIRMATION
+  DOWNLOAD_LINK
+  CART_ABANDONMENT
+  RECEIPT
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum ReportReason {
+  SPAM
+  INAPPROPRIATE_CONTENT
+  FAKE_REVIEW
+  OFFENSIVE_LANGUAGE
+  IRRELEVANT
+  COPYRIGHT_VIOLATION
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ModerationAction {
+  APPROVED
+  REJECTED
+  PINNED
+  UNPINNED
+  EDITED
+  DELETED
+  RESTORED
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_CONFIRMED
+  ORDER_PROCESSING
+  ORDER_SHIPPED
+  ORDER_DELIVERED
+  ORDER_CANCELLED
+  ORDER_REFUNDED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  PAYMENT_PENDING
+  PAYMENT_REFUNDED
+  PRODUCT_BACK_IN_STOCK
+  PRODUCT_PRICE_DROP
+  PRODUCT_NEW_REVIEW
+  WISHLIST_ITEM_SALE
+  REVIEW_SUBMITTED
+  REVIEW_APPROVED
+  REVIEW_REJECTED
+  REVIEW_HELPFUL_VOTE
+  ACCOUNT_CREATED
+  PASSWORD_CHANGED
+  EMAIL_VERIFIED
+  PROFILE_UPDATED
+  NEW_ORDER_ADMIN
+  LOW_STOCK_ALERT
+  HIGH_VALUE_ORDER
+  SUSPICIOUS_ACTIVITY
+  SYSTEM_ERROR
+  BACKUP_COMPLETED
+  PROMOTION_STARTED
+  DISCOUNT_EXPIRING
+  CART_ABANDONED
+  WELCOME_SERIES
+  SUPPORT_TICKET_CREATED
+  SUPPORT_TICKET_ASSIGNED
+  SUPPORT_TICKET_ESCALATED
+  SUPPORT_MESSAGE_RECEIVED
+  SUPPORT_TICKET_RESOLVED
+  SUPPORT_SLA_BREACH
+  SUPPORT_SATISFACTION_SUBMITTED
+  SUPPORT_AGENT_CREATED
+  SUPPORT_ALERT
+  SYSTEM_NOTIFICATION
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationCategory {
+  ORDER
+  PAYMENT
+  PRODUCT
+  REVIEW
+  SYSTEM
+  ADMIN
+  MARKETING
+  SECURITY
+}
+
+enum DeliveryMethod {
+  WEBSOCKET
+  EMAIL
+  PUSH
+  SMS
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  PENDING_USER
+  PENDING_VENDOR
+  ESCALATED
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  TECHNICAL
+  BILLING
+  GENERAL
+  PRODUCT
+  ACCOUNT
+  BUG_REPORT
+  FEATURE_REQUEST
+}
+
+enum SupportRole {
+  USER
+  ADMIN
+  VENDOR
+  PLATFORM_ADMIN
+  SUPER_ADMIN
+}
+
+enum BusinessModel {
+  B2B_SALE
+  SAAS_MULTITENANT
+  MARKETPLACE_PLATFORM
+}

@@ -1,0 +1,774 @@
+import { Request, Response } from "express";
+import { catchAsync } from "../utils/catchAsync";
+import { CustomError } from "../utils/customError";
+import { stripe } from "../services/stripe";
+import { paypalService } from "../services/paypal";
+import EmailService from "../services/emailService";
+const emailService = new EmailService();
+import { formatOrderResponse } from "../controllers/orderController";
+import { prisma } from "../utils/prisma";
+
+export class PaymentController {
+  static stripeWebhook = catchAsync(async (req: Request, res: Response) => {
+    const sig = req.headers["stripe-signature"] as string;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      throw new CustomError("Stripe webhook secret not configured", 500);
+    }
+
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+      console.error("Stripe webhook signature verification failed:", err);
+      return res.status(400).json({
+        success: false,
+        message: "Webhook signature verification failed",
+      });
+    }
+
+    console.log(`Received Stripe event: ${event.type}`);
+
+    try {
+      switch (event.type) {
+        case "payment_intent.succeeded":
+          await PaymentController.handleStripePaymentSucceeded(
+            event.data.object
+          );
+          break;
+
+        case "payment_intent.payment_failed":
+          await PaymentController.handleStripePaymentFailed(event.data.object);
+          break;
+
+        case "payment_intent.canceled":
+          await PaymentController.handleStripePaymentCanceled(
+            event.data.object
+          );
+          break;
+
+        case "charge.dispute.created":
+          await PaymentController.handleStripeDispute(event.data.object);
+          break;
+
+        default:
+          console.log(`Unhandled Stripe event type: ${event.type}`);
+      }
+
+      res.json({ received: true });
+    } catch (error) {
+      console.error("Error processing Stripe webhook:", error);
+      res.status(500).json({
+        success: false,
+        message: "Webhook processing failed",
+      });
+    }
+  });
+
+  static paypalWebhook = catchAsync(async (req: Request, res: Response) => {
+    const event = req.body;
+
+    console.log(`Received PayPal event: ${event.event_type}`);
+
+    try {
+      switch (event.event_type) {
+        case "CHECKOUT.ORDER.APPROVED":
+          await PaymentController.handlePayPalOrderApproved(event.resource);
+          break;
+
+        case "PAYMENT.CAPTURE.COMPLETED":
+          await PaymentController.handlePayPalCaptureCompleted(event.resource);
+          break;
+
+        case "PAYMENT.CAPTURE.DENIED":
+          await PaymentController.handlePayPalCaptureFailed(event.resource);
+          break;
+
+        default:
+          console.log(`Unhandled PayPal event type: ${event.event_type}`);
+      }
+
+      res.status(200).json({ received: true });
+    } catch (error) {
+      console.error("Error processing PayPal webhook:", error);
+      res.status(500).json({
+        success: false,
+        message: "Webhook processing failed",
+      });
+    }
+  });
+
+  static capturePayPalPayment = catchAsync(
+    async (req: Request, res: Response) => {
+      const { orderId } = req.params;
+
+      if (!orderId || !/^[a-zA-Z0-9-]+$/.test(orderId)) {
+        throw new CustomError("Invalid order ID format", 400);
+      }
+
+      const order = await prisma.order.findFirst({
+        where: { paypalOrderId: orderId },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  fileName: true,
+                  filePath: true,
+                },
+              },
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!order) {
+        throw new CustomError("Order not found", 404);
+      }
+
+      if (!order.paypalOrderId) {
+        throw new CustomError("No PayPal order ID found", 400);
+      }
+
+      if (order.paymentStatus === "SUCCEEDED") {
+        return res.json({
+          success: true,
+          message: "Payment already captured",
+          order: formatOrderResponse(order, req.user?.role === "ADMIN"),
+        });
+      }
+
+      try {
+        const captureResult = await paypalService.captureOrder(
+          order.paypalOrderId
+        );
+
+        if (captureResult.status === "COMPLETED") {
+          const updatedOrder = await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              status: "COMPLETED",
+              paymentStatus: "SUCCEEDED",
+            },
+            include: {
+              orderItems: {
+                include: {
+                  product: {
+                    select: {
+                      id: true,
+                      name: true,
+                      description: true,
+                      fileName: true,
+                      filePath: true,
+                    },
+                  },
+                },
+              },
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          });
+
+          const orderResponse = formatOrderResponse(
+            updatedOrder,
+            req.user?.role === "ADMIN"
+          );
+
+          try {
+            await emailService.sendOrderStatusUpdate(orderResponse, "PENDING");
+            console.log(
+              `Payment confirmation email sent for order: ${order.id}`
+            );
+          } catch (emailError) {
+            console.error(
+              "Failed to send payment confirmation email:",
+              emailError
+            );
+          }
+
+          res.json({
+            success: true,
+            message: "Payment captured successfully",
+            order: orderResponse,
+          });
+        } else {
+          throw new CustomError("Payment capture failed", 400);
+        }
+      } catch (error) {
+        console.error("PayPal capture error:", error);
+
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            status: "FAILED",
+            paymentStatus: "FAILED",
+          },
+        });
+
+        throw new CustomError("Payment capture failed", 400);
+      }
+    }
+  );
+
+  static refundPayment = catchAsync(async (req: Request, res: Response) => {
+    const { orderId } = req.params;
+    const { amount, reason } = req.body;
+
+    if (req.user?.role !== "ADMIN") {
+      throw new CustomError("Admin access required", 403);
+    }
+
+    if (!orderId || !/^[a-zA-Z0-9-]+$/.test(orderId)) {
+      throw new CustomError("Invalid order ID format", 400);
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                fileName: true,
+                filePath: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new CustomError("Order not found", 404);
+    }
+
+    if (order.paymentStatus !== "SUCCEEDED") {
+      throw new CustomError("Order payment not successful, cannot refund", 400);
+    }
+
+    if (order.status === "REFUNDED") {
+      throw new CustomError("Order already refunded", 400);
+    }
+
+    const refundAmount = amount || order.total.toNumber();
+
+    try {
+      let refundResult: any;
+
+      if (order.stripePaymentIntentId) {
+        refundResult = await stripe.refunds.create({
+          payment_intent: order.stripePaymentIntentId,
+          amount: Math.round(refundAmount * 100),
+          reason: reason || "requested_by_customer",
+          metadata: {
+            orderId: order.id,
+            adminId: req.user.id,
+          },
+        });
+
+        console.log(`Stripe refund created: ${refundResult.id}`);
+      } else if (order.paypalOrderId) {
+        const captureId = await PaymentController.getPayPalCaptureId(
+          order.paypalOrderId
+        );
+
+        if (!captureId) {
+          throw new CustomError("PayPal capture ID not found", 400);
+        }
+
+        refundResult = await PaymentController.createPayPalRefund(
+          captureId,
+          refundAmount,
+          order.currency
+        );
+
+        console.log(`PayPal refund created: ${refundResult.id}`);
+      } else {
+        throw new CustomError("No payment method found for refund", 400);
+      }
+
+      const updatedOrder = await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: "REFUNDED",
+          paymentStatus: "REFUNDED",
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  fileName: true,
+                  filePath: true,
+                },
+              },
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      const orderResponse = formatOrderResponse(updatedOrder, true);
+
+      try {
+        await emailService.sendOrderStatusUpdate(orderResponse, "PAID");
+        console.log(`Refund notification email sent for order: ${orderId}`);
+      } catch (emailError) {
+        console.error("Failed to send refund notification email:", emailError);
+      }
+
+      res.json({
+        success: true,
+        message: "Refund processed successfully",
+        order: orderResponse,
+        refundAmount,
+        refundId: refundResult?.id,
+      });
+    } catch (error) {
+      console.error("Refund error:", error);
+      throw new CustomError("Refund processing failed", 500);
+    }
+  });
+
+  static getPaymentStatus = catchAsync(async (req: Request, res: Response) => {
+    const { orderId } = req.params;
+
+    if (!orderId || !/^[a-zA-Z0-9-]+$/.test(orderId)) {
+      throw new CustomError("Invalid order ID format", 400);
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+        status: true,
+        paymentStatus: true,
+        stripePaymentIntentId: true,
+        paypalOrderId: true,
+        total: true,
+        currency: true,
+        userId: true,
+      },
+    });
+
+    if (!order) {
+      throw new CustomError("Order not found", 404);
+    }
+    const isOwner = req.user && order.userId === req.user.id;
+    const isAdmin = req.user && req.user.role === "ADMIN";
+
+    if (!isOwner && !isAdmin) {
+      throw new CustomError("Access denied", 403);
+    }
+
+    let externalStatus = null;
+
+    try {
+      if (order.stripePaymentIntentId) {
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+          order.stripePaymentIntentId
+        );
+        externalStatus = {
+          provider: "STRIPE",
+          status: paymentIntent.status,
+          amount: paymentIntent.amount / 100,
+          currency: paymentIntent.currency,
+        };
+      } else if (order.paypalOrderId) {
+        const paypalOrder = await paypalService.getOrderDetails(
+          order.paypalOrderId
+        );
+        externalStatus = {
+          provider: "PAYPAL",
+          status: paypalOrder.status,
+          amount: order.total.toNumber(),
+          currency: order.currency,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching external payment status:", error);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        orderId: order.id,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        total: order.total.toNumber(),
+        currency: order.currency,
+        externalStatus,
+      },
+    });
+  });
+
+  private static async handleStripePaymentSucceeded(paymentIntent: any) {
+    const order = await prisma.order.findFirst({
+      where: { stripePaymentIntentId: paymentIntent.id },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                fileName: true,
+                filePath: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      console.error(`Order not found for payment intent: ${paymentIntent.id}`);
+      return;
+    }
+
+    if (order.paymentStatus === "SUCCEEDED") {
+      console.log(`Payment already processed for order: ${order.id}`);
+      return;
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "COMPLETED",
+        paymentStatus: "SUCCEEDED",
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                fileName: true,
+                filePath: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const orderResponse = formatOrderResponse(updatedOrder, true);
+
+    try {
+      await emailService.sendOrderStatusUpdate(orderResponse, "PENDING");
+      console.log(`Payment success email sent for order: ${order.id}`);
+    } catch (emailError) {
+      console.error("Failed to send payment success email:", emailError);
+    }
+
+    console.log(`Payment succeeded for order: ${order.id}`);
+  }
+
+  private static async handleStripePaymentFailed(paymentIntent: any) {
+    const order = await prisma.order.findFirst({
+      where: { stripePaymentIntentId: paymentIntent.id },
+    });
+
+    if (!order) {
+      console.error(`Order not found for payment intent: ${paymentIntent.id}`);
+      return;
+    }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "FAILED",
+        paymentStatus: "FAILED",
+      },
+    });
+
+    console.log(`Payment failed for order: ${order.id}`);
+  }
+
+  private static async handleStripePaymentCanceled(paymentIntent: any) {
+    const order = await prisma.order.findFirst({
+      where: { stripePaymentIntentId: paymentIntent.id },
+    });
+
+    if (!order) {
+      console.error(`Order not found for payment intent: ${paymentIntent.id}`);
+      return;
+    }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "FAILED",
+        paymentStatus: "FAILED",
+      },
+    });
+
+    console.log(`Payment canceled for order: ${order.id}`);
+  }
+
+  private static async handleStripeDispute(charge: any) {
+    console.log(`Dispute created for charge: ${charge.id}`);
+
+    const paymentIntent = charge.payment_intent;
+
+    if (!paymentIntent) {
+      console.error("No payment intent found in dispute");
+      return;
+    }
+
+    const order = await prisma.order.findFirst({
+      where: { stripePaymentIntentId: paymentIntent },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      console.error(`Order not found for payment intent: ${paymentIntent}`);
+      return;
+    }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "DISPUTED",
+      },
+    });
+
+    console.log(`Order ${order.id} marked as disputed`);
+  }
+
+  private static async handlePayPalOrderApproved(resource: any) {
+    console.log(`PayPal order approved: ${resource.id}`);
+  }
+
+  private static async handlePayPalCaptureCompleted(resource: any) {
+    const paypalOrderId = resource.supplementary_data?.related_ids?.order_id;
+
+    if (!paypalOrderId) {
+      console.error("PayPal order ID not found in capture webhook:", resource);
+      return;
+    }
+
+    const order = await prisma.order.findFirst({
+      where: { paypalOrderId: paypalOrderId },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                fileName: true,
+                filePath: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      console.error(`Order not found for PayPal order: ${paypalOrderId}`);
+      return;
+    }
+
+    if (order.paymentStatus === "SUCCEEDED") {
+      console.log(`Payment already processed for order: ${order.id}`);
+      return;
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "COMPLETED",
+        paymentStatus: "SUCCEEDED",
+      },
+      include: {
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                fileName: true,
+                filePath: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const orderResponse = formatOrderResponse(updatedOrder, true);
+
+    try {
+      await emailService.sendOrderStatusUpdate(orderResponse, "PENDING");
+      console.log(`PayPal payment success email sent for order: ${order.id}`);
+    } catch (emailError) {
+      console.error("Failed to send PayPal payment success email:", emailError);
+    }
+
+    console.log(`PayPal payment completed for order: ${order.id}`);
+  }
+
+  private static async handlePayPalCaptureFailed(resource: any) {
+    const paypalOrderId =
+      resource.supplementary_data?.related_ids?.order_id || resource.id;
+
+    const order = await prisma.order.findFirst({
+      where: { paypalOrderId: paypalOrderId },
+    });
+
+    if (!order) {
+      console.error(`Order not found for PayPal order: ${paypalOrderId}`);
+      return;
+    }
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: "FAILED",
+        paymentStatus: "FAILED",
+      },
+    });
+
+    console.log(`PayPal payment failed for order: ${order.id}`);
+  }
+
+  private static async getPayPalCaptureId(
+    paypalOrderId: string
+  ): Promise<string | null> {
+    try {
+      const orderDetails = await paypalService.getOrderDetails(paypalOrderId);
+
+      const capture = orderDetails.purchase_units?.[0]?.payments?.captures?.[0];
+      return capture?.id || null;
+    } catch (error) {
+      console.error("Error getting PayPal capture ID:", error);
+      return null;
+    }
+  }
+
+  private static async createPayPalRefund(
+    captureId: string,
+    amount: number,
+    currency: string
+  ): Promise<any> {
+    const token = await (paypalService as any).getAccessToken();
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
+
+    const baseURL =
+      process.env.PAYPAL_ENVIRONMENT === "production"
+        ? "https://api-m.paypal.com"
+        : "https://api-m.sandbox.paypal.com";
+
+    const response = await fetch(
+      `${baseURL}/v2/payments/captures/${captureId}/refund`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          amount: {
+            value: amount.toFixed(2),
+            currency_code: currency,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`PayPal refund failed: ${JSON.stringify(error)}`);
+    }
+
+    return await response.json();
+  }
+}
