@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import axios, { AxiosResponse } from "axios";
 
 interface PayPalTokenResponse {
