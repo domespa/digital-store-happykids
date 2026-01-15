@@ -238,7 +238,7 @@ export class PayPalService {
         application_context: {
           return_url: `${process.env.FRONTEND_URL}/payment/success?provider=paypal`,
           cancel_url: `${process.env.FRONTEND_URL}/payment/cancel?provider=paypal`,
-          brand_name: process.env.BRAND_NAME || "ShethrivesADHD",
+          brand_name: process.env.BRAND_NAME || "H4ppyKids",
           locale: "it-IT",
           landing_page: "NO_PREFERENCE",
           shipping_preference: "NO_SHIPPING",

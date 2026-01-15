@@ -14,17 +14,11 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
       onClick={toggleTheme}
       className={`
         relative
-        p-2 
-        rounded-lg 
         transition-all 
         duration-300
         hover:scale-110
         
-        ${
-          theme === "light"
-            ? "bg-white border-2 border-gray-300 hover:bg-gray-50"
-            : "bg-slate-800 border-2 border-slate-600 hover:bg-slate-700"
-        }
+        ${theme === "light" ? " hover:bg-gray-50" : " hover:bg-slate-700"}
         
         ${className}
       `}
@@ -33,7 +27,7 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
     >
       <span
         className={`
-          text-2xl 
+          text-lg
           transition-transform 
           duration-300
           inline-block

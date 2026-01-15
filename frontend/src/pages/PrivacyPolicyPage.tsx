@@ -45,7 +45,7 @@ export function PrivacyPolicyPage() {
               </div>
             </div>
             <p className="text-purple-100 leading-relaxed">
-              At SheThrivesADHD, we value your privacy and are committed to
+              At H4ppyKids, we value your privacy and are committed to
               protecting your personal information. This policy explains how we
               collect, use, and safeguard your data.
             </p>
@@ -59,10 +59,10 @@ export function PrivacyPolicyPage() {
                 1. Introduction
               </h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                This Privacy Policy describes how SheThrivesADHD ("we", "us", or
+                This Privacy Policy describes how H4ppyKids ("we", "us", or
                 "our") collects, uses, and protects your personal information
-                when you use our e-commerce platform at
-                https://shethrivesadhd.com (the "Service").
+                when you use our e-commerce platform at https://H4ppyKids.com
+                (the "Service").
               </p>
               <div className="bg-purple-50 border-l-4 border-purple-600 p-4 rounded-r-lg">
                 <p className="text-sm text-purple-900">
@@ -84,7 +84,7 @@ export function PrivacyPolicyPage() {
                   Data Controller:
                 </p>
                 <div className="space-y-2 text-sm text-gray-700">
-                  <p className="font-medium">SheThrivesADHD</p>
+                  <p className="font-medium">H4ppyKids</p>
                   <div className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                     <div>
@@ -95,10 +95,10 @@ export function PrivacyPolicyPage() {
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-gray-400" />
                     <a
-                      href="mailto:shethrivesadhd@shethrivesadhd.com"
+                      href="mailto:H4ppyKids@H4ppyKids.com"
                       className="text-purple-600 hover:text-purple-700"
                     >
-                      shethrivesadhd@shethrivesadhd.com
+                      H4ppyKids@H4ppyKids.com
                     </a>
                   </div>
                 </div>
@@ -643,10 +643,10 @@ export function PrivacyPolicyPage() {
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-purple-600" />
                     <a
-                      href="shethrivesadhd@shethrivesadhd.com"
+                      href="H4ppyKids@H4ppyKids.com"
                       className="text-purple-600 hover:text-purple-700 font-medium"
                     >
-                      shethrivesadhd@shethrivesadhd.com
+                      H4ppyKids@H4ppyKids.com
                     </a>
                   </div>
                   <p className="text-sm text-gray-600">
@@ -659,8 +659,8 @@ export function PrivacyPolicyPage() {
             {/* Footer note */}
             <div className="bg-gray-100 rounded-xl p-6 text-center">
               <p className="text-sm text-gray-600">
-                By placing an order on SheThrivesADHD, you acknowledge that you
-                have read and understood this Privacy Policy.
+                By placing an order on H4ppyKids, you acknowledge that you have
+                read and understood this Privacy Policy.
               </p>
               <p className="text-xs text-gray-500 mt-2">
                 Last Updated: October 21, 2025 • Effective Date: January 21,
@@ -685,7 +685,7 @@ export function PrivacyPolicyPage() {
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-600">
-            <p>© 2025 SheThrivesADHD. All rights reserved.</p>
+            <p>© 2025 H4ppyKids. All rights reserved.</p>
             <div className="flex gap-4">
               <button
                 onClick={() => navigate("/")}

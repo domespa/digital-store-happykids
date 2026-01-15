@@ -1,79 +1,21 @@
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useCart } from "./useCart";
-import type { LandingContextType } from "../types/landing";
+import { useLandingContext } from "../context/LandingContext";
 import type { ProductToAdd } from "../types/cart";
 import { trackAddToCart } from "../utils/analytics";
 
-interface BackendProduct {
-  id: string;
-  name: string;
-  price: number;
-  compareAtPrice?: number;
-  description?: string;
-  images?: Array<{
-    url: string;
-    altText?: string;
-    isMain?: boolean;
-  }>;
-  currency: string;
-}
-
-// ========================
-//     COMBINIAMO I TIPI
-// ========================
-interface UseLandingCart {
-  landingContext: LandingContextType;
-}
-
-export const useLandingCart = ({ landingContext }: UseLandingCart) => {
+export const useLandingCart = () => {
   const cart = useCart();
-  const { config, user, isLoading: isLoadingUser } = landingContext;
-  const [backendProduct, setBackendProduct] = useState<BackendProduct | null>(
-    null
-  );
-  const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  const {
+    config,
+    user,
+    isLoading: isLoadingUser,
+    backendProduct,
+    isLoadingProduct,
+  } = useLandingContext();
 
   const cartRef = useRef(cart);
   cartRef.current = cart;
-
-  // ========================
-  //     PRODOTTO PRESO DA CONFIG
-  // ========================
-  useEffect(() => {
-    const fetchProduct = async () => {
-      if (!config?.productId) {
-        console.warn("⚠️ productId mancante nel config");
-        return;
-      }
-
-      setIsLoadingProduct(true);
-      try {
-        const baseUrl =
-          import.meta.env.VITE_API_BASE_URL ||
-          import.meta.env.VITE_API_URL ||
-          "https://api.shethrivesadhd.com";
-        const apiUrl = `${baseUrl}/api/products/${config.productId}`;
-
-        console.log("🔍 Fetching product from:", apiUrl);
-
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("Prodotto non trovato");
-
-        const data = await response.json();
-        console.log("✅ Prodotto fetchato dal backend:", data);
-        console.log("🖼️ IMMAGINI NEL PRODOTTO:", data.product?.images);
-
-        setBackendProduct(data.product);
-      } catch (error) {
-        console.error("❌ Errore fetch prodotto:", error);
-        console.log("📌 Fallback su prezzi config");
-      } finally {
-        setIsLoadingProduct(false);
-      }
-    };
-
-    fetchProduct();
-  }, [config?.productId]);
 
   const getMainPrice = useCallback((): number => {
     return backendProduct?.price ?? config?.pricing.mainPrice ?? 47;

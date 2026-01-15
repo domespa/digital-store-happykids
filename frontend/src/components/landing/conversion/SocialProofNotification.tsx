@@ -30,34 +30,34 @@ export default function SocialProofNotification() {
     "Atlanta, GA",
     "Miami, FL",
     "Las Vegas, NV",
+
     // Canada
     "Toronto, ON",
     "Vancouver, BC",
     "Montreal, QC",
     "Calgary, AB",
+    "Ottawa, ON",
+    "Edmonton, AB",
+
     // UK
     "London, UK",
     "Manchester, UK",
     "Edinburgh, UK",
     "Birmingham, UK",
-    // Europe
-    "Paris, France",
-    "Berlin, Germany",
-    "Rome, Italy",
-    "Madrid, Spain",
-    "Amsterdam, Netherlands",
-    "Barcelona, Spain",
-    "Munich, Germany",
-    "Vienna, Austria",
-    "Dublin, Ireland",
-    "Brussels, Belgium",
+    "Glasgow, UK",
+    "Leeds, UK",
+    "Liverpool, UK",
+    "Bristol, UK",
+
     // Australia
     "Sydney, Australia",
     "Melbourne, Australia",
     "Brisbane, Australia",
+    "Perth, Australia",
+    "Adelaide, Australia",
   ];
 
-  // Diverse names (women-focused for ADHD audience)
+  // Diverse names (women-focused for Mother audience)
   const names = [
     "Sarah",
     "Emily",
@@ -111,7 +111,7 @@ export default function SocialProofNotification() {
 
   const actions = [
     "just purchased the guide",
-    "downloaded the ADHD guide",
+    "downloaded the 30-days-protocol",
     "joined the program",
     "started their transformation",
     "got instant access",

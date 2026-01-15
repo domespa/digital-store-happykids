@@ -3,6 +3,7 @@ import { adminApi } from "../services/adminApi";
 import { useAdminAuth } from "../hooks/useAdminAuth";
 import { ThemeToggle } from "../components/common/ThemeToggle";
 import type { Socket } from "socket.io-client";
+import { useNavigate } from "react-router";
 
 type AdminPage =
   | "dashboard"
@@ -38,6 +39,7 @@ export default function AdminLayout({
   const [notifications, setNotifications] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { logout } = useAdminAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     if (confirm("Are you sure you want to logout?")) {
@@ -87,8 +89,8 @@ export default function AdminLayout({
 
   const navigation: Array<{ name: string; href: AdminPage; icon: string }> = [
     { name: "Dashboard", href: "dashboard", icon: "📊" },
-    { name: "User Map", href: "user-map", icon: "🌍" },
-    { name: "Users Online", href: "users-online", icon: "👥" },
+    // { name: "User Map", href: "user-map", icon: "🌍" },
+    // { name: "Users Online", href: "users-online", icon: "👥" },
     { name: "Orders", href: "orders", icon: "📦" },
     { name: "Products", href: "products", icon: "🏷️" },
   ];
@@ -168,12 +170,31 @@ export default function AdminLayout({
         </nav>
 
         <div className="absolute bottom-16 left-0 right-0 px-3">
+          <div className="relative p-2">
+            <ThemeToggle />
+          </div>
+
+          <button className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+            <span className="text-lg">🔔</span>
+            {notifications > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {notifications > 99 ? "99+" : notifications}
+              </span>
+            )}
+          </button>
           <button
             onClick={handleLogout}
             className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             <span className="mr-3 text-lg">🚪</span>
             Logout
+          </button>
+          <button
+            onClick={() => navigate("/")}
+            className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <span className="mr-3 text-lg">🛒</span>
+            Go to landing
           </button>
         </div>
 
@@ -191,69 +212,28 @@ export default function AdminLayout({
       <div className="lg:pl-64">
         {/* HEADER */}
         <header className="bg-white dark:bg-slate-800 shadow-sm border-b border-gray-200 dark:border-slate-700 transition-colors duration-300">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {/* HAMBURGER MENU */}
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  aria-label="Toggle menu"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* HAMBURGER MENU */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                aria-label="Toggle menu"
+              >
+                <svg
+                  className="w-6 h-6 text-gray-700 dark:text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-6 h-6 text-gray-700 dark:text-gray-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  </svg>
-                </button>
-
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">
-                  {currentPage.replace("-", " ")}
-                </h2>
-              </div>
-
-              <div className="flex items-center space-x-4">
-                {/* THEME TOGGLE - AGGIUNTO QUI */}
-                <ThemeToggle />
-
-                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  <span>Live</span>
-                </div>
-                <button className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-                  <span className="text-lg">🔔</span>
-                  {notifications > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {notifications > 99 ? "99+" : notifications}
-                    </span>
-                  )}
-                </button>
-
-                {/* ADMIN PROFILE */}
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">A</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    Admin
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="hidden lg:block ml-2 p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                    title="Logout"
-                  >
-                    <span className="text-lg">🚪</span>
-                  </button>
-                </div>
-              </div>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
         </header>

@@ -207,7 +207,7 @@ export function useAnalyticsDashboard(): AnalyticsDashboardData &
     };
 
     loadInitialData();
-  }, []);
+  }, [loadDashboardStats, loadChartData, period]);
 
   useEffect(() => {
     if (loading) return;

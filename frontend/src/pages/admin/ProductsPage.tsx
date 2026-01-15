@@ -35,15 +35,12 @@ export default function ProductsPage() {
   });
   const [formLoading, setFormLoading] = useState(false);
 
-  // SEARCH
   const [searchTerm, setSearchTerm] = useState("");
   const [showInactive, setShowInactive] = useState(false);
 
-  // IMAGE
   const [showGallery, setShowGallery] = useState(false);
   const [galleryProduct, setGalleryProduct] = useState<Product | null>(null);
 
-  // EBOOK UPLOAD
   const [showEbookUpload, setShowEbookUpload] = useState(false);
   const [ebookProduct, setEbookProduct] = useState<Product | null>(null);
 
@@ -205,10 +202,12 @@ export default function ProductsPage() {
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Products Management
           </h1>
-          <p className="text-gray-600">{products.length} total products</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            {products.length} total products
+          </p>
         </div>
         <div className="flex gap-2">
           <Button onClick={loadProducts} variant="secondary">
@@ -228,11 +227,11 @@ export default function ProductsPage() {
       {/* ERROR MESSAGE */}
       {error && (
         <Card>
-          <div className="text-red-600 bg-red-50 p-4 rounded border border-red-200">
+          <div className="text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-4 rounded border border-red-200 dark:border-red-800">
             {error}
             <button
               onClick={() => setError(null)}
-              className="ml-2 text-red-800 hover:text-red-900"
+              className="ml-2 text-red-800 dark:text-red-300 hover:text-red-900 dark:hover:text-red-200"
             >
               ✕
             </button>
@@ -249,11 +248,12 @@ export default function ProductsPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1"
           />
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input
               type="checkbox"
               checked={showInactive}
               onChange={(e) => setShowInactive(e.target.checked)}
+              className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
             />
             Show inactive
           </label>
@@ -264,7 +264,7 @@ export default function ProductsPage() {
       {showCreateForm && (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {editingProduct ? "Edit Product" : "Create New Product"}
             </h3>
             <Button
@@ -386,7 +386,7 @@ export default function ProductsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-32 bg-gray-200 rounded-lg"></div>
+              <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
             </div>
           ))}
         </div>
@@ -399,11 +399,11 @@ export default function ProductsPage() {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                     {product.name}
                   </h3>
                   {product.description && (
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       {product.description}
                     </p>
                   )}
@@ -413,10 +413,10 @@ export default function ProductsPage() {
                 </Badge>
               </div>
 
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex justify-between">
                   <span>Price:</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">
                     {formatPrice(product.price)}
                   </span>
                 </div>
@@ -430,8 +430,7 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {/* BOTTONI MODIFICATI */}
-              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
+              <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button
                   size="sm"
                   variant="secondary"
@@ -470,7 +469,7 @@ export default function ProductsPage() {
       {filteredProducts.length === 0 && !loading && (
         <Card>
           <div className="text-center py-8">
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               {searchTerm
                 ? "No products found matching your search."
                 : "No products found."}
@@ -581,13 +580,17 @@ function ProductGalleryManager({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
       <Card className="max-w-4xl w-full max-h-[90dvh] overflow-auto">
         {/* HEADER */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Product Images</h2>
-            <p className="text-sm text-gray-600">{product.name}</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              Product Images
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {product.name}
+            </p>
           </div>
           <Button variant="secondary" onClick={onClose}>
             Close
@@ -596,11 +599,11 @@ function ProductGalleryManager({
 
         {/* ERROR MESSAGE */}
         {error && (
-          <div className="mb-4 text-red-600 bg-red-50 p-3 rounded border border-red-200">
+          <div className="mb-4 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800">
             {error}
             <button
               onClick={() => setError(null)}
-              className="ml-2 text-red-800 hover:text-red-900"
+              className="ml-2 text-red-800 dark:text-red-300 hover:text-red-900 dark:hover:text-red-200"
             >
               ✕
             </button>
@@ -608,7 +611,7 @@ function ProductGalleryManager({
         )}
 
         {/* UPLOAD SECTION */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
           <input
             ref={fileInputRef}
             type="file"
@@ -623,15 +626,15 @@ function ProductGalleryManager({
             className="cursor-pointer flex flex-col items-center justify-center py-4"
           >
             <span className="text-4xl mb-2">📸</span>
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Click to upload images
             </span>
-            <span className="text-xs text-gray-500 mt-1">
+            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Max 5 images, PNG/JPG/WEBP
             </span>
           </label>
           {uploading && (
-            <div className="text-center text-sm text-blue-600 mt-2">
+            <div className="text-center text-sm text-blue-600 dark:text-blue-400 mt-2">
               Uploading...
             </div>
           )}
@@ -642,12 +645,12 @@ function ProductGalleryManager({
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="aspect-square bg-gray-200 rounded-lg"></div>
+                <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               </div>
             ))}
           </div>
         ) : images.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <p>No images yet. Upload some!</p>
           </div>
         ) : (
@@ -655,23 +658,20 @@ function ProductGalleryManager({
             {images.map((image) => (
               <div
                 key={image.id}
-                className="relative group border-2 rounded-lg overflow-hidden hover:border-blue-500 transition-colors"
+                className="relative group border-2 rounded-lg overflow-hidden hover:border-blue-500 dark:hover:border-blue-400 transition-colors border-gray-200 dark:border-gray-700"
               >
-                {/* FEATURED BADGE */}
                 {image.isMain && (
                   <div className="absolute top-2 left-2 z-10">
                     <Badge variant="success">⭐ Featured</Badge>
                   </div>
                 )}
 
-                {/* IMAGE */}
                 <img
                   src={image.url}
                   alt={image.altText || product.name}
                   className="w-full aspect-square object-cover"
                 />
 
-                {/* ACTIONS OVERLAY */}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                   {!image.isMain && (
                     <button
@@ -691,8 +691,7 @@ function ProductGalleryManager({
                   </button>
                 </div>
 
-                {/* IMAGE INFO */}
-                <div className="p-2 bg-gray-50 text-xs text-gray-600">
+                <div className="p-2 bg-gray-50 dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400">
                   Order: {image.sortOrder + 1}
                 </div>
               </div>
@@ -700,8 +699,7 @@ function ProductGalleryManager({
           </div>
         )}
 
-        {/* FOOTER INFO */}
-        <div className="mt-6 text-sm text-gray-500 text-center">
+        <div className="mt-6 text-sm text-gray-500 dark:text-gray-400 text-center">
           {images.length} image(s) • Featured image will be used on homepage
         </div>
       </Card>
@@ -780,7 +778,6 @@ function EbookUploadManager({
     setProgress(0);
 
     try {
-      // ✅ USA adminProducts.uploadEbook
       const result = await adminProducts.uploadEbook(
         product.id,
         selectedFile,
@@ -791,13 +788,11 @@ function EbookUploadManager({
 
       setSuccess(`✅ Upload successful!\n\nPublic ID: ${result.publicId}`);
 
-      // Reset
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
 
-      // Update products list
       setTimeout(() => {
         onUpdate();
       }, 1000);
@@ -812,13 +807,17 @@ function EbookUploadManager({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
       <Card className="max-w-2xl w-full">
         {/* HEADER */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Upload Ebook</h2>
-            <p className="text-sm text-gray-600">{product.name}</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              Upload Ebook
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {product.name}
+            </p>
           </div>
           <Button variant="secondary" onClick={onClose}>
             Close
@@ -827,15 +826,15 @@ function EbookUploadManager({
 
         {/* CURRENT FILE INFO */}
         {product.filePath && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="success">Current File</Badge>
             </div>
-            <div className="text-xs text-gray-600 font-mono bg-white p-2 rounded break-all">
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-mono bg-white dark:bg-gray-800 p-2 rounded break-all">
               {product.filePath}
             </div>
             {product.fileName && (
-              <div className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center gap-1">
                 <span>📄</span>
                 <span>{product.fileName}</span>
               </div>
@@ -845,19 +844,21 @@ function EbookUploadManager({
 
         {/* ERROR/SUCCESS ALERTS */}
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
             <div className="flex items-start gap-2">
-              <span className="text-red-600 text-xl">❌</span>
-              <p className="text-sm text-red-600">{error}</p>
+              <span className="text-red-600 dark:text-red-400 text-xl">❌</span>
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
+          <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
             <div className="flex items-start gap-2">
-              <span className="text-green-600 text-xl">✅</span>
-              <p className="text-sm text-green-600 whitespace-pre-line">
+              <span className="text-green-600 dark:text-green-400 text-xl">
+                ✅
+              </span>
+              <p className="text-sm text-green-600 dark:text-green-400 whitespace-pre-line">
                 {success}
               </p>
             </div>
@@ -866,7 +867,7 @@ function EbookUploadManager({
 
         {/* FILE INPUT */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Select PDF File
           </label>
           <input
@@ -874,12 +875,13 @@ function EbookUploadManager({
             type="file"
             accept=".pdf,application/pdf"
             onChange={handleFileSelect}
-            className="block w-full text-sm text-gray-500
+            className="block w-full text-sm text-gray-500 dark:text-gray-400
               file:mr-4 file:py-2 file:px-4
               file:rounded-md file:border-0
               file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100
+              file:bg-blue-50 dark:file:bg-blue-900/20 
+              file:text-blue-700 dark:file:text-blue-400
+              hover:file:bg-blue-100 dark:hover:file:bg-blue-900/30
               file:cursor-pointer
               cursor-pointer
               disabled:opacity-50"
@@ -889,11 +891,13 @@ function EbookUploadManager({
 
         {/* FILE INFO */}
         {selectedFile && !uploading && (
-          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="mb-6 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <span className="text-xl">📄</span>
-                <span className="text-sm truncate">{selectedFile.name}</span>
+                <span className="text-sm truncate text-gray-900 dark:text-gray-100">
+                  {selectedFile.name}
+                </span>
               </div>
               <Badge variant="info">
                 {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
@@ -905,13 +909,13 @@ function EbookUploadManager({
         {/* PROGRESS BAR */}
         {uploading && (
           <div className="mb-6 space-y-2">
-            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
               <div
-                className="bg-blue-600 h-full transition-all duration-300"
+                className="bg-blue-600 dark:bg-blue-500 h-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
               Uploading... {progress}%
             </p>
           </div>
@@ -932,10 +936,12 @@ function EbookUploadManager({
         </Button>
 
         {/* INFO BOX */}
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+        <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
           <div className="flex items-start gap-2">
-            <span className="text-yellow-600 text-xl">⚠️</span>
-            <div className="text-xs text-yellow-800 space-y-2">
+            <span className="text-yellow-600 dark:text-yellow-400 text-xl">
+              ⚠️
+            </span>
+            <div className="text-xs text-yellow-800 dark:text-yellow-300 space-y-2">
               <p className="font-semibold">Requirements:</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>Only PDF files (max 50MB)</li>

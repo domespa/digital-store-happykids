@@ -83,10 +83,10 @@ export function RefundPolicyPage() {
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-blue-600" />
                     <a
-                      href="mailto:shethrivesadhd@shethrivesadhd.com"
+                      href="mailto:H4ppyKids@H4ppyKids.com"
                       className="text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      shethrivesadhd@shethrivesadhd.com
+                      H4ppyKids@H4ppyKids.com
                     </a>
                   </div>
                   <p className="text-sm text-gray-600">
@@ -113,7 +113,7 @@ export function RefundPolicyPage() {
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-600">
-            <p>© 2025 SheThrivesADHD. All rights reserved.</p>
+            <p>© 2025 H4ppyKids. All rights reserved.</p>
             <div className="flex gap-4">
               <button
                 onClick={() => navigate("/")}

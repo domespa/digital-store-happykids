@@ -59,7 +59,7 @@ const CITY_COORDINATES: Record<string, [number, number]> = {
   "Manchester, United Kingdom": [53.4808, -2.2426],
   "Edinburgh, United Kingdom": [55.9533, -3.1883],
   "Belfast, United Kingdom": [54.5973, -5.9301],
-  "London, UK": [51.5074, -0.1278], // Alias
+  "London, UK": [51.5074, -0.1278],
   "Manchester, UK": [53.4808, -2.2426],
   "Edinburgh, UK": [55.9533, -3.1883],
 
@@ -81,7 +81,7 @@ const CITY_COORDINATES: Record<string, [number, number]> = {
   "Los Angeles, United States": [34.0522, -118.2437],
   "Chicago, United States": [41.8781, -87.6298],
   "Denver, United States": [39.7392, -104.9903],
-  "New York, USA": [40.7128, -74.006], // Alias
+  "New York, USA": [40.7128, -74.006],
   "Los Angeles, USA": [34.0522, -118.2437],
   "Chicago, USA": [41.8781, -87.6298],
 
@@ -136,13 +136,24 @@ const getCityCoordinates = (
 export default function UserGlobePage() {
   const { onlineUsers, loading, isWebSocketConnected, refreshData } =
     useRealTimeUsers();
+  console.log("🗺️ Online users for globe:", onlineUsers);
+  console.log("🗺️ First user location:", onlineUsers[0]?.location);
   const globeRef = useRef<any>(null);
   const [globeReady, setGlobeReady] = useState(false);
   const globeSize = useGlobeDimensions();
 
   // 📊 Dati processati
   const pointsData = useMemo(() => {
-    console.log("🌍 Processing users for globe:", onlineUsers.length);
+    if (onlineUsers.length === 0) {
+      return [
+        {
+          lat: 0,
+          lng: 0,
+          color: "#555555",
+          label: "No users online",
+        },
+      ];
+    }
 
     return onlineUsers
       .filter((user) => user.location?.country)

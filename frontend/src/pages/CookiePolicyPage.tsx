@@ -56,9 +56,8 @@ export function CookiePolicyPage() {
               </div>
             </div>
             <p className="text-blue-100 leading-relaxed">
-              This Cookie Policy explains how SheThrivesADHD uses cookies and
-              similar tracking technologies on our website to enhance your
-              experience.
+              This Cookie Policy explains how H4ppyKids uses cookies and similar
+              tracking technologies on our website to enhance your experience.
             </p>
           </div>
 
@@ -743,10 +742,10 @@ export function CookiePolicyPage() {
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-blue-600" />
                     <a
-                      href="mailto:shethrivesadhd@shethrivesadhd.com"
+                      href="mailto:H4ppyKids@H4ppyKids.com"
                       className="text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      shethrivesadhd@shethrivesadhd.com
+                      H4ppyKids@H4ppyKids.com
                     </a>
                   </div>
                   <p className="text-sm text-gray-600">
@@ -759,8 +758,8 @@ export function CookiePolicyPage() {
             {/* Footer note */}
             <div className="bg-gray-100 rounded-xl p-6 text-center">
               <p className="text-sm text-gray-600 mb-2">
-                By continuing to use SheThrivesADHD, you acknowledge that you
-                have read and understood this Cookie Policy.
+                By continuing to use H4ppyKids, you acknowledge that you have
+                read and understood this Cookie Policy.
               </p>
               <p className="text-xs text-gray-500">
                 Last Updated: October 21, 2025 • Effective Date: October 21,
@@ -785,7 +784,7 @@ export function CookiePolicyPage() {
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-600">
-            <p>© 2025 SheThrivesADHD. All rights reserved.</p>
+            <p>© 2025 H4ppyKids. All rights reserved.</p>
             <div className="flex gap-4">
               <button
                 onClick={() => navigate("/")}

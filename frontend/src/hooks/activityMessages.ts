@@ -50,14 +50,14 @@ export const FEMALE_NAMES = [
   "Grace",
 ];
 
-// PRODOTTI (EBOOK ADHD in Women specifici)
+// PRODOTTI
 export const PRODUCTS = [
-  "ADHD in Women Ebook",
-  "Complete Bundle",
-  "Digital Guide",
-  "ADHD Resource Pack",
-  "Women's ADHD Guide",
-  "Understanding ADHD Ebook",
+  "30-Day Screen Detox Protocol",
+  "Quick Reference Guide",
+  "50 Screen-Free Activities",
+  "Co-Parent Alignment Tools",
+  "Crisis Scripts Pack",
+  "Troubleshooting & Success Stories",
 ];
 
 // ============================================
@@ -76,21 +76,21 @@ export interface ActivityMessage {
 export const CONNECTION_MESSAGES: ActivityMessage[] = [
   {
     type: "connection",
-    template: "Someone from {city} just joined",
+    template: "A parent from {city} just started the 30-Day Screen Detox",
     icon: "💜",
     priority: 1,
     requiresData: true,
   },
   {
     type: "connection",
-    template: "{name} from {city} is here",
+    template: "{name} from {city} is taking back family time",
     icon: "🌟",
     priority: 1,
     requiresData: true,
   },
   {
     type: "connection",
-    template: "An ADHD warrior from {city} just connected",
+    template: "Another parent from {city} joined to break screen addiction",
     icon: "✨",
     priority: 2,
     requiresData: true,
@@ -126,21 +126,21 @@ export const CART_MESSAGES: ActivityMessage[] = [
 export const PURCHASE_MESSAGES: ActivityMessage[] = [
   {
     type: "purchase",
-    template: "Just purchased from {city} - Welcome! 🎉",
+    template: "Just purchased from {city} – Welcome to the Screen Detox! 🎉",
     icon: "✅",
     priority: 1,
     requiresData: true,
   },
   {
     type: "purchase",
-    template: "{name} from {city} just started their ADHD journey",
+    template: "{name} from {city} just started the 30-Day Screen Detox",
     icon: "🌟",
     priority: 1,
     requiresData: true,
   },
   {
     type: "purchase",
-    template: "Someone just got the {product}",
+    template: "Someone just got the {product} – reclaim family time now! 💪",
     icon: "💪",
     priority: 2,
     requiresData: true,
@@ -151,21 +151,21 @@ export const PURCHASE_MESSAGES: ActivityMessage[] = [
 export const VIEW_MESSAGES: ActivityMessage[] = [
   {
     type: "view",
-    template: "{count} women are reading this right now",
+    template: "{count} parents are checking out the Screen Detox right now",
     icon: "👀",
     priority: 3,
     requiresData: false,
   },
   {
     type: "view",
-    template: "Someone from {city} is viewing the ebook",
+    template: "Someone from {city} is exploring the 30-Day Screen Detox",
     icon: "📖",
     priority: 3,
     requiresData: false,
   },
   {
     type: "view",
-    template: "{count} people considering {product}",
+    template: "{count} people considering {product} to reclaim family time",
     icon: "💜",
     priority: 4,
     requiresData: false,
@@ -176,21 +176,21 @@ export const VIEW_MESSAGES: ActivityMessage[] = [
 export const STAT_MESSAGES: ActivityMessage[] = [
   {
     type: "stat",
-    template: "This ebook has 86 five-star reviews ⭐⭐⭐⭐⭐",
+    template: "This guide has 86 five-star reviews ⭐⭐⭐⭐⭐",
     icon: "⭐",
     priority: 1,
     requiresData: false,
   },
   {
     type: "stat",
-    template: "{count} women found clarity this month",
+    template: "{count} parents found relief this month",
     icon: "💪",
     priority: 2,
     requiresData: true,
   },
   {
     type: "stat",
-    template: "{count}% report better understanding after reading",
+    template: "{count}% report better family time after using the guide",
     icon: "🎯",
     priority: 2,
     requiresData: true,
@@ -204,7 +204,7 @@ export const STAT_MESSAGES: ActivityMessage[] = [
   },
   {
     type: "stat",
-    template: "Helped {count} women with ADHD this month",
+    template: "Helped {count} families reduce screen addiction this month",
     icon: "💜",
     priority: 2,
     requiresData: true,
@@ -215,7 +215,7 @@ export const STAT_MESSAGES: ActivityMessage[] = [
 export const COMMUNITY_MESSAGES: ActivityMessage[] = [
   {
     type: "community",
-    template: "Join 500+ ADHD warriors thriving together",
+    template: "Join 500+ parents taking back family time together",
     icon: "🌱",
     priority: 4,
     requiresData: false,
@@ -229,21 +229,21 @@ export const COMMUNITY_MESSAGES: ActivityMessage[] = [
   },
   {
     type: "community",
-    template: "Small steps lead to big changes",
+    template: "Small steps lead to big changes at home",
     icon: "✨",
     priority: 5,
     requiresData: false,
   },
   {
     type: "community",
-    template: "You've got this - start today",
+    template: "You've got this – start the Screen Detox today",
     icon: "💪",
     priority: 5,
     requiresData: false,
   },
   {
     type: "community",
-    template: "94% would recommend to a friend",
+    template: "94% of parents would recommend this guide",
     icon: "⭐",
     priority: 3,
     requiresData: false,

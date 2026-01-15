@@ -20,11 +20,11 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <h3 className="text-xl font-bold bg-gradient-to-r from-[#84A98C] to-[#52796F] bg-clip-text text-white mb-3">
-              SheThrivesADHD
+              H4ppyKids
             </h3>
             <p className="text-white text-sm leading-relaxed">
-              Empowering women with ADHD to thrive through understanding, tools,
-              and community.
+              Helping parents break screen addiction and reconnect with their
+              kids.
             </p>
           </div>
 
@@ -99,7 +99,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-white">
               <li>
                 <a
-                  href="mailto:shethrivesadhd@shethrivesadhd.com"
+                  href="mailto:H4ppyKids@H4ppyKids.com"
                   className="hover:text-[#84A98C] transition-colors flex items-center gap-2"
                 >
                   <svg
@@ -115,7 +115,7 @@ export default function Footer() {
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  shethrivesadhd@shethrivesadhd.com
+                  H4ppyKids@H4ppyKids.com
                 </a>
               </li>
             </ul>
@@ -125,9 +125,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-gray-800 pt-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white">
-            <p>
-              © {new Date().getFullYear()} SheThrivesADHD. All rights reserved.
-            </p>
+            <p>© {new Date().getFullYear()} H4ppyKids. All rights reserved.</p>
             <div className="flex items-center gap-2 text-xs">
               <Shield className="w-3 h-3" />
               <span>GDPR Compliant • IP-based tracking only</span>

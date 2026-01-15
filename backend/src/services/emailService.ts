@@ -47,7 +47,7 @@ class EmailService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Reset Password - ShethrivesADHD</title>
+        <title>Reset Password - H4ppyKids</title>
       </head>
       <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px;">
@@ -55,7 +55,7 @@ class EmailService {
           
           <p>Hi ${firstName},</p>
           
-          <p>You requested to reset your password for your ShethrivesADHD account. Click the button below to set a new password:</p>
+          <p>You requested to reset your password for your H4ppyKids account. Click the button below to set a new password:</p>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetUrl}" 
@@ -80,7 +80,7 @@ class EmailService {
 
     await this.sendEmail({
       to: email,
-      subject: "Reset Your Password - ShethrivesADHD",
+      subject: "Reset Your Password - H4ppyKids",
       html: htmlContent,
     });
   }
@@ -98,15 +98,15 @@ class EmailService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Verify Your Email - ShethrivesADHD</title>
+        <title>Verify Your Email - H4ppyKids</title>
       </head>
       <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px;">
-          <h1 style="color: #333; text-align: center;">Welcome to ShethrivesADHD!</h1>
+          <h1 style="color: #333; text-align: center;">Welcome to H4ppyKids!</h1>
           
           <p>Hi ${firstName},</p>
           
-          <p>Thank you for registering with ShethrivesADHD! To complete your registration, please verify your email address:</p>
+          <p>Thank you for registering with H4ppyKids! To complete your registration, please verify your email address:</p>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verificationUrl}" 
@@ -129,7 +129,7 @@ class EmailService {
 
     await this.sendEmail({
       to: email,
-      subject: "Verify Your Email - ShethrivesADHD",
+      subject: "Verify Your Email - H4ppyKids",
       html: htmlContent,
     });
   }
@@ -144,7 +144,7 @@ class EmailService {
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>Password Changed - ShethrivesADHD</title>
+        <title>Password Changed - H4ppyKids</title>
       </head>
       <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #f8f9fa; padding: 30px; border-radius: 10px;">
@@ -152,7 +152,7 @@ class EmailService {
           
           <p>Hi ${firstName},</p>
           
-          <p>This email confirms that your ShethrivesADHD account password was successfully changed on ${new Date().toLocaleString()}.</p>
+          <p>This email confirms that your H4ppyKids account password was successfully changed on ${new Date().toLocaleString()}.</p>
           
           <p><strong>If you didn't make this change:</strong></p>
           <ul>
@@ -174,7 +174,7 @@ class EmailService {
 
     await this.sendEmail({
       to: email,
-      subject: "Password Changed - ShethrivesADHD",
+      subject: "Password Changed - H4ppyKids",
       html: htmlContent,
     });
   }
@@ -189,7 +189,7 @@ class EmailService {
 
       const emailSubject = `Order Confirmation #${order.id.slice(
         -8
-      )} - ShethrivesADHD Store`;
+      )} - H4ppyKids Store`;
 
       // GENERIAMO IL LINK TEMPORANEO PER IL DOWNLOAD
       const downloadLinks = (
@@ -235,7 +235,7 @@ class EmailService {
         to: order.customerEmail,
         subject: emailSubject,
         html: emailHTML,
-        from: `"ShethrivesADHD" <${process.env.EMAIL_USER}>`,
+        from: `"H4ppyKids" <${process.env.EMAIL_USER}>`,
       });
 
       console.log(
@@ -287,7 +287,7 @@ class EmailService {
         to: order.customerEmail,
         subject: subject,
         html: emailHTML,
-        from: `"ShethrivesADHD" <${process.env.EMAIL_USER}>`,
+        from: `"H4ppyKids" <${process.env.EMAIL_USER}>`,
       });
 
       console.log(
@@ -319,7 +319,7 @@ class EmailService {
         to: VENDOR_EMAIL,
         subject: emailSubject,
         html: emailHTML,
-        from: `"ShethrivesADHD Store" <${process.env.EMAIL_USER}>`,
+        from: `"H4ppyKids Store" <${process.env.EMAIL_USER}>`,
       });
 
       console.log(`✅ Vendor notification sent to: ${VENDOR_EMAIL}`);
@@ -377,7 +377,7 @@ class EmailService {
       <html>
       <head>
         <meta charset="utf-8">
-        <title>New Order - ShethrivesADHD</title>
+        <title>New Order - H4ppyKids</title>
       </head>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4;">
         <div style="max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -522,7 +522,7 @@ class EmailService {
           <!-- Footer -->
           <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #dee2e6;">
             <p style="margin: 0; color: #666; font-size: 12px;">
-              This is an automated notification from ShethrivesADHD Store
+              This is an automated notification from H4ppyKids Store
             </p>
             <p style="margin: 5px 0 0 0; color: #999; font-size: 11px;">
               ${new Date().toLocaleString()}
@@ -690,7 +690,7 @@ class EmailService {
               <p>If you have any questions, please contact us with order number: <strong>${
                 order.id
               }</strong></p>
-              <p>SheThrivesADHD - Your digital wellness platform</p>
+              <p>H4ppyKids - Your digital wellness platform</p>
             </div>
           </div>
         </div>

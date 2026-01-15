@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API_URL = "https://www.shethrivesadhd.com//api";
+const API_URL = "http://localhost:5173/api";
 
 interface UploadEbookResponse {
   success: boolean;

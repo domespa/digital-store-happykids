@@ -76,6 +76,26 @@ export function useRealTimeUsers() {
   useEffect(() => {
     let mounted = true;
 
+    const initialLoad = async () => {
+      try {
+        console.log("📊 Initial data load...");
+        const users = await adminUsers.getOnline();
+        if (mounted) {
+          setOnlineUsers(users || []);
+          setLoading(false);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("❌ Initial load failed:", err);
+        if (mounted) {
+          setError("Failed to load initial data");
+          setLoading(false);
+        }
+      }
+    };
+
+    initialLoad();
+
     const setupWebSocket = () => {
       try {
         console.log("🔧 Setting up WebSocket connection...");

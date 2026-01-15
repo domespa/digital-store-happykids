@@ -59,6 +59,7 @@ console.log("DATABASE_URL at runtime:", process.env.DATABASE_URL);
 
 // CREO APP EXPRESS
 const app = express();
+app.set("etag", false);
 const PORT = process.env.PORT || 3001;
 
 // CREATE HTTP SERVER PER WEBSOCKET
@@ -140,9 +141,6 @@ app.use(
       "http://localhost:3001",
       "http://localhost:5173",
       "http://localhost:3000",
-      "https://shethrivesadhd.com",
-      "https://www.shethrivesadhd.com",
-      "https://shethrivesadhd.vercel.app",
     ],
     credentials: true,
   })

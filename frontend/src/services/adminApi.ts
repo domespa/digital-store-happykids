@@ -18,7 +18,7 @@ import type { Socket } from "socket.io-client";
 import type { ProductImage } from "../types/admin";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL + "/api" || "http://localhost:3001/api";
+  import.meta.env.VITE_API_URL + "/api" || "http://localhost:5000/api";
 
 // Environment-aware logging
 const isDev = import.meta.env.DEV;
@@ -285,7 +285,7 @@ export const adminWebSocket = {
       import.meta.env.VITE_API_URL?.replace("https://", "wss://").replace(
         "http://",
         "ws://"
-      ) || "http://localhost:3001";
+      ) || "ws://localhost:5000";
 
     console.log("🔌 Creating WebSocket connection to:", WS_URL);
 
@@ -757,26 +757,12 @@ export const adminAnalytics = {
 
   clearAnalyticsCache: async (): Promise<{ success: boolean }> => {
     try {
-      const token = localStorage.getItem("adminToken");
-      const response = await fetch(
-        "https://api.shethrivesadhd.com/api/admin/analytics/clear-cache",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await adminApiInstance.post(
+        "/admin/analytics/clear-cache"
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to clear cache");
-      }
-
-      return response.json();
+      return response.data;
     } catch (error) {
       console.error("Error clearing cache:", error);
-      // Non bloccare il refresh se fallisce
       return { success: false };
     }
   },
@@ -835,6 +821,12 @@ export const adminApi = {
   convertTimePeriod: convertTimePeriodToApiPeriod,
   getRecentActivity: adminDashboard.getRecentActivity,
   clearAnalyticsCache: adminAnalytics.clearAnalyticsCache,
+  getCompleteDashboard: async (period: string = "today") => {
+    const response = await adminApiInstance.get(
+      `/admin/dashboard/complete?period=${period}`
+    );
+    return response.data;
+  },
 };
 
 export default adminApi;

@@ -14,12 +14,26 @@ export interface LandingUser {
   currency: string;
 }
 
+export interface BackendProduct {
+  id: string;
+  name: string;
+  price: number;
+  compareAtPrice?: number;
+  description?: string;
+  images?: Array<{
+    url: string;
+    altText?: string;
+    isMain?: boolean;
+  }>;
+  currency: string;
+}
+
 export interface LandingContextType {
   config: LandingConfig | null;
-
   user: LandingUser | null;
-
   isLoading: boolean;
+  backendProduct?: BackendProduct | null;
+  isLoadingProduct?: boolean;
 }
 
 // PROB

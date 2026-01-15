@@ -1,17 +1,16 @@
 import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
 
-export default function HeroSectEmotional() {
-  const landingContext = useLandingContext();
-  const landingCart = useLandingCart({ landingContext });
-  const { config, user, isLoading } = landingContext;
+export default function HeroSect() {
+  const { config, user, isLoading } = useLandingContext();
+  const landingCart = useLandingCart();
 
   if (isLoading) {
     return (
       <section className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#52796F] mx-auto mb-4"></div>
-          <p className="text-[#4A4A4A]">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </section>
     );
@@ -31,114 +30,145 @@ export default function HeroSectEmotional() {
   const userCurrency = user?.currency || "USD";
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-white via-[#F8F9FA] to-white relative overflow-hidden flex items-center py-8 lg:py-12">
-      {/* Subtle background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.02]">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-[#84A98C] rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#52796F] rounded-full blur-3xl"></div>
-      </div>
+    <section className="relative min-h-screen flex items-center py-10 lg:py-10 overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 max-w-7xl">
-        {/* Mobile-First Layout: Image First */}
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-          {/* IMAGE SECTION - First on mobile, right on desktop */}
-          <div className="w-full order-1 lg:order-2">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-[#52796F]">
-              <img
-                src="/images/adhd-overwhelm-woman.jpg"
-                alt="Woman with ADHD feeling overwhelmed"
-                className="w-full h-auto"
-              />
-              {/* Overlay with emotion label */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-                  <p className="text-xs text-[#4A4A4A] leading-relaxed">
-                    Staring at your to-do list, feeling paralyzed, wondering why
-                    everyone else seems to have it together...
-                  </p>
+      <div className="container mx-auto px-6 sm:px-6 lg:px-8 relative z-10 max-w-7xl">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* ========================================
+              LEFT: IMAGE 
+          ======================================== */}
+          <div className="relative max-w-md mx-auto lg:max-w-lg">
+            <div className="relative group">
+              {/* Image Card */}
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-600">
+                <img
+                  src={config.hero.image}
+                  alt="Screen Detox Protocol"
+                  className="w-full h-auto"
+                  loading="eager"
+                />
+
+                {/* Gradient Overlay Scuro */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+
+                {/* Quote - Testo Bianco Brillante */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="bg-black/60 backdrop-blur-lg rounded-xl p-4 shadow-2xl border border-white/30">
+                    <p className="text-base font-bold text-white leading-relaxed mb-2">
+                      "I just want my child back. The real one, not the zombie
+                      staring at a screen."
+                    </p>
+                    <p className="text-sm text-white/90 italic font-medium">
+                      Every parent who's used this guide
+                    </p>
+                  </div>
+                </div>
+
+                {/* Badge Pages - Scuro */}
+                <div className="absolute top-6 right-6 bg-blue-600 text-white backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border-2 border-white">
+                  <p className="text-sm font-black">117 Pages</p>
                 </div>
               </div>
             </div>
+
+            {/* Floating Badge */}
+            <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl px-6 py-4 shadow-2xl border-2 border-white">
+              <p className="text-lg font-black">2,000+ Parents</p>
+              <p className="text-sm font-bold">Survived & Thrived</p>
+            </div>
           </div>
-
-          {/* CONTENT SECTION - Second on mobile, left on desktop */}
-          <div className="w-full order-2 lg:order-1 space-y-6">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-[#52796F]/10 px-4 py-2 rounded-full text-sm font-semibold text-[#52796F]">
-              <span>💚</span>
-              <span>For Women with ADHD</span>
+          {/* ========================================
+              RIGHT: CONTENT
+          ======================================== */}
+          <div className="space-y-6 animate-slide-up">
+            {/* Badge - Meno Aggressivo */}
+            <div className="inline-flex items-center gap-2 bg-blue-50 border-2 border-blue-200 px-5 py-2.5 rounded-full shadow-md">
+              <span className="text-xl">✓</span>
+              <span className="font-bold text-blue-700 text-sm uppercase tracking-wide">
+                Tested by 2,000+ Parents
+              </span>
             </div>
 
-            {/* Main Headline - Emotional Hook */}
-            <div className="space-y-3">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-[#1A1A1A]">
-                Stop fighting your brain.
+            {/* Main Headline */}
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-4xl font-black leading-tight text-gray-900">
+                Your Child Is Disappearing Into a Screen. Get Your Child Back.
               </h1>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-[#52796F]">
-                Start working <em>with</em> it.
-              </h2>
+
+              {/* Subheadline */}
+              <p className="text-xl sm:text-2xl text-gray-700 leading-relaxed font-medium">
+                {config.hero.subtitle}
+              </p>
             </div>
 
-            {/* Subheadline */}
-            <p className="text-lg sm:text-xl text-[#4A4A4A] leading-relaxed">
-              A 30-day system designed specifically for women's ADHD brains -
-              because you're not broken, you just need tools that actually work.
-            </p>
-
-            {/* Social Proof */}
-            <div className="flex flex-wrap items-center gap-6 text-base text-[#1A1A1A]">
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-1">
-                  {["A", "M", "S", "J", "L"].map((letter, i) => (
+            {/* Social Proof - Colori Scuri */}
+            <div className="flex flex-wrap items-center gap-6">
+              {/* Avatars - Testo Nero su Sfondo Chiaro */}
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {["J", "M", "S", "D", "A"].map((letter, i) => (
                     <div
                       key={i}
-                      className="w-8 h-8 rounded-full bg-gradient-to-br from-[#84A98C] to-[#52796F] border-2 border-white shadow-sm flex items-center justify-center text-white font-semibold text-xs"
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white shadow-lg flex items-center justify-center text-white font-black text-base"
                     >
                       {letter}
                     </div>
                   ))}
                 </div>
-                <span className="font-semibold">500+ women</span>
+                <div className="text-left">
+                  <p className="font-black text-gray-900 text-lg">
+                    2,000+ parents
+                  </p>
+                  <p className="text-sm text-gray-700 font-medium">
+                    got their kids back
+                  </p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-1">
-                {[...Array(4)].map((_, i) => (
-                  <span key={i} className="text-[#FFB800] text-lg">
-                    ★
+              {/* Stars */}
+              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
+                <div className="flex items-center gap-0.5">
+                  {[...Array(4)].map((_, i) => (
+                    <span key={i} className="text-yellow-500 text-xl">
+                      ★
+                    </span>
+                  ))}
+                  <span className="relative inline-block text-xl">
+                    <span className="text-gray-300">★</span>
+                    <span
+                      className="absolute top-0 left-0 text-yellow-500 overflow-hidden inline-block"
+                      style={{ width: "80%" }}
+                    >
+                      ★
+                    </span>
                   </span>
-                ))}
-                <span className="relative inline-block text-lg">
-                  <span className="text-gray-300">★</span>
-                  <span
-                    className="absolute top-0 left-0 text-[#FFB800] overflow-hidden inline-block"
-                    style={{ width: "50%" }}
-                  >
-                    ★
-                  </span>
-                </span>
-                <span className="ml-1 font-semibold">4.5/5</span>
+                </div>
+                <span className="font-black text-gray-900 text-lg">4.8/5</span>
               </div>
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button
-                data-cta="main"
+                data-cta="hero-main"
                 onClick={landingCart.addMainProductToCart}
                 disabled={landingCart.isLoading}
-                className="group relative bg-[#52796F] hover:bg-[#3D5A51] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+                className="btn-primary group w-full sm:w-auto text-xl py-5 px-10"
               >
-                <span className="relative flex items-center justify-center gap-2">
+                <span className="relative flex items-center justify-center gap-3">
                   {landingCart.isLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
                       <span>Processing...</span>
                     </>
                   ) : (
                     <>
-                      <span>Get the Guide</span>
-                      <span className="text-xl">🛒</span>
+                      <span>{config.hero.ctaText}</span>
+                      <span className="text-2xl group-hover:translate-x-1 transition-transform">
+                        →
+                      </span>
                     </>
                   )}
                 </span>
@@ -149,94 +179,105 @@ export default function HeroSectEmotional() {
                   const previewSection =
                     document.getElementById("what-you-get");
                   if (previewSection) {
-                    const elementPosition =
-                      previewSection.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset;
-                    window.scrollTo({
-                      top: offsetPosition,
-                      behavior: "smooth",
-                    });
+                    previewSection.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
-                className="bg-transparent border-2 border-[#52796F] text-[#52796F] hover:bg-[#52796F] hover:text-white font-semibold text-base px-6 py-4 rounded-xl transition-all w-full sm:w-auto"
+                className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold text-lg px-8 py-5 rounded-xl transition-all w-full sm:w-auto shadow-md hover:shadow-lg"
               >
-                See What's Inside
+                <span className="flex items-center justify-center gap-2">
+                  <span>See What's Inside</span>
+                  <span className="text-xl">↓</span>
+                </span>
               </button>
             </div>
 
             {/* Price & Value */}
-            <div className="pt-2 space-y-3">
-              <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-bold text-[#1A1A1A]">
+            <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl p-6 space-y-4 border-2 border-blue-200 shadow-lg">
+              <div className="flex items-baseline gap-3 flex-wrap">
+                <span className="text-5xl font-black text-gray-900">
                   {landingCart.formatPrice(landingCart.mainPrice, userCurrency)}
                 </span>
-                <span className="text-xl text-[#4A4A4A] line-through opacity-60">
+                <span className="text-2xl text-gray-600 line-through font-medium">
                   {landingCart.formatPrice(
                     landingCart.originalPrice,
                     userCurrency
                   )}
                 </span>
-                <span className="inline-flex items-center bg-[#52796F] text-white px-3 py-1 rounded-full text-sm font-bold">
+                <span className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-full text-base font-bold shadow-lg">
                   Save{" "}
                   {Math.round(
-                    (1 - landingCart.mainPrice / landingCart.originalPrice) *
+                    ((landingCart.originalPrice - landingCart.mainPrice) /
+                      landingCart.originalPrice) *
                       100
                   )}
                   %
                 </span>
               </div>
 
-              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-[#4A4A4A]">
-                <div className="flex items-center gap-2">
-                  <span className="text-[#52796F]">✓</span>
-                  <span>Instant download</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#52796F]">✓</span>
-                  <span>Lifetime access</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#52796F]">✓</span>
-                  <span>30-day program</span>
-                </div>
+              <div className="flex flex-wrap gap-x-6 gap-y-3 text-base">
+                {[
+                  { icon: "⚡", text: "Instant download" },
+                  { icon: "♾️", text: "Lifetime access" },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-2 text-gray-900 font-bold"
+                  >
+                    <span className="text-xl">{item.icon}</span>
+                    <span>{item.text}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Trust Badges - Compact */}
-            <div className="flex flex-wrap gap-4 text-sm pt-2">
-              {[
-                { text: "200+ Pages", icon: "📖" },
-                { text: "Science-Based", icon: "🧬" },
-                { text: "Digital Format", icon: "📱" },
-              ].map((badge, i) => (
-                <div key={i} className="flex items-center gap-2 text-[#4A4A4A]">
-                  <span className="text-base">{badge.icon}</span>
-                  <span className="font-medium">{badge.text}</span>
+            {/* Trust Badges */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
+              {config.trustBar.stats.map((stat, i) => (
+                <div key={i} className="card-modern p-4 text-center">
+                  <div className="text-3xl mb-2">{stat.icon}</div>
+                  <div className="font-black text-2xl text-blue-600 mb-1">
+                    {stat.number}
+                  </div>
+                  <div className="text-xs text-gray-700 font-bold">
+                    {stat.label}
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
-        {/* Founder Story - Below on mobile, integrated */}
-        <div className="mt-12 lg:mt-16 max-w-3xl mx-auto">
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-[#CAD2C5] shadow-sm">
-            <div className="space-y-3">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="text-3xl">💭</div>
-                <p className="text-sm font-semibold text-[#52796F] uppercase tracking-wide">
-                  From Someone Who Gets It
+        {/* Trust Statement */}
+        <div className="mt-16 max-w-3xl mx-auto">
+          <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg">
+            <div className="space-y-6">
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="text-5xl">💪</div>
+                <p className="text-sm font-black text-blue-600 uppercase tracking-wider">
+                  From a Parent Who's Been There
                 </p>
               </div>
-              <p className="text-base text-[#1A1A1A] leading-relaxed text-center">
-                I was diagnosed with ADHD at 29, after years of thinking I was
-                just "lazy." Everything changed when I stopped trying to fix
-                myself and started working <em>with</em> my brain. This guide is
-                everything I wish someone had told me back then.
+
+              <p className="text-lg text-gray-800 leading-relaxed text-center font-medium">
+                I watched my 7-year-old turn into a stranger. Glassy eyes.
+                Tantrums. No interest in anything real. I tried limits, rewards,
+                negotiations...
+                <span className="font-black text-gray-900">nothing worked</span>
+                .
               </p>
-              <p className="text-sm text-[#4A4A4A] italic text-center">
-                - Created by a woman with ADHD, for women with ADHD
+
+              <p className="text-lg text-gray-800 leading-relaxed text-center font-medium">
+                So I stopped guessing and built a protocol that actually worked.
+                <p className="font-black text-gray-900 text-2xl">
+                  30 days later, I had my son back.
+                </p>
               </p>
+
+              <div className="pt-6 border-t-2 border-gray-200">
+                <p className="text-base text-gray-700 italic text-center font-medium">
+                  This guide is everything I learned the hard way, so you don't
+                  have to.
+                </p>
+              </div>
             </div>
           </div>
         </div>

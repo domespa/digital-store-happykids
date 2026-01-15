@@ -7,12 +7,12 @@ export default function TestimonialSect() {
 
   // Avatar images array - maps to testimonials by index
   const testimonialAvatars = [
-    "/images/testimonials/avatar-1.jpg",
-    "/images/testimonials/avatar-2.jpg",
-    "/images/testimonials/avatar-3.jpg",
-    "/images/testimonials/avatar-4.jpg",
-    "/images/testimonials/avatar-5.jpg",
-    "/images/testimonials/avatar-6.jpg",
+    "/images/testimonials/parent-1.jpg",
+    "/images/testimonials/parent-2.jpg",
+    "/images/testimonials/parent-3.jpg",
+    "/images/testimonials/parent-4.jpg",
+    "/images/testimonials/parent-5.jpg",
+    "/images/testimonials/parent-6.jpg",
   ];
 
   if (isLoading || !config) {
@@ -33,7 +33,7 @@ export default function TestimonialSect() {
       <span
         key={index}
         className={`${
-          index < Math.floor(rating) ? "text-[#FFB800]" : "text-gray-300"
+          index < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"
         }`}
       >
         ★
@@ -51,21 +51,26 @@ export default function TestimonialSect() {
   };
 
   return (
-    <section className="py-16 lg:py-20 bg-white relative overflow-hidden">
-      {/* Subtle background */}
+    <section className="py-16 lg:py-20 bg-gradient-to-br from-white via-slate-50 to-white relative overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.02]">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-[#84A98C] rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#52796F] rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-600 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500 rounded-full blur-3xl"></div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
         {/* Header */}
         <div className="text-center mb-12 lg:mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1A1A1A] mb-4">
-            Real Women, Real Results
+          <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2 rounded-full text-sm font-bold text-green-600 mb-6">
+            <span>💪</span>
+            <span>Success Stories</span>
+          </div>
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            {config.testimonials.title}
           </h2>
-          <p className="text-lg sm:text-xl text-[#4A4A4A] max-w-2xl mx-auto">
-            Don't just take our word for it. Here's what 500+ women are saying.
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+            {config.testimonials.subtitle}
           </p>
         </div>
 
@@ -78,33 +83,58 @@ export default function TestimonialSect() {
               testimonialAvatars[activeTestimonial % testimonialAvatars.length];
 
             return (
-              <div className="bg-[#F8F9FA] rounded-xl shadow-sm p-6 border border-[#CAD2C5]">
+              <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-200">
                 {/* Stars */}
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex text-lg">
                     {stars(testimonial.rating)}
                   </div>
-                  <span className="text-xs font-semibold text-[#4A4A4A]">
+                  <span className="text-xs font-semibold text-gray-600">
                     {testimonial.rating}/5
                   </span>
                 </div>
 
                 {/* Quote */}
-                <blockquote className="text-[#1A1A1A] text-base leading-relaxed mb-5">
+                <blockquote className="text-gray-900 text-base leading-relaxed mb-5 font-medium">
                   "{testimonial.content}"
                 </blockquote>
 
-                {/* Author with IMAGE ONLY */}
-                <div className="flex items-center gap-3 mb-5">
+                {/* Before/After - PROMINENT */}
+                {(testimonial.before || testimonial.after) && (
+                  <div className="bg-gradient-to-r from-red-50 to-green-50 rounded-lg p-4 space-y-3 border-2 border-gray-200 mb-5">
+                    {testimonial.before && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-red-600 font-bold text-sm flex-shrink-0">
+                          ❌ BEFORE:
+                        </span>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {testimonial.before}
+                        </p>
+                      </div>
+                    )}
+                    {testimonial.after && (
+                      <div className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold text-sm flex-shrink-0">
+                          ✅ AFTER:
+                        </span>
+                        <p className="text-sm text-gray-900 leading-relaxed font-medium">
+                          {testimonial.after}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Author with IMAGE */}
+                <div className="flex items-center gap-3">
                   <img
                     src={avatarImage}
                     alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-[#84A98C] shadow-sm"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-blue-500 shadow-sm"
                     onError={(e) => {
-                      // Fallback to initials if image fails to load
                       const fallbackDiv = document.createElement("div");
                       fallbackDiv.className =
-                        "w-12 h-12 rounded-full bg-gradient-to-br from-[#84A98C] to-[#52796F] flex items-center justify-center text-white font-bold text-sm border-2 border-[#84A98C] shadow-sm";
+                        "w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-sm border-2 border-blue-500 shadow-sm";
                       fallbackDiv.textContent = getInitials(testimonial.name);
                       e.currentTarget.parentNode?.replaceChild(
                         fallbackDiv,
@@ -113,40 +143,15 @@ export default function TestimonialSect() {
                     }}
                   />
                   <div>
-                    <h4 className="font-bold text-[#1A1A1A] text-base">
+                    <h4 className="font-bold text-gray-900 text-base">
                       {testimonial.name}
                     </h4>
-                    <p className="text-xs text-[#4A4A4A]">
+                    <p className="text-xs text-gray-600">
                       {testimonial.title}
+                      {testimonial.location && ` • ${testimonial.location}`}
                     </p>
                   </div>
                 </div>
-
-                {/* Before/After */}
-                {(testimonial.before || testimonial.after) && (
-                  <div className="bg-white rounded-lg p-4 space-y-3 border border-[#CAD2C5]">
-                    {testimonial.before && (
-                      <div>
-                        <div className="text-xs font-bold text-[#4A4A4A] uppercase mb-1">
-                          Before
-                        </div>
-                        <p className="text-xs text-[#4A4A4A] leading-relaxed">
-                          {testimonial.before}
-                        </p>
-                      </div>
-                    )}
-                    {testimonial.after && (
-                      <div>
-                        <div className="text-xs font-bold text-[#52796F] uppercase mb-1">
-                          After
-                        </div>
-                        <p className="text-xs text-[#1A1A1A] leading-relaxed">
-                          {testimonial.after}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             );
           })()}
@@ -159,8 +164,8 @@ export default function TestimonialSect() {
                 onClick={() => setActiveTestimonial(index)}
                 className={`h-2 rounded-full transition-all ${
                   index === activeTestimonial
-                    ? "bg-[#52796F] w-6"
-                    : "bg-[#CAD2C5] w-2"
+                    ? "bg-blue-600 w-6"
+                    : "bg-gray-300 w-2"
                 }`}
                 aria-label={`View testimonial ${index + 1}`}
               />
@@ -179,7 +184,7 @@ export default function TestimonialSect() {
               return (
                 <div
                   key={testimonial.id}
-                  className="bg-[#F8F9FA] rounded-xl shadow-sm p-6 border border-[#CAD2C5] hover:shadow-md transition-shadow"
+                  className="bg-white rounded-xl shadow-lg p-6 border-2 border-gray-200 hover:border-blue-500 hover:shadow-xl transition-all"
                 >
                   {/* Stars */}
                   <div className="flex items-center gap-2 mb-4">
@@ -189,21 +194,46 @@ export default function TestimonialSect() {
                   </div>
 
                   {/* Quote */}
-                  <blockquote className="text-[#1A1A1A] text-sm leading-relaxed mb-5">
+                  <blockquote className="text-gray-900 text-sm leading-relaxed mb-5 font-medium min-h-[80px]">
                     "{testimonial.content}"
                   </blockquote>
 
-                  {/* Author with IMAGE ONLY */}
-                  <div className="flex items-center gap-3">
+                  {/* Before/After - COMPACT */}
+                  {(testimonial.before || testimonial.after) && (
+                    <div className="bg-gradient-to-r from-red-50 to-green-50 rounded-lg p-3 space-y-2 border border-gray-200 mb-4">
+                      {testimonial.before && (
+                        <div>
+                          <div className="text-xs font-bold text-red-600 mb-1">
+                            ❌ BEFORE
+                          </div>
+                          <p className="text-xs text-gray-700 leading-relaxed line-clamp-2">
+                            {testimonial.before}
+                          </p>
+                        </div>
+                      )}
+                      {testimonial.after && (
+                        <div>
+                          <div className="text-xs font-bold text-green-600 mb-1">
+                            ✅ AFTER
+                          </div>
+                          <p className="text-xs text-gray-900 leading-relaxed font-medium line-clamp-2">
+                            {testimonial.after}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Author with IMAGE */}
+                  <div className="flex items-center gap-3 mt-auto">
                     <img
                       src={avatarImage}
                       alt={testimonial.name}
-                      className="w-10 h-10 rounded-full object-cover border-2 border-[#84A98C] shadow-sm flex-shrink-0"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-blue-500 shadow-sm flex-shrink-0"
                       onError={(e) => {
-                        // Fallback to initials if image fails to load
                         const fallbackDiv = document.createElement("div");
                         fallbackDiv.className =
-                          "w-10 h-10 rounded-full bg-gradient-to-br from-[#84A98C] to-[#52796F] flex items-center justify-center text-white font-bold text-xs border-2 border-[#84A98C] shadow-sm flex-shrink-0";
+                          "w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xs border-2 border-blue-500 shadow-sm flex-shrink-0";
                         fallbackDiv.textContent = getInitials(testimonial.name);
                         e.currentTarget.parentNode?.replaceChild(
                           fallbackDiv,
@@ -211,11 +241,11 @@ export default function TestimonialSect() {
                         );
                       }}
                     />
-                    <div>
-                      <h4 className="font-bold text-[#1A1A1A] text-sm">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-gray-900 text-sm truncate">
                         {testimonial.name}
                       </h4>
-                      <p className="text-xs text-[#4A4A4A]">
+                      <p className="text-xs text-gray-600 truncate">
                         {testimonial.title}
                       </p>
                     </div>
@@ -226,31 +256,41 @@ export default function TestimonialSect() {
         </div>
 
         {/* Stats Bottom */}
-        <div className="bg-[#F8F9FA] rounded-2xl p-8 sm:p-10 max-w-4xl mx-auto border border-[#CAD2C5]">
+        <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-8 sm:p-10 max-w-4xl mx-auto border-2 border-blue-200 shadow-lg">
           <div className="text-center mb-8">
-            <h3 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] mb-3">
-              Join 500+ Women Who've Transformed Their ADHD
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+              Join 2,000+ Parents Who Got Their Kids Back
             </h3>
-            <p className="text-base text-[#4A4A4A]">
-              Real stories from women who stopped fighting their brains.
+            <p className="text-base text-gray-700 font-medium">
+              Real parents. Real transformations. In just 30 days.
             </p>
           </div>
 
           <div className="grid grid-cols-3 gap-6 text-center">
             {[
-              { number: "500+", label: "Women Helped" },
-              { number: "4.5/5", label: "Average Rating" },
-              { number: "98%", label: "See Results" },
+              { number: "2,000+", label: "Parents Helped", icon: "👨‍👩‍👧‍👦" },
+              { number: "4.8/5", label: "Average Rating", icon: "⭐" },
+              { number: "30", label: "Days to Freedom", icon: "🎯" },
             ].map((stat, index) => (
               <div key={index}>
-                <div className="text-3xl sm:text-4xl font-bold text-[#52796F] mb-1">
+                <div className="text-3xl mb-2">{stat.icon}</div>
+                <div className="text-3xl sm:text-4xl font-bold text-blue-600 mb-1">
                   {stat.number}
                 </div>
-                <div className="text-xs sm:text-sm text-[#4A4A4A] font-medium">
+                <div className="text-xs sm:text-sm text-gray-700 font-medium">
                   {stat.label}
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Urgency Message */}
+          <div className="mt-8 pt-6 border-t-2 border-blue-200 text-center">
+            <p className="text-base sm:text-lg text-gray-900 font-bold">
+              Every parent was skeptical at first.{" "}
+              <br className="hidden sm:block" />
+              Every parent is grateful they started.
+            </p>
           </div>
         </div>
       </div>
