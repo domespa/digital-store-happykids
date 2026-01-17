@@ -438,6 +438,7 @@ router.get("/users/history", async (req: Request, res: Response) => {
       select: {
         id: true,
         country: true,
+        city: true,
         createdAt: true,
       },
     });
@@ -446,6 +447,7 @@ router.get("/users/history", async (req: Request, res: Response) => {
 
     const offlineHistory = recentVisits.map((visit) => ({
       id: visit.id,
+      city: visit.city || "Unknown",
       country: visit.country || "Unknown",
       timestamp: visit.createdAt.toISOString(),
       isOnline: false,

@@ -380,6 +380,44 @@ export const adminWebSocket = {
       onMessage({ type: "user_count", count: data.count });
     });
 
+    socket.on("ping", () => {
+      devLog("💓 Ping received from server");
+      socket.emit("pong");
+    });
+
+    socket.on("pong", () => {
+      devLog("💓 Pong received from server");
+    });
+
+    // eventi sconosciuti
+    socket.onAny((eventName, ...args) => {
+      // Ignora eventi già gestiti
+      const knownEvents = [
+        "connect",
+        "disconnect",
+        "reconnect",
+        "reconnect_attempt",
+        "reconnect_error",
+        "reconnect_failed",
+        "error",
+        "connect_error",
+        "notification",
+        "system",
+        "connection_established",
+        "unread_count_updated",
+        "user_count",
+        "user_connected",
+        "user_disconnected",
+        "user_activity",
+        "ping",
+        "pong",
+      ];
+
+      if (!knownEvents.includes(eventName)) {
+        console.warn("⚠️ Unknown WebSocket event:", eventName, args);
+      }
+    });
+
     //  Eventi per tracking utenti in tempo reale
     socket.on("user_connected", (data: any) => {
       console.log("➕ User connected event:", data);
@@ -395,14 +433,6 @@ export const adminWebSocket = {
       console.log("🔄 User activity event:", data);
       onMessage({ type: "user_activity" as any, ...data });
     });
-
-    // Ping/pong per mantenere connessione viva
-    setInterval(() => {
-      if (socket.connected) {
-        console.log("💓 Sending keepalive ping");
-        socket.emit("ping");
-      }
-    }, 25000); // Ogni 25 secondi
 
     socket.on("pong", () => {
       console.log("💓 Keepalive pong received");
