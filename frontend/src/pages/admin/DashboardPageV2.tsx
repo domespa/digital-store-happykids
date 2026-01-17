@@ -142,40 +142,27 @@ export default function DashboardPageV2() {
 
   // ========== COMBINED USERS CON FIX ==========
   const combinedUsers = [
+    // Utenti online con timestamp reale
     ...uniqueOnlineUsers.map((u) => ({
-      sessionId: u.sessionId,
+      id: u.sessionId,
       city: u.location?.city ?? "Unknown",
       country: u.location?.country ?? "Unknown",
       timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
       isOnline: true,
     })),
-    ...userHistory
-      .filter(
-        (h) =>
-          !uniqueOnlineUsers.some(
-            (u) =>
-              u.location?.city === h.city &&
-              u.location?.country === h.country &&
-              Math.abs(
-                new Date(u.connectedAt).getTime() -
-                  new Date(h.timestamp).getTime(),
-              ) < 60000,
-          ),
-      )
-      .map((h) => ({
-        sessionId: h.id,
-        city: h.city,
-        country: h.country,
-        timestamp: h.timestamp,
-        isOnline: false,
-      })),
+    ...userHistory.map((h) => ({
+      id: h.id,
+      city: h.city,
+      country: h.country,
+      timestamp: h.timestamp,
+      isOnline: h.isOnline,
+    })),
   ];
 
   // ========== DEDUPLICAZIONE FINALE ==========
   const uniqueCombinedUsers = combinedUsers.reduce(
     (acc, user) => {
-      const key = `${user.city}-${user.country}`;
-      if (!acc.some((u) => `${u.city}-${u.country}` === key)) {
+      if (!acc.some((u) => u.id === user.id)) {
         acc.push(user);
       }
       return acc;
@@ -310,7 +297,7 @@ export default function DashboardPageV2() {
 
                 return (
                   <div
-                    key={`${entry.city}-${entry.country}-${entry.timestamp}-${index}`}
+                    key={entry.id}
                     className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg"
                   >
                     <div className="w-8 text-xs font-bold text-gray-400">
