@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useLandingContext } from "../../context/LandingContext";
 import { useLandingCart } from "../../hooks/useLandingCart";
 import LookInsideModal from "./LookInsideModal";
 
 export default function LookInsideSect() {
-  const landingContext = useLandingContext();
-  const landingCart = useLandingCart({ landingContext });
+  const landingCart = useLandingCart();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const openModal = () => setIsModalOpen(true);

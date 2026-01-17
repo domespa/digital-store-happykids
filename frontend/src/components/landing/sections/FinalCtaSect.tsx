@@ -4,7 +4,7 @@ import { useLandingCart } from "../../../hooks/useLandingCart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function FinalCtaSect() {
-  const { config, user } = useLandingContext();
+  const { config } = useLandingContext();
   const landingCart = useLandingCart();
 
   if (!config || !config.finalCta) return null;
@@ -128,7 +128,7 @@ export default function FinalCtaSect() {
                     {Math.round(
                       ((landingCart.originalPrice - landingCart.mainPrice) /
                         landingCart.originalPrice) *
-                        100
+                        100,
                     )}
                     % Today
                   </div>

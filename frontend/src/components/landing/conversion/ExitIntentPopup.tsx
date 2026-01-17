@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLandingCart } from "../../../hooks/useLandingCart";
-import { useLandingContext } from "../../../context/LandingContext";
 
 export default function ExitIntentPopup() {
   const [showPopup, setShowPopup] = useState(false);
   const [hasShown, setHasShown] = useState(false);
-  const landingContext = useLandingContext();
-  const landingCart = useLandingCart({ landingContext });
+  const landingCart = useLandingCart();
 
   useEffect(() => {
     const handleMouseLeave = (e: MouseEvent) => {

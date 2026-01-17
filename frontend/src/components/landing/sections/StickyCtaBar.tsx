@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 export default function StickyCtaBar() {
   const landingContext = useLandingContext();
   const landingCart = useLandingCart();
-  const { config, user } = landingContext;
+  const { config } = landingContext;
   const [isVisible, setIsVisible] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -54,7 +54,7 @@ export default function StickyCtaBar() {
   const savingsPercent = Math.round(
     ((landingCart.originalPrice - landingCart.mainPrice) /
       landingCart.originalPrice) *
-      100
+      100,
   );
 
   return (

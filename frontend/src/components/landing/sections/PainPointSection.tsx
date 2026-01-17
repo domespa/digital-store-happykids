@@ -5,7 +5,7 @@ import { faHeartCrack } from "@fortawesome/free-solid-svg-icons";
 
 export default function PainPointSection() {
   const { config } = useLandingContext();
-  const [sliderPosition, setSliderPosition] = useState(50);
+  const [_sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const [showHint, setShowHint] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -23,7 +23,7 @@ export default function PainPointSection() {
     if (showHint) setShowHint(false);
   };
 
-  const handleMouseDown = () => setIsDragging(true);
+  // const handleMouseDown = () => setIsDragging(true);
   const handleMouseUp = () => setIsDragging(false);
 
   const handleMouseMove = (e: MouseEvent) => {

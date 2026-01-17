@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useState, useMemo } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useCart } from "./useCart";
 import { useLandingContext } from "../context/LandingContext";
 import type { ProductToAdd } from "../types/cart";
@@ -39,25 +39,6 @@ export const useLandingCart = () => {
   const [isConverting, setIsConverting] = useState(false);
 
   // ========================
-  //   CURRENCY SYMBOLS
-  // ========================
-  const currencySymbols: Record<string, string> = useMemo(
-    () => ({
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-      AUD: "$",
-      CAD: "$",
-      JPY: "¥",
-      CHF: "CHF",
-      SEK: "kr",
-      NOK: "kr",
-      DKK: "kr",
-    }),
-    []
-  );
-
-  // ========================
   //   FORMAT HELPER
   // ========================
   const formatPriceSync = useCallback(
@@ -95,7 +76,7 @@ export const useLandingCart = () => {
 
       return formatted;
     },
-    []
+    [],
   );
 
   // ========================
@@ -135,7 +116,7 @@ export const useLandingCart = () => {
           formattedMainPrice: formatPriceSync(productPrice, productCurrency),
           formattedOriginalPrice: formatPriceSync(
             productCompareAt,
-            productCurrency
+            productCurrency,
           ),
         });
         return;
@@ -154,7 +135,7 @@ export const useLandingCart = () => {
                 amount: productPrice.toString(),
                 from: productCurrency,
                 to: targetCurrency,
-              })
+              }),
           ).then((r) => (r.ok ? r.json() : null)),
           fetch(
             `${apiBase}/api/currency/convert?` +
@@ -162,7 +143,7 @@ export const useLandingCart = () => {
                 amount: productCompareAt.toString(),
                 from: productCurrency,
                 to: targetCurrency,
-              })
+              }),
           ).then((r) => (r.ok ? r.json() : null)),
         ]);
 
@@ -180,7 +161,7 @@ export const useLandingCart = () => {
             formattedMainPrice: formatPriceSync(convertedMain, targetCurrency),
             formattedOriginalPrice: formatPriceSync(
               convertedCompare,
-              targetCurrency
+              targetCurrency,
             ),
           });
         } else {
@@ -203,7 +184,7 @@ export const useLandingCart = () => {
             formattedMainPrice: formatPriceSync(convertedMain, targetCurrency),
             formattedOriginalPrice: formatPriceSync(
               convertedCompare,
-              targetCurrency
+              targetCurrency,
             ),
           });
         }
@@ -218,7 +199,7 @@ export const useLandingCart = () => {
           formattedMainPrice: formatPriceSync(productPrice, productCurrency),
           formattedOriginalPrice: formatPriceSync(
             productCompareAt,
-            productCurrency
+            productCurrency,
           ),
         });
       } finally {
@@ -237,7 +218,7 @@ export const useLandingCart = () => {
       const currentDisplayCurrency = cartRef.current.getDisplayCurrency();
       if (user.currency !== currentDisplayCurrency) {
         console.log(
-          `UPDATE CART ${currentDisplayCurrency} TO ${user.currency}`
+          `UPDATE CART ${currentDisplayCurrency} TO ${user.currency}`,
         );
         cartRef.current.updateCurrency(user.currency);
       }
@@ -303,7 +284,7 @@ export const useLandingCart = () => {
         quantity: 1,
       });
     },
-    [config]
+    [config],
   );
 
   // ========================
@@ -314,7 +295,7 @@ export const useLandingCart = () => {
       const displayCurrency = currency || user?.currency || "EUR";
       return formatPriceSync(amount, displayCurrency);
     },
-    [user?.currency, formatPriceSync]
+    [user?.currency, formatPriceSync],
   );
 
   // ========================
@@ -323,7 +304,7 @@ export const useLandingCart = () => {
   const calculateSaving = useCallback(() => {
     const savings = convertedPrices.originalPrice - convertedPrices.mainPrice;
     const savingsPercentage = Math.round(
-      (savings / convertedPrices.originalPrice) * 100
+      (savings / convertedPrices.originalPrice) * 100,
     );
 
     return {

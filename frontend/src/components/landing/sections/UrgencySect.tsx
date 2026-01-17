@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 export default function UrgencySect() {
   const landingContext = useLandingContext();
-  const landingCart = useLandingCart({ landingContext });
+  const landingCart = useLandingCart();
   const { config, isLoading } = landingContext;
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -92,7 +92,7 @@ export default function UrgencySect() {
                       Add to Cart -{" "}
                       {landingCart.formatPrice(
                         landingCart.mainPrice,
-                        landingCart.userCurrency
+                        landingCart.userCurrency,
                       )}
                     </span>
                   </>

@@ -1,13 +1,13 @@
-import AdminLogin from "./AdminLogin";
+// import AdminLogin from "./AdminLogin";
 import AdminApp from "./AdminApp";
-import { useAdminAuth } from "../../hooks/useAdminAuth";
+// import { useAdminAuth } from "../../hooks/useAdminAuth";
 
 export default function AdminRoute() {
   // const { isAuthenticated, isLoading } = useAdminAuth();
 
-  const handleLoginSuccess = () => {
-    window.location.reload();
-  };
+  // const handleLoginSuccess = () => {
+  //   window.location.reload();
+  // };
 
   const handleLogout = () => {
     window.location.reload();

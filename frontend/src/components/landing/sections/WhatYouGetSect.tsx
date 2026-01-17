@@ -1,8 +1,4 @@
-import {
-  faBox,
-  faCartArrowDown,
-  faGifts,
-} from "@fortawesome/free-solid-svg-icons";
+import { faBox, faCartArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -136,7 +132,7 @@ export default function WhatYouGetSect() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {features.features.map((feature, i) => (
+              {features.features.map((feature, _i) => (
                 <div
                   key={feature.id}
                   className="bg-white rounded-xl p-6 sm:p-8 border-2 border-gray-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all"
@@ -190,7 +186,7 @@ export default function WhatYouGetSect() {
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {features.bonuses.map((bonus, i) => (
+              {features.bonuses.map((bonus, _i) => (
                 <div
                   key={bonus.id}
                   className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-2 border-white/20 hover:bg-white/20 transition-all"

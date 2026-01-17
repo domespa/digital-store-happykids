@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLandingCart } from "../../../hooks/useLandingCart";
-import { useLandingContext } from "../../../context/LandingContext";
 
 export default function MobileStickyBar() {
   const [show, setShow] = useState(false);
-  const landingContext = useLandingContext();
-  const landingCart = useLandingCart({ landingContext });
+  const landingCart = useLandingCart();
 
   useEffect(() => {
     const handleScroll = () => {

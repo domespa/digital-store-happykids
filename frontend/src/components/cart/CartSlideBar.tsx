@@ -4,6 +4,7 @@ import { useCheckout } from "../../hooks/useCheckout";
 import StripePaymentForm from "../StripePaymentForm";
 import type { CheckoutForm } from "../../types/checkout";
 import { trackBeginCheckout, trackAddPaymentInfo } from "../../utils/analytics";
+import WorkbookPreviewModal from "../landing/WorkbookPreviewModal";
 
 interface CartSlideBar {
   className?: string;
@@ -65,7 +66,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   });
 
   const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(
-    null
+    null,
   );
   const [successData, setSuccessData] = useState<{
     id?: string;
@@ -88,6 +89,11 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
         fileName: string;
       } | null;
     }>;
+  } | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedWorkbookForPreview, setSelectedWorkbookForPreview] = useState<{
+    name: string;
+    images: string[];
   } | null>(null);
 
   useEffect(() => {
@@ -198,6 +204,54 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
     },
   ];
 
+  const workbooksPreviewImages: Record<string, string[]> = {
+    cmkgme4jd0000a59mmfw1523f: [
+      // A Rainbow of Colors
+      "/extractebooks/arainbow1.jpg",
+      "/extractebooks/arainbow2.jpg",
+      "/extractebooks/arainbow3.jpg",
+      "/extractebooks/arainbow4.jpg",
+    ],
+    cmkgme52g0001a59mltiz39wx: [
+      // Letters and Numbers
+      "/extractebooks/letter1.jpg",
+      "/extractebooks/letter2.jpg",
+      "/extractebooks/letter3.jpg",
+      "/extractebooks/letter4.jpg",
+    ],
+    cmkgme5jn0002a59mxqg8yxah: [
+      // My First Writing
+      "/extractebooks/writing1.jpg",
+      "/extractebooks/writing2.jpg",
+      "/extractebooks/writing3.jpg",
+      "/extractebooks/writing4.jpg",
+    ],
+    cmkgme60s0003a59mwtnpoutt: [
+      // Animals and Dinosaurs
+      "/extractebooks/animals1.jpg",
+      "/extractebooks/animals2.jpg",
+      "/extractebooks/animals3.jpg",
+      "/extractebooks/animals4.jpg",
+    ],
+    cmkgme6hx0004a59m76ln9301: [
+      // World of Shapes
+      "/extractebooks/shapes1.jpg",
+      "/extractebooks/shapes2.jpg",
+      "/extractebooks/shapes3.jpg",
+      "/extractebooks/shapes4.jpg",
+    ],
+  };
+
+  const openPreview = (workbookId: string, workbookName: string) => {
+    const previewImages = workbooksPreviewImages[workbookId];
+    if (previewImages) {
+      setSelectedWorkbookForPreview({
+        name: workbookName,
+        images: previewImages,
+      });
+      setShowPreviewModal(true);
+    }
+  };
   // ========================
   //   CONVERTI PREZZI WORKBOOKS
   // ========================
@@ -221,13 +275,13 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
       const rate = fallbackRates[currentCurrency] || 1;
       return Math.round(euroPrice * rate * 100) / 100;
     },
-    [getDisplayCurrency]
+    [getDisplayCurrency],
   );
 
   // Conta quanti workbook sono già nel cart
   const getWorkbooksInCart = () => {
     return cart.items.filter((item) =>
-      workbooks.some((wb) => wb.id === item.productId)
+      workbooks.some((wb) => wb.id === item.productId),
     );
   };
 
@@ -235,7 +289,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   const isWorkbookInCart = (workbookId: string) => {
     return cart.items.some(
       (item) =>
-        item.productId === workbookId || item.productId === WORKBOOKS_BUNDLE_ID
+        item.productId === workbookId || item.productId === WORKBOOKS_BUNDLE_ID,
     );
   };
 
@@ -357,7 +411,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
           })),
           calculateTotal(),
           formData.paymentProvider,
-          getDisplayCurrency()
+          getDisplayCurrency(),
         );
 
         if (result.type === "stripe" && result.clientSecret) {
@@ -799,7 +853,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       onChange={(e) =>
                         updateFormData(
                           "acceptRefundPolicy",
-                          e.target.checked ? "true" : "false"
+                          e.target.checked ? "true" : "false",
                         )
                       }
                       className="mt-1 w-4 h-4 text-[#2563eb] border-[#e2e8f0] rounded focus:ring-[#2563eb] focus:ring-2"
@@ -892,7 +946,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       {successData?.finalAmount && successData?.finalCurrency
                         ? formatPriceWithCurrency(
                             successData.finalAmount,
-                            successData.finalCurrency
+                            successData.finalCurrency,
                           )
                         : formatPrice(calculateTotal())}
                     </div>
@@ -964,12 +1018,28 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                   <div className="p-4 bg-white border-2 border-blue-200 rounded-xl">
                     <div className="mb-4">
                       <div className="relative">
-                        <div className="m-auto w-32 sm:w-40 md:w-48 aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg overflow-hidden mb-3">
+                        {/* Book Image - CLICCABILE per preview */}
+                        <div
+                          className="m-auto w-32 sm:w-40 md:w-48 aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg overflow-hidden mb-3 cursor-pointer hover:ring-4 hover:ring-blue-400 transition-all group relative"
+                          onClick={() =>
+                            openPreview(
+                              workbooks[currentSlide].id,
+                              workbooks[currentSlide].name,
+                            )
+                          }
+                        >
                           <img
                             src={workbooks[currentSlide].image}
                             alt={workbooks[currentSlide].name}
                             className="w-full h-full object-cover"
                           />
+
+                          {/* Overlay "Preview" al hover */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center">
+                            <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-sm">
+                              👁️ Preview Pages
+                            </span>
+                          </div>
                         </div>
 
                         {workbooks.length > 1 && (
@@ -1052,8 +1122,8 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                           ? "✓ In Cart"
                           : `Add This Book - ${formatPrice(
                               convertWorkbookPrice(
-                                INDIVIDUAL_WORKBOOK_PRICE_EUR
-                              )
+                                INDIVIDUAL_WORKBOOK_PRICE_EUR,
+                              ),
                             )}`}
                       </button>
                     </div>
@@ -1075,7 +1145,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         <span>
                           ⭐ Get All 5 Books for{" "}
                           {formatPrice(
-                            convertWorkbookPrice(WORKBOOKS_PRICE_EUR)
+                            convertWorkbookPrice(WORKBOOKS_PRICE_EUR),
                           )}
                         </span>
                       </div>
@@ -1183,6 +1253,17 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             )}
         </div>
       </div>
+      {/* PREVIEW MODAL */}
+      {showPreviewModal && selectedWorkbookForPreview && (
+        <WorkbookPreviewModal
+          workbookName={selectedWorkbookForPreview.name}
+          previewImages={selectedWorkbookForPreview.images}
+          onClose={() => {
+            setShowPreviewModal(false);
+            setSelectedWorkbookForPreview(null);
+          }}
+        />
+      )}
     </div>
   );
 }

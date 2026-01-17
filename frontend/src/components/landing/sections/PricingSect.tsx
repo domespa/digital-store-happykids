@@ -6,7 +6,7 @@ interface PricingSect {
 }
 
 export default function PricingSect({}: PricingSect = {}) {
-  const { config, user, isLoading: isLoadingUser } = useLandingContext();
+  const { config, isLoading: isLoadingUser } = useLandingContext();
   const landingCart = useLandingCart();
 
   if (isLoadingUser || !config || landingCart.isLoadingProduct) {

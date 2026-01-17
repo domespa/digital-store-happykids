@@ -11,7 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export default function HeroSect() {
-  const { config, user, isLoading } = useLandingContext();
+  const { config, isLoading } = useLandingContext();
   const landingCart = useLandingCart();
 
   if (isLoading) {
@@ -225,7 +225,7 @@ export default function HeroSect() {
                       {Math.round(
                         ((landingCart.originalPrice - landingCart.mainPrice) /
                           landingCart.originalPrice) *
-                          100
+                          100,
                       )}
                       %
                     </span>
