@@ -43,7 +43,7 @@ declare global {
 }
 
 // APPLICHIAMO IL MIDDLEWARE ADMIN A TUTTE LE ROTTE!
-// router.use(requireAuthenticatedAdmin);
+router.use(requireAuthenticatedAdmin);
 
 // ====================================
 //        PRODUCT ROUTES
@@ -77,7 +77,7 @@ router.get("/products/:id/images", getProductImages);
 router.post(
   "/products/:id/images",
   upload.array("images", 5),
-  uploadProductImages
+  uploadProductImages,
 );
 
 // DEL IM
@@ -97,14 +97,14 @@ router.patch("/products/:id/images/:imageId/featured", setFeaturedImage);
 router.post(
   "/products/:productId/upload-ebook",
   upload.single("ebook"),
-  FileController.uploadProductEbook
+  FileController.uploadProductEbook,
 );
 
 // GENERA DOWNLOAD LINK CLOUDINARY FIRMATO
 // POST /api/admin/generate-download-link
 router.post(
   "/generate-download-link",
-  FileController.generateCloudinaryDownloadLink
+  FileController.generateCloudinaryDownloadLink,
 );
 
 // ====================================
@@ -155,10 +155,9 @@ router.get("/users/online", async (req, res) => {
 
     console.log(
       "📍 Live locations from tracking service:",
-      liveLocations.length
+      liveLocations.length,
     );
 
-    // ✅ MAPPA socketId → location (FIX PRINCIPALE)
     const locationBySocketId = new Map<
       string,
       {
@@ -270,13 +269,13 @@ router.get("/users/online", async (req, res) => {
         connectedAt: loc.timestamp.toISOString(),
         lastActivity: loc.timestamp.toISOString(),
         isAuthenticated: false,
-      })
+      }),
     );
 
     const allUsers = [...onlineUsers, ...anonymousVisitors];
 
     console.log(
-      `✅ Returning ${allUsers.length} users (${onlineUsers.length} authenticated + ${anonymousVisitors.length} anonymous)`
+      `✅ Returning ${allUsers.length} users (${onlineUsers.length} authenticated + ${anonymousVisitors.length} anonymous)`,
     );
 
     res.json({
@@ -349,7 +348,7 @@ router.get("/users/sessions", async (req, res) => {
           ? Math.floor(
               (session.disconnectedAt.getTime() -
                 session.connectedAt.getTime()) /
-                1000
+                1000,
             )
           : Math.floor((Date.now() - session.connectedAt.getTime()) / 1000),
       }));
@@ -437,7 +436,7 @@ router.get("/users/history", async (req: Request, res: Response) => {
     const history = [...onlineHistory, ...offlineHistory];
 
     console.log(
-      `✅ Total history: ${history.length} (${onlineHistory.length} online, ${offlineHistory.length} offline)`
+      `✅ Total history: ${history.length} (${onlineHistory.length} online, ${offlineHistory.length} offline)`,
     );
 
     res.json({
@@ -558,10 +557,10 @@ router.get("/dashboard/complete", async (req: Request, res: Response) => {
         order.currency === "EUR"
           ? "€"
           : order.currency === "USD"
-          ? "$"
-          : order.currency === "GBP"
-          ? "£"
-          : order.currency;
+            ? "$"
+            : order.currency === "GBP"
+              ? "£"
+              : order.currency;
 
       const message = `${statusEmoji} ${
         order.customerName
@@ -672,15 +671,15 @@ router.get(
           order.currency === "EUR"
             ? "€"
             : order.currency === "USD"
-            ? "$"
-            : order.currency === "GBP"
-            ? "£"
-            : order.currency;
+              ? "$"
+              : order.currency === "GBP"
+                ? "£"
+                : order.currency;
 
         const message = `${statusEmoji} ${
           order.customerName
         } ${actionText} an order of ${currencySymbol}${order.total.toFixed(
-          2
+          2,
         )} (${order.itemCount} item${order.itemCount !== 1 ? "s" : ""})`;
 
         return {
@@ -727,7 +726,7 @@ router.get(
         message: error instanceof Error ? error.message : "Unknown error",
       });
     }
-  }
+  },
 );
 
 // ====================================
