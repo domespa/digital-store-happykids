@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 
 export default function StickyCtaBar() {
   const landingContext = useLandingContext();
-  const landingCart = useLandingCart({ landingContext });
+  const landingCart = useLandingCart();
   const { config, user } = landingContext;
   const [isVisible, setIsVisible] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -51,7 +51,6 @@ export default function StickyCtaBar() {
 
   if (!config || !config.stickyBar?.enabled) return null;
 
-  const userCurrency = user?.currency || "USD";
   const savingsPercent = Math.round(
     ((landingCart.originalPrice - landingCart.mainPrice) /
       landingCart.originalPrice) *
@@ -80,13 +79,10 @@ export default function StickyCtaBar() {
               </p>
               <div className="flex items-center gap-2 text-xs">
                 <span className="font-bold text-teal-600">
-                  {landingCart.formatPrice(landingCart.mainPrice, userCurrency)}
+                  {landingCart.formattedMainPrice}
                 </span>
                 <span className="text-gray-400 line-through hidden sm:inline">
-                  {landingCart.formatPrice(
-                    landingCart.originalPrice,
-                    userCurrency
-                  )}
+                  {landingCart.formattedOriginalPrice}
                 </span>
                 <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
                   {savingsPercent}% OFF

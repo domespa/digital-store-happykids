@@ -50,10 +50,19 @@ export default function useCurrency() {
 
         const data = await response.json();
 
+        const convertedAmount =
+          data.convertedAmount ?? data.data?.convertedAmount;
+        const rate = data.rate ?? data.data?.exchangeRate ?? 1;
+        const source = data.source ?? data.data?.source ?? "api";
+
+        if (!convertedAmount) {
+          throw new Error("Invalid API response: missing convertedAmount");
+        }
+
         return {
-          convertedAmount: data.convertedAmount,
-          rate: data.rate,
-          source: data.source,
+          convertedAmount: convertedAmount,
+          rate: rate,
+          source: source,
           timestamp: data.timestamp || Date.now(),
         };
       } catch (error) {

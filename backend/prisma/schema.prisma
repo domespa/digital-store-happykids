@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -54,7 +55,9 @@ model Product {
   description        String?
   shortDescription   String?
   price              Decimal          @db.Decimal(10, 2)
+  currency           String           @default("EUR")  
   originalPrice      Decimal?         @db.Decimal(10, 2)
+  compareAtPrice     Decimal?
   fileName           String?
   filePath           String?
   createdAt          DateTime         @default(now())
@@ -116,6 +119,7 @@ model ProductVariant {
   productId     String
   name          String
   price         Decimal     @db.Decimal(10, 2)
+  currency      String      @default("EUR")
   originalPrice Decimal?    @db.Decimal(10, 2)
   fileName      String
   filePath      String

@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLandingContext } from "../../../context/LandingContext";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeartCrack } from "@fortawesome/free-solid-svg-icons";
 
 export default function PainPointSection() {
   const { config } = useLandingContext();
@@ -68,8 +70,10 @@ export default function PainPointSection() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full text-sm font-bold text-red-600 mb-6">
-            <span>💔</span>
+          <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full text-lg font-bold text-red-600 mb-6">
+            <span>
+              <FontAwesomeIcon icon={faHeartCrack} />
+            </span>
             <span>The Reality Check</span>
           </div>
 

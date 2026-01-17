@@ -33,8 +33,10 @@ const getStringParam = (param: unknown): string | undefined => {
   return typeof param === "string" ? param : undefined;
 };
 
-// LISTA PRODOTTI
+// ============================================
+// LISTA PRODOTTI PUBBLICI
 // GET /api/products
+// ============================================
 export const getProducts = async (req: Request, res: Response) => {
   try {
     const search = getStringParam(req.query.search);
@@ -45,7 +47,7 @@ export const getProducts = async (req: Request, res: Response) => {
     const page = getStringParam(req.query.page) || "1";
     const limit = getStringParam(req.query.limit) || "10";
 
-    const currency = req.currency || "EUR";
+    const targetCurrency = req.currency || "EUR";
 
     // VALIDAZIONI PARAMETRI
     const validSortFields = ["name", "price", "createdAt"];
@@ -65,16 +67,17 @@ export const getProducts = async (req: Request, res: Response) => {
       ];
     }
 
-    // FILTRI PREZZO
+    // FILTRI PREZZO (converti target currency → product currency per filtering)
     if (minPrice !== undefined || maxPrice !== undefined) {
       where.price = {};
 
       if (minPrice !== undefined) {
+        // Converti da targetCurrency a EUR (default DB currency) per filtrare
         let minPriceEUR = Number(minPrice);
-        if (currency !== "EUR") {
+        if (targetCurrency !== "EUR") {
           const conversion = await currencyService.convertPrice(
             Number(minPrice),
-            currency,
+            targetCurrency,
             "EUR"
           );
           minPriceEUR = conversion.convertedAmount;
@@ -84,10 +87,10 @@ export const getProducts = async (req: Request, res: Response) => {
 
       if (maxPrice !== undefined) {
         let maxPriceEUR = Number(maxPrice);
-        if (currency !== "EUR") {
+        if (targetCurrency !== "EUR") {
           const conversion = await currencyService.convertPrice(
             Number(maxPrice),
-            currency,
+            targetCurrency,
             "EUR"
           );
           maxPriceEUR = conversion.convertedAmount;
@@ -96,7 +99,7 @@ export const getProducts = async (req: Request, res: Response) => {
       }
     }
 
-    // IMPAGINAZIONE
+    // PAGINAZIONE
     const pageNum = Math.max(1, Number(page) || 1);
     const limitNum = Math.min(100, Math.max(1, Number(limit) || 10));
     const skip = (pageNum - 1) * limitNum;
@@ -109,6 +112,8 @@ export const getProducts = async (req: Request, res: Response) => {
           name: true,
           description: true,
           price: true,
+          currency: true,
+          compareAtPrice: true,
           isActive: true,
           createdAt: true,
         },
@@ -119,44 +124,69 @@ export const getProducts = async (req: Request, res: Response) => {
       prisma.product.count({ where }),
     ]);
 
-    // MAPPIAMO PER CONVERTIRE DECIMAL IN NUMBER
+    // CONVERTI PREZZI
     const productsWithCurrency = await Promise.all(
       rawProducts.map(async (product) => {
         const basePrice = product.price.toNumber();
+        const productCurrency = product.currency || "EUR";
+        const compareAt = product.compareAtPrice?.toNumber() || basePrice;
 
-        if (currency === "EUR") {
+        // Stesso currency - no conversion
+        if (targetCurrency === productCurrency) {
           return {
             ...product,
             price: basePrice,
             displayPrice: basePrice,
-            currency: "EUR",
+            currency: productCurrency,
+            compareAtPrice: compareAt,
+            displayCompareAtPrice: compareAt,
             originalPrice: basePrice,
-            originalCurrency: "EUR",
-            formattedPrice: currencyService.formatPrice(basePrice, "EUR"),
+            originalCurrency: productCurrency,
+            formattedPrice: currencyService.formatPrice(
+              basePrice,
+              productCurrency
+            ),
+            formattedCompareAtPrice: currencyService.formatPrice(
+              compareAt,
+              productCurrency
+            ),
             exchangeRate: 1,
             exchangeSource: "same" as const,
           };
         }
 
-        const conversion = await currencyService.convertPrice(
+        // Converti da productCurrency → targetCurrency
+        const priceConversion = await currencyService.convertPrice(
           basePrice,
-          "EUR",
-          currency
+          productCurrency,
+          targetCurrency
+        );
+
+        const compareAtConversion = await currencyService.convertPrice(
+          compareAt,
+          productCurrency,
+          targetCurrency
         );
 
         return {
           ...product,
           price: basePrice,
-          displayPrice: conversion.convertedAmount,
-          currency,
+          displayPrice: priceConversion.convertedAmount,
+          currency: targetCurrency,
+          compareAtPrice: compareAt,
+          displayCompareAtPrice: compareAtConversion.convertedAmount,
           originalPrice: basePrice,
-          originalCurrency: "EUR",
+          originalCurrency: productCurrency,
           formattedPrice: currencyService.formatPrice(
-            conversion.convertedAmount,
-            currency
+            priceConversion.convertedAmount,
+            targetCurrency
           ),
-          exchangeRate: conversion.rate,
-          exchangeSource: conversion.source,
+          formattedCompareAtPrice: currencyService.formatPrice(
+            compareAtConversion.convertedAmount,
+            targetCurrency
+          ),
+          exchangeRate: priceConversion.rate,
+          exchangeSource: priceConversion.source,
         };
       })
     );
@@ -172,7 +202,7 @@ export const getProducts = async (req: Request, res: Response) => {
         totalPages: Math.ceil(total / limitNum),
       },
       currency: {
-        current: currency,
+        current: targetCurrency,
         supported: currencyService.getSupportedCurrencies(),
       },
     });
@@ -186,13 +216,14 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 };
 
+// ============================================
 // DETTAGLIO PRODOTTO
 // GET /api/products/:id
-
+// ============================================
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const currency = req.currency || "EUR";
+    const targetCurrency = req.currency || "EUR";
 
     const rawProduct = await prisma.product.findUnique({
       where: { id },
@@ -201,6 +232,8 @@ export const getProductById = async (req: Request, res: Response) => {
         name: true,
         description: true,
         price: true,
+        currency: true,
+        compareAtPrice: true,
         isActive: true,
         createdAt: true,
         images: true,
@@ -222,42 +255,63 @@ export const getProductById = async (req: Request, res: Response) => {
     }
 
     const basePrice = rawProduct.price.toNumber();
+    const productCurrency = rawProduct.currency || "EUR";
+    const compareAt = rawProduct.compareAtPrice?.toNumber() || basePrice;
 
-    // CONVERTIRE DECIMAL IN NUMBER
     let productWithCurrency;
 
-    if (currency === "EUR") {
+    // Stesso currency - no conversion
+    if (targetCurrency === productCurrency) {
       productWithCurrency = {
         ...rawProduct,
         price: basePrice,
         displayPrice: basePrice,
-        currency: "EUR",
+        currency: productCurrency,
+        compareAtPrice: compareAt,
+        displayCompareAtPrice: compareAt,
         originalPrice: basePrice,
-        originalCurrency: "EUR",
-        formattedPrice: currencyService.formatPrice(basePrice, "EUR"),
+        originalCurrency: productCurrency,
+        formattedPrice: currencyService.formatPrice(basePrice, productCurrency),
+        formattedCompareAtPrice: currencyService.formatPrice(
+          compareAt,
+          productCurrency
+        ),
         exchangeRate: 1,
         exchangeSource: "same" as const,
       };
     } else {
-      const conversion = await currencyService.convertPrice(
+      // Converti da productCurrency → targetCurrency
+      const priceConversion = await currencyService.convertPrice(
         basePrice,
-        "EUR",
-        currency
+        productCurrency,
+        targetCurrency
+      );
+
+      const compareAtConversion = await currencyService.convertPrice(
+        compareAt,
+        productCurrency,
+        targetCurrency
       );
 
       productWithCurrency = {
         ...rawProduct,
         price: basePrice,
-        displayPrice: conversion.convertedAmount,
-        currency,
+        displayPrice: priceConversion.convertedAmount,
+        currency: targetCurrency,
+        compareAtPrice: compareAt,
+        displayCompareAtPrice: compareAtConversion.convertedAmount,
         originalPrice: basePrice,
-        originalCurrency: "EUR",
+        originalCurrency: productCurrency,
         formattedPrice: currencyService.formatPrice(
-          conversion.convertedAmount,
-          currency
+          priceConversion.convertedAmount,
+          targetCurrency
         ),
-        exchangeRate: conversion.rate,
-        exchangeSource: conversion.source,
+        formattedCompareAtPrice: currencyService.formatPrice(
+          compareAtConversion.convertedAmount,
+          targetCurrency
+        ),
+        exchangeRate: priceConversion.rate,
+        exchangeSource: priceConversion.source,
       };
     }
 
@@ -266,7 +320,7 @@ export const getProductById = async (req: Request, res: Response) => {
       message: "Product retrieved successfully",
       product: productWithCurrency,
       currency: {
-        current: currency,
+        current: targetCurrency,
         supported: currencyService.getSupportedCurrencies(),
       },
     } as ProductDetailResponse);
@@ -280,20 +334,24 @@ export const getProductById = async (req: Request, res: Response) => {
   }
 };
 
+// ============================================
 // CREA PRODOTTO
 // POST /api/admin/products
+// ============================================
 export const createProduct = async (req: Request, res: Response) => {
   try {
     const {
       name,
       description,
       price,
+      currency,
+      compareAtPrice,
       fileName,
       filePath,
       categoryId,
     }: CreateProductRequest = req.body;
 
-    // VALIDAZIONE CAMPI
+    // VALIDAZIONE
     if (!name || !price || !fileName || !filePath) {
       return res.status(400).json({
         success: false,
@@ -301,7 +359,6 @@ export const createProduct = async (req: Request, res: Response) => {
       } as ProductMutationResponse);
     }
 
-    // VALIDAZIONE PREZZO
     const numPrice = Number(price);
     if (isNaN(numPrice) || numPrice <= 0) {
       return res.status(400).json({
@@ -310,7 +367,7 @@ export const createProduct = async (req: Request, res: Response) => {
       } as ProductMutationResponse);
     }
 
-    // CONTROLLO PRODOTTO GIA CREATO
+    // CONTROLLO DUPLICATO
     const existingProduct = await prisma.product.findFirst({
       where: {
         name: name.trim(),
@@ -325,13 +382,15 @@ export const createProduct = async (req: Request, res: Response) => {
       } as ProductMutationResponse);
     }
 
-    // CREAZIONE PRODOTTO
+    // CREAZIONE
     const rawProduct = await prisma.product.create({
       data: {
         name: name.trim(),
         slug: generateSlug(name),
         description: description?.trim() || null,
         price: numPrice,
+        currency: currency || "EUR",
+        compareAtPrice: compareAtPrice ? Number(compareAtPrice) : numPrice,
         fileName: fileName.trim(),
         filePath: filePath.trim(),
         isActive: true,
@@ -356,9 +415,9 @@ export const createProduct = async (req: Request, res: Response) => {
       description: rawProduct.description,
       shortDescription: rawProduct.shortDescription,
       price: rawProduct.price.toNumber(),
-      originalPrice: rawProduct.originalPrice
-        ? rawProduct.originalPrice.toNumber()
-        : null,
+      currency: rawProduct.currency || "EUR",
+      compareAtPrice: rawProduct.compareAtPrice?.toNumber() || null,
+      originalPrice: rawProduct.originalPrice?.toNumber() || null,
       fileName: rawProduct.fileName,
       filePath: rawProduct.filePath,
       createdAt: rawProduct.createdAt,
@@ -394,14 +453,15 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 };
 
-// MODIFICA PRODTTO
+// ============================================
+// MODIFICA PRODOTTO
 // PUT /api/admin/products/:id
+// ============================================
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updateData: UpdateProductRequest = req.body;
 
-    // ESISTE?
     const existingProduct = await prisma.product.findUnique({
       where: { id },
     });
@@ -413,7 +473,6 @@ export const updateProduct = async (req: Request, res: Response) => {
       } as ProductMutationResponse);
     }
 
-    // PREPARIAMO I DATI PER LA MODIFICA
     const data: Prisma.ProductUpdateInput = {};
 
     if (updateData.name !== undefined) {
@@ -432,6 +491,12 @@ export const updateProduct = async (req: Request, res: Response) => {
         } as ProductMutationResponse);
       }
       data.price = numPrice;
+    }
+    if (updateData.currency !== undefined) {
+      data.currency = updateData.currency;
+    }
+    if (updateData.compareAtPrice !== undefined) {
+      data.compareAtPrice = Number(updateData.compareAtPrice);
     }
     if (updateData.fileName !== undefined) {
       data.fileName = updateData.fileName.trim();
@@ -480,7 +545,6 @@ export const updateProduct = async (req: Request, res: Response) => {
       }
     }
 
-    // AGGIORNO IL PRODOTTO
     const rawUpdatedProduct = await prisma.product.update({
       where: { id },
       data,
@@ -493,9 +557,9 @@ export const updateProduct = async (req: Request, res: Response) => {
       description: rawUpdatedProduct.description,
       shortDescription: rawUpdatedProduct.shortDescription,
       price: rawUpdatedProduct.price.toNumber(),
-      originalPrice: rawUpdatedProduct.originalPrice
-        ? rawUpdatedProduct.originalPrice.toNumber()
-        : null,
+      currency: rawUpdatedProduct.currency || "EUR",
+      compareAtPrice: rawUpdatedProduct.compareAtPrice?.toNumber() || null,
+      originalPrice: rawUpdatedProduct.originalPrice?.toNumber() || null,
       fileName: rawUpdatedProduct.fileName,
       filePath: rawUpdatedProduct.filePath,
       createdAt: rawUpdatedProduct.createdAt,
@@ -531,13 +595,14 @@ export const updateProduct = async (req: Request, res: Response) => {
   }
 };
 
-// ELIMINAZIONE PRODOTTO
+// ============================================
+// ELIMINAZIONE (SOFT DELETE)
 // DELETE /api/admin/products/:id
+// ============================================
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    // ESISTE?
     const existingProduct = await prisma.product.findUnique({
       where: { id },
     });
@@ -549,7 +614,6 @@ export const deleteProduct = async (req: Request, res: Response) => {
       } as ProductMutationResponse);
     }
 
-    // ELIMINAZIONE SOFT
     await prisma.product.update({
       where: { id },
       data: { isActive: false },
@@ -569,8 +633,8 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 };
 
-// LISTA IMMAGINI PRODOTTO
-// GET /api/admin/products/:id/images
+// ... (resto delle funzioni images rimangono identiche) ...
+
 export const getProductImages = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -606,8 +670,6 @@ export const getProductImages = async (req: Request, res: Response) => {
   }
 };
 
-// UPLOAD IMMAGINI PRODOTTO
-// POST /api/admin/products/:id/images
 export const uploadProductImages = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -620,7 +682,6 @@ export const uploadProductImages = async (req: Request, res: Response) => {
       });
     }
 
-    // Verifica che il prodotto esista
     const product = await prisma.product.findUnique({
       where: { id },
       include: { images: true },
@@ -633,7 +694,6 @@ export const uploadProductImages = async (req: Request, res: Response) => {
       });
     }
 
-    // Usa FileUploadService per caricare le immagini
     const fileUploadService = new FileUploadService();
     const uploadedImages = await fileUploadService.uploadProductGallery(
       files,
@@ -655,13 +715,10 @@ export const uploadProductImages = async (req: Request, res: Response) => {
   }
 };
 
-// ELIMINA IMMAGINE PRODOTTO
-// DELETE /api/admin/products/:id/images/:imageId
 export const deleteProductImage = async (req: Request, res: Response) => {
   try {
     const { id, imageId } = req.params;
 
-    // Verifica che l'immagine appartenga al prodotto
     const image = await prisma.productImage.findFirst({
       where: {
         id: imageId,
@@ -676,9 +733,7 @@ export const deleteProductImage = async (req: Request, res: Response) => {
       });
     }
 
-    // Se è l'immagine principale, rimuovi il flag
     if (image.isMain) {
-      // Trova un'altra immagine da impostare come principale
       const otherImage = await prisma.productImage.findFirst({
         where: {
           productId: id,
@@ -695,7 +750,6 @@ export const deleteProductImage = async (req: Request, res: Response) => {
       }
     }
 
-    // Elimina da Cloudinary
     try {
       const publicId = FileUploadService.extractPublicIdFromUrl(image.url);
       if (publicId) {
@@ -703,10 +757,8 @@ export const deleteProductImage = async (req: Request, res: Response) => {
       }
     } catch (cloudinaryError) {
       console.error("Cloudinary deletion error:", cloudinaryError);
-      // Continua comunque con l'eliminazione dal database
     }
 
-    // Elimina dal database
     await prisma.productImage.delete({
       where: { id: imageId },
     });
@@ -724,13 +776,10 @@ export const deleteProductImage = async (req: Request, res: Response) => {
   }
 };
 
-// IMPOSTA IMMAGINE IN EVIDENZA
-// PATCH /api/admin/products/:id/images/:imageId/featured
 export const setFeaturedImage = async (req: Request, res: Response) => {
   try {
     const { id, imageId } = req.params;
 
-    // Verifica che l'immagine appartenga al prodotto
     const image = await prisma.productImage.findFirst({
       where: {
         id: imageId,
@@ -745,7 +794,6 @@ export const setFeaturedImage = async (req: Request, res: Response) => {
       });
     }
 
-    // Rimuovo isMain da tutte le altre immagini del prodotto
     await prisma.productImage.updateMany({
       where: {
         productId: id,
@@ -754,7 +802,6 @@ export const setFeaturedImage = async (req: Request, res: Response) => {
       data: { isMain: false },
     });
 
-    // PRINCIPALE
     const updatedImage = await prisma.productImage.update({
       where: { id: imageId },
       data: { isMain: true },
@@ -774,7 +821,10 @@ export const setFeaturedImage = async (req: Request, res: Response) => {
   }
 };
 
-// LISTA PRODOTTI PER ADMIN CON PATH
+// ============================================
+// LISTA PRODOTTI ADMIN
+// GET /api/admin/products
+// ============================================
 export const getProductsAdmin = async (req: Request, res: Response) => {
   try {
     const search = getStringParam(req.query.search);
@@ -786,13 +836,11 @@ export const getProductsAdmin = async (req: Request, res: Response) => {
     const page = getStringParam(req.query.page) || "1";
     const limit = getStringParam(req.query.limit) || "10";
 
-    // VALIDAZIONI PARAMETRI
     const validSortFields = ["name", "price", "createdAt"];
     const validSortBy = validSortFields.includes(sortBy) ? sortBy : "createdAt";
     const validSortOrder =
       sortOrder === "asc" || sortOrder === "desc" ? sortOrder : "desc";
 
-    // FILTRI
     const where: Prisma.ProductWhereInput = {};
 
     if (isActive !== undefined) {
@@ -806,10 +854,8 @@ export const getProductsAdmin = async (req: Request, res: Response) => {
       ];
     }
 
-    // FILTRI PREZZO
     if (minPrice !== undefined || maxPrice !== undefined) {
       where.price = {};
-
       if (minPrice !== undefined) {
         where.price.gte = Number(minPrice);
       }
@@ -832,7 +878,6 @@ export const getProductsAdmin = async (req: Request, res: Response) => {
       prisma.product.count({ where }),
     ]);
 
-    // CONVERTIRE DECIMAL IN NUMBER
     const products: ProductResponse[] = rawProducts.map((product) => ({
       id: product.id,
       name: product.name,
@@ -840,9 +885,9 @@ export const getProductsAdmin = async (req: Request, res: Response) => {
       description: product.description,
       shortDescription: product.shortDescription,
       price: product.price.toNumber(),
-      originalPrice: product.originalPrice
-        ? product.originalPrice.toNumber()
-        : null,
+      currency: product.currency || "EUR",
+      compareAtPrice: product.compareAtPrice?.toNumber() || null,
+      originalPrice: product.originalPrice?.toNumber() || null,
       fileName: product.fileName,
       filePath: product.filePath,
       createdAt: product.createdAt,
@@ -885,7 +930,10 @@ export const getProductsAdmin = async (req: Request, res: Response) => {
   }
 };
 
+// ============================================
 // CONVERSIONE PREZZO MANUALE
+// POST /api/products/:id/convert
+// ============================================
 export const convertProductPrice = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -903,7 +951,7 @@ export const convertProductPrice = async (req: Request, res: Response) => {
     if (!amount && id) {
       const product = await prisma.product.findUnique({
         where: { id },
-        select: { price: true, isActive: true, name: true },
+        select: { price: true, currency: true, isActive: true, name: true },
       });
 
       if (!product || !product.isActive) {

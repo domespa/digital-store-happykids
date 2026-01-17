@@ -179,6 +179,18 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
 
   useEffect(() => {
     const detectUser = async () => {
+      const cachedCurrency = localStorage.getItem("userCurrency");
+      const cachedCountry = localStorage.getItem("userCountry");
+
+      if (cachedCurrency && cachedCountry) {
+        console.log("✅ Using cached location:", cachedCountry, cachedCurrency);
+        setUser({
+          country: cachedCountry,
+          currency: cachedCurrency,
+        });
+        setIsLoading(false);
+      }
+
       try {
         console.log("🌍 Fetching location from ipapi.co...");
 
@@ -206,18 +218,21 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
           city: data.city,
           region: data.region,
         });
+
         if (data.country_name && !data.error) {
           console.log("✅ Geolocalizzazione riuscita:", data.country_name);
 
-          // CREA USER
+          const detectedCurrency = getCurrencyByCountry(data.country_code);
+          localStorage.setItem("userCountry", data.country_name);
+          localStorage.setItem("userCurrency", detectedCurrency);
+
           const detectedUser: LandingUser = {
             country: data.country_name,
-            currency: getCurrencyByCountry(data.country_code),
+            currency: detectedCurrency,
           };
 
           setUser(detectedUser);
 
-          // CONNETTI WEBSOCKET E PASSA DATI
           const locationData = {
             country: data.country_name,
             city: data.city || "Unknown",
@@ -228,7 +243,6 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
             timezone: data.timezone,
           };
 
-          // CONNETTI -> INVIA
           locationWebSocketService.connect();
           locationWebSocketService.setLocationData(locationData);
         } else {
@@ -240,8 +254,9 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
           error
         );
 
-        // FALLBACK: Detect from timezone instead of hardcoding Sicily
         const detectedFromTimezone = detectLocationFromTimezone();
+        localStorage.setItem("userCountry", detectedFromTimezone.country);
+        localStorage.setItem("userCurrency", detectedFromTimezone.currency);
 
         const fallbackUser: LandingUser = {
           country: detectedFromTimezone.country,

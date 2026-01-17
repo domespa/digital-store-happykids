@@ -33,6 +33,7 @@ export interface CheckoutForm {
   customerLastName: string;
   paymentProvider: PaymentProvider;
   acceptRefundPolicy?: string;
+  workbooksAdded?: boolean;
 }
 
 export interface OrderData {

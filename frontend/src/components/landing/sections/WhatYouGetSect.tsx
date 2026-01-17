@@ -1,5 +1,11 @@
+import {
+  faBox,
+  faCartArrowDown,
+  faGifts,
+} from "@fortawesome/free-solid-svg-icons";
 import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function WhatYouGetSect() {
   const { config, isLoading } = useLandingContext();
@@ -34,8 +40,10 @@ export default function WhatYouGetSect() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
         {/* Header */}
         <div className="text-center mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-full text-sm font-bold text-blue-600 mb-6">
-            <span>📦</span>
+          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-full text-lg font-bold text-blue-600 mb-6">
+            <span>
+              <FontAwesomeIcon icon={faBox} />
+            </span>
             <span>Complete Protocol Breakdown</span>
           </div>
 
@@ -167,9 +175,9 @@ export default function WhatYouGetSect() {
         {features.bonuses.length > 0 && (
           <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-8 sm:p-10 lg:p-12 text-white mb-12 shadow-2xl">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold mb-4">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-lg font-bold mb-4">
                 <span>🎁</span>
-                <span>FREE Bonuses Included</span>
+                <span color="black">FREE Bonuses Included</span>
               </div>
               <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
                 Plus, You Get These Essential Tools
@@ -215,8 +223,10 @@ export default function WhatYouGetSect() {
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    Get Everything Now - ${landingCart.mainPrice}
-                    <span className="text-xl">→</span>
+                    Get Everything Now - {landingCart.formattedMainPrice}
+                    <span className="text-3xl">
+                      <FontAwesomeIcon icon={faCartArrowDown} />
+                    </span>
                   </span>
                 )}
               </button>

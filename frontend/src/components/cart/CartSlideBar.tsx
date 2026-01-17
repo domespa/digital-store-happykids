@@ -1,5 +1,5 @@
 import { useCart } from "../../hooks/useCart";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useCheckout } from "../../hooks/useCheckout";
 import StripePaymentForm from "../StripePaymentForm";
 import type { CheckoutForm } from "../../types/checkout";
@@ -12,29 +12,31 @@ interface CartSlideBar {
 type CheckoutStep = "cart" | "form" | "stripe" | "paypal" | "success";
 
 const formatPriceWithCurrency = (amount: number, currency: string): string => {
-  const currencySymbols: Record<string, string> = {
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    AUD: "$",
-    CAD: "$",
-    JPY: "¥",
-    CHF: "CHF",
-    SEK: "kr",
-    NOK: "kr",
-    DKK: "kr",
+  const locales: Record<string, string> = {
+    USD: "en-US",
+    GBP: "en-GB",
+    AUD: "en-AU",
+    CAD: "en-CA",
+    EUR: "it-IT",
+    JPY: "ja-JP",
+    CHF: "de-CH",
+    SEK: "sv-SE",
+    NOK: "nb-NO",
+    DKK: "da-DK",
   };
 
-  const symbol = currencySymbols[currency] || currency;
-  const rounded = Math.round(amount);
-
-  // Format: $45 AUD
-  return `${symbol}${rounded} ${currency}`;
+  return amount.toLocaleString(locales[currency] || "en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 };
 
 export default function CartSlideBar({ className }: CartSlideBar = {}) {
   const {
     cart,
+    addItem,
     removeItem,
     updateQuantity,
     toggleCart,
@@ -52,6 +54,8 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   } = useCheckout();
 
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>("cart");
+  const [isWorkbooksExpanded, setIsWorkbooksExpanded] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [formData, setFormData] = useState<CheckoutForm>({
     customerEmail: "",
     customerFirstName: "",
@@ -128,38 +132,209 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   const formatPrice = (amount: number): string => {
     const currency = getDisplayCurrency();
 
-    const currencySymbols: Record<string, string> = {
-      USD: "$",
-      EUR: "€",
-      GBP: "£",
-      AUD: "$",
-      CAD: "$",
-      JPY: "¥",
-      CHF: "CHF",
-      SEK: "kr",
-      NOK: "kr",
-      DKK: "kr",
+    const locales: Record<string, string> = {
+      USD: "en-US",
+      GBP: "en-GB",
+      AUD: "en-AU",
+      CAD: "en-CA",
+      EUR: "it-IT",
+      JPY: "ja-JP",
+      CHF: "de-CH",
+      SEK: "sv-SE",
+      NOK: "nb-NO",
+      DKK: "da-DK",
     };
 
-    const symbol = currencySymbols[currency] || currency;
-    const rounded = Math.round(amount);
+    return amount.toLocaleString(locales[currency] || "en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
-    return `${symbol}${rounded} ${currency}`;
+  // ========================
+  //   WORKBOOKS CONFIG
+  // ========================
+  const WORKBOOKS_PRICE_EUR = 15; // Prezzo in EUR
+  const INDIVIDUAL_WORKBOOK_PRICE_EUR = 5; // Prezzo in EUR
+  const WORKBOOKS_BUNDLE_ID = "cmkfg5osj0005mlb9u0blcig9";
+
+  const workbooks = [
+    {
+      id: "cmkgme4jd0000a59mmfw1523f",
+      name: "A Rainbow of Colors",
+      pages: 47,
+      priceEUR: 5,
+      image: "/cover-ebook/ranibowofcolors.jpg",
+    },
+    {
+      id: "cmkgme52g0001a59mltiz39wx",
+      name: "Letters and Numbers in Play",
+      pages: 60,
+      priceEUR: 5,
+      image: "/cover-ebook/lettersnumbersinplay.jpg",
+    },
+    {
+      id: "cmkgme5jn0002a59mxqg8yxah",
+      name: "My First Writing Adventure",
+      pages: 59,
+      priceEUR: 5,
+      image: "/cover-ebook/myfirstadventure.jpg",
+    },
+    {
+      id: "cmkgme60s0003a59mwtnpoutt",
+      name: "The Big Book of Animals and Dinosaurs",
+      pages: 64,
+      priceEUR: 5,
+      image: "/cover-ebook/animals.jpg",
+    },
+    {
+      id: "cmkgme6hx0004a59m76ln9301",
+      name: "World of Shapes",
+      pages: 65,
+      priceEUR: 5,
+      image: "/cover-ebook/worldofshapes.jpg",
+    },
+  ];
+
+  // ========================
+  //   CONVERTI PREZZI WORKBOOKS
+  // ========================
+  const convertWorkbookPrice = useCallback(
+    (euroPrice: number): number => {
+      const currentCurrency = getDisplayCurrency();
+
+      // Se è già EUR, nessuna conversione
+      if (currentCurrency === "EUR") {
+        return euroPrice;
+      }
+
+      // Fallback rates
+      const fallbackRates: Record<string, number> = {
+        USD: 1.1,
+        GBP: 0.85,
+        AUD: 1.65,
+        CAD: 1.48,
+      };
+
+      const rate = fallbackRates[currentCurrency] || 1;
+      return Math.round(euroPrice * rate * 100) / 100;
+    },
+    [getDisplayCurrency]
+  );
+
+  // Conta quanti workbook sono già nel cart
+  const getWorkbooksInCart = () => {
+    return cart.items.filter((item) =>
+      workbooks.some((wb) => wb.id === item.productId)
+    );
+  };
+
+  // Check se workbook specifico è nel cart
+  const isWorkbookInCart = (workbookId: string) => {
+    return cart.items.some(
+      (item) =>
+        item.productId === workbookId || item.productId === WORKBOOKS_BUNDLE_ID
+    );
+  };
+
+  // Check se bundle è nel cart
+  const hasBundleInCart = () => {
+    return cart.items.some((item) => item.id === WORKBOOKS_BUNDLE_ID);
+  };
+
+  // Naviga carousel
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % workbooks.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + workbooks.length) % workbooks.length);
+  };
+
+  // ========================
+  //   ADD TO CART (CON CONVERSIONE)
+  // ========================
+  const addSingleWorkbook = (workbook: (typeof workbooks)[0]) => {
+    const convertedPrice = convertWorkbookPrice(workbook.priceEUR);
+
+    addItem({
+      id: `workbook-${workbook.id}`,
+      productId: workbook.id,
+      name: workbook.name,
+      price: convertedPrice,
+      currency: getDisplayCurrency(),
+      image: workbook.image,
+      description: `${workbook.pages} pages workbook for ages 3-5`,
+    });
+    setIsWorkbooksExpanded(false);
+  };
+
+  const addWorkbooksBundle = () => {
+    const convertedPrice = convertWorkbookPrice(WORKBOOKS_PRICE_EUR);
+
+    addItem({
+      id: `workbooks-bundle-${WORKBOOKS_BUNDLE_ID}`,
+      productId: WORKBOOKS_BUNDLE_ID,
+      name: "5 Learning Workbooks Bundle",
+      price: convertedPrice,
+      currency: getDisplayCurrency(),
+      image: workbooks[0].image,
+      description: "Complete bundle: 295 pages of educational activities",
+    });
+    setIsWorkbooksExpanded(false);
+  };
+
+  // Check se user ha tutti e 5 workbook individuali nel cart
+  const hasAllIndividualWorkbooks = (): boolean => {
+    const workbooksInCart = getWorkbooksInCart();
+    const hasBundle = hasBundleInCart();
+
+    // Se ha già bundle, return false
+    if (hasBundle) return false;
+
+    // Check se ha esattamente tutti e 5 workbook individuali
+    return workbooksInCart.length === 5;
+  };
+
+  // Converti 5 workbook individuali in bundle
+  const convertToBundle = () => {
+    const workbooksInCart = getWorkbooksInCart();
+    workbooksInCart.forEach((item) => {
+      removeItem(item.id);
+    });
+
+    const convertedPrice = convertWorkbookPrice(WORKBOOKS_PRICE_EUR);
+    addItem({
+      id: `workbooks-bundle-${WORKBOOKS_BUNDLE_ID}`,
+      productId: WORKBOOKS_BUNDLE_ID,
+      name: "5 Learning Workbooks Bundle",
+      price: convertedPrice,
+      currency: getDisplayCurrency(),
+      image: workbooks[0].image,
+      description: "Complete bundle: 295 pages of educational activities",
+    });
+  };
+
+  const calculateTotal = (): number => {
+    return getCartTotal();
   };
 
   const handleCheckout = () => {
     if (cart.items.length === 0) return;
 
-    trackBeginCheckout(
-      cart.items.map((item) => ({
+    const itemsToTrack = [
+      ...cart.items.map((item) => ({
         item_id: item.id,
         item_name: item.name,
         price: item.displayPrice,
         quantity: item.quantity,
       })),
-      getCartTotal(),
-      cart.displayCurrency
-    );
+    ];
+
+    trackBeginCheckout(itemsToTrack, calculateTotal(), cart.displayCurrency);
+
     clearError();
     setCheckoutStep("form");
   };
@@ -180,7 +355,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             price: item.displayPrice,
             quantity: item.quantity,
           })),
-          getCartTotal(),
+          calculateTotal(),
           formData.paymentProvider,
           getDisplayCurrency()
         );
@@ -203,7 +378,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   };
 
   const handleStripeSuccess = (paymentIntent: any) => {
-    const finalAmount = getCartTotal();
+    const finalAmount = calculateTotal();
     const finalCurrency = getDisplayCurrency();
 
     setSuccessData({
@@ -245,9 +420,9 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
       <div className="absolute right-0 top-0 h-[100dvh] w-full max-w-lg bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
         <div className="flex h-full flex-col">
           {/* HEADER */}
-          <div className="flex items-center justify-between border-b border-[#CAD2C5] p-6 bg-[#F8F9FA]">
+          <div className="flex items-center justify-between border-b border-[#e2e8f0] p-6 bg-[#f8fafc]">
             <div>
-              <h2 className="text-lg font-semibold text-[#1A1A1A]">
+              <h2 className="text-lg font-semibold text-[#1e293b]">
                 {checkoutStep === "cart" && `Cart (${cart.itemsCount})`}
                 {checkoutStep === "form" && "Checkout details"}
                 {checkoutStep === "stripe" && "Processing Stripe payment..."}
@@ -261,7 +436,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                 toggleCart();
                 resetCheckout();
               }}
-              className="rounded-lg p-2 text-[#4A4A4A] hover:text-[#1A1A1A] hover:bg-white"
+              className="rounded-lg p-2 text-[#64748b] hover:text-[#1e293b] hover:bg-white transition-colors"
             >
               <svg
                 className="h-6 w-6"
@@ -279,7 +454,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             </button>
           </div>
 
-          {/* CONTENUTO DINAMICO */}
+          {/* CONTENUTO DINAMICO - SCROLLABILE */}
           <div className="flex-1 overflow-y-auto p-6">
             {/* ERRORI */}
             {error && checkoutStep !== "stripe" && (
@@ -292,17 +467,17 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             {checkoutStep === "cart" && (
               <>
                 {cart.isConverting && (
-                  <div className="mb-4 rounded-lg bg-[#FFF4ED] border border-[#CAD2C5] p-3">
-                    <div className="flex items-center gap-2 text-sm text-[#52796F]">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#52796F]"></div>
-                      Updating prices…
+                  <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 p-3">
+                    <div className="flex items-center gap-2 text-sm text-[#2563eb]">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#2563eb]"></div>
+                      Updating prices...
                     </div>
                   </div>
                 )}
 
                 {cart.items.length === 0 ? (
                   <div className="text-center py-12">
-                    <div className="text-[#4A4A4A] mb-4">
+                    <div className="text-[#64748b] mb-4">
                       <svg
                         className="h-16 w-16 mx-auto"
                         fill="none"
@@ -317,18 +492,18 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">
+                    <h3 className="text-lg font-medium text-[#1e293b] mb-2">
                       Your cart is empty
                     </h3>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 mb-6">
                     {cart.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex gap-4 p-5 bg-[#F8F9FA] rounded-lg border border-[#CAD2C5]"
+                        className="flex gap-4 p-5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] hover:border-[#cbd5e1] transition-colors"
                       >
-                        <div className="w-20 h-20 bg-gradient-to-br from-[#84A98C] to-[#52796F] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-20 h-30 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-lg flex items-center justify-center flex-shrink-0">
                           {item.image ? (
                             <img
                               src={item.image}
@@ -341,18 +516,18 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-[#1A1A1A] text-sm leading-tight">
+                          <h3 className="font-medium text-[#1e293b] text-sm leading-tight">
                             {item.name}
                           </h3>
 
                           {item.description && (
-                            <p className="text-xs text-[#4A4A4A] mt-1 line-clamp-2">
+                            <p className="text-xs text-[#64748b] mt-1 line-clamp-2">
                               {item.description}
                             </p>
                           )}
 
                           <div className="flex items-center justify-between mt-3">
-                            <div className="font-semibold text-[#52796F]">
+                            <div className="font-semibold text-[#2563eb]">
                               {formatPrice(item.displayPrice)}
                             </div>
 
@@ -361,12 +536,12 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                                 onClick={() =>
                                   updateQuantity(item.id, item.quantity - 1)
                                 }
-                                className="w-8 h-8 rounded-full bg-white border border-[#CAD2C5] flex items-center justify-center text-[#4A4A4A] hover:bg-[#F8F9FA]"
+                                className="w-8 h-8 rounded-full bg-white border border-[#e2e8f0] flex items-center justify-center text-[#64748b] hover:bg-[#f8fafc] hover:border-[#cbd5e1] transition-all active:scale-95"
                               >
                                 -
                               </button>
 
-                              <span className="w-8 text-center text-sm font-medium text-[#1A1A1A]">
+                              <span className="w-8 text-center text-sm font-medium text-[#1e293b]">
                                 {item.quantity}
                               </span>
 
@@ -374,14 +549,14 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                                 onClick={() =>
                                   updateQuantity(item.id, item.quantity + 1)
                                 }
-                                className="w-8 h-8 rounded-full bg-white border border-[#CAD2C5] flex items-center justify-center text-[#4A4A4A] hover:bg-[#F8F9FA]"
+                                className="w-8 h-8 rounded-full bg-white border border-[#e2e8f0] flex items-center justify-center text-[#64748b] hover:bg-[#f8fafc] hover:border-[#cbd5e1] transition-all active:scale-95"
                               >
                                 +
                               </button>
 
                               <button
                                 onClick={() => removeItem(item.id)}
-                                className="ml-2 p-1 text-red-400 hover:text-red-600"
+                                className="ml-2 p-1 text-red-400 hover:text-red-600 transition-colors"
                               >
                                 <svg
                                   className="h-4 w-4"
@@ -407,17 +582,58 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
               </>
             )}
 
+            {/* BUNDLE CONVERSION BANNER */}
+            {checkoutStep === "cart" && hasAllIndividualWorkbooks() && (
+              <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 border-2 border-orange-300 rounded-xl shadow-lg animate-pulse-slow">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-base font-bold text-orange-900 mb-1">
+                      💰 Smart Savings Opportunity!
+                    </h3>
+                    <p className="text-sm text-orange-800 mb-3">
+                      You have all 5 workbooks! Get the bundle discount and{" "}
+                      <strong>
+                        save {formatPrice(convertWorkbookPrice(10))}
+                      </strong>
+                      ({formatPrice(convertWorkbookPrice(15))} instead of{" "}
+                      {formatPrice(convertWorkbookPrice(25))})
+                    </p>
+                    <button
+                      onClick={convertToBundle}
+                      className="w-full py-2.5 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold text-sm transition-all active:scale-95 shadow-md"
+                    >
+                      ⭐ Apply Bundle Discount - Save{" "}
+                      {formatPrice(convertWorkbookPrice(10))}!
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* FORM STEP */}
             {checkoutStep === "form" && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-[#1A1A1A]">
+                <h3 className="text-lg font-semibold text-[#1e293b]">
                   Information for checkout
                 </h3>
 
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
+                      <label className="block text-sm font-medium text-[#1e293b] mb-1">
                         First name
                       </label>
                       <input
@@ -426,14 +642,14 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         onChange={(e) =>
                           updateFormData("customerFirstName", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-[#CAD2C5] rounded-lg focus:ring-2 focus:ring-[#52796F] focus:border-[#52796F] text-[#1A1A1A] placeholder:text-[#4A4A4A]"
+                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-[#2563eb] text-[#1e293b] placeholder:text-[#64748b] transition-all"
                         placeholder="First name"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
+                      <label className="block text-sm font-medium text-[#1e293b] mb-1">
                         Last name
                       </label>
                       <input
@@ -442,7 +658,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         onChange={(e) =>
                           updateFormData("customerLastName", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-[#CAD2C5] rounded-lg focus:ring-2 focus:ring-[#52796F] focus:border-[#52796F] text-[#1A1A1A] placeholder:text-[#4A4A4A]"
+                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-[#2563eb] text-[#1e293b] placeholder:text-[#64748b] transition-all"
                         placeholder="Last name"
                         required
                       />
@@ -450,7 +666,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#1A1A1A] mb-1">
+                    <label className="block text-sm font-medium text-[#1e293b] mb-1">
                       Email
                     </label>
                     <input
@@ -459,7 +675,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       onChange={(e) =>
                         updateFormData("customerEmail", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-[#CAD2C5] rounded-lg focus:ring-2 focus:ring-[#52796F] focus:border-[#52796F] text-[#1A1A1A] placeholder:text-[#4A4A4A]"
+                      className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-[#2563eb] text-[#1e293b] placeholder:text-[#64748b] transition-all"
                       placeholder="The file will be sent here"
                       required
                     />
@@ -467,7 +683,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                 </div>
 
                 <div className="pt-1">
-                  <label className="block text-xs font-medium text-[#1A1A1A] mb-2">
+                  <label className="block text-xs font-medium text-[#1e293b] mb-2">
                     Payment method
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -478,12 +694,12 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       }
                       className={`relative flex flex-col items-center justify-center gap-2 p-4 border-2 rounded-xl transition-all ${
                         formData.paymentProvider === "STRIPE"
-                          ? "border-[#52796F] bg-gradient-to-br from-[#FFF4ED] to-[#CAD2C5] shadow-lg"
-                          : "border-[#CAD2C5] bg-white hover:border-[#84A98C]"
+                          ? "border-[#2563eb] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
+                          : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
                       }`}
                     >
                       {formData.paymentProvider === "STRIPE" && (
-                        <div className="absolute top-2 right-2 w-5 h-5 bg-[#52796F] rounded-full flex items-center justify-center">
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-[#2563eb] rounded-full flex items-center justify-center">
                           <svg
                             className="w-3 h-3 text-white"
                             fill="currentColor"
@@ -510,13 +726,13 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         <span
                           className={`text-xs font-bold block ${
                             formData.paymentProvider === "STRIPE"
-                              ? "text-[#52796F]"
-                              : "text-[#1A1A1A]"
+                              ? "text-[#2563eb]"
+                              : "text-[#1e293b]"
                           }`}
                         >
                           Card
                         </span>
-                        <span className="text-[10px] text-[#4A4A4A]">
+                        <span className="text-[10px] text-[#64748b]">
                           Visa, Mastercard
                         </span>
                       </div>
@@ -530,7 +746,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       className={`relative flex flex-col items-center justify-center gap-2 p-4 border-2 rounded-xl transition-all ${
                         formData.paymentProvider === "PAYPAL"
                           ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
-                          : "border-[#CAD2C5] bg-white hover:border-[#84A98C]"
+                          : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
                       }`}
                     >
                       {formData.paymentProvider === "PAYPAL" && (
@@ -562,12 +778,12 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                           className={`text-xs font-bold block ${
                             formData.paymentProvider === "PAYPAL"
                               ? "text-blue-700"
-                              : "text-[#1A1A1A]"
+                              : "text-[#1e293b]"
                           }`}
                         >
                           PayPal
                         </span>
-                        <span className="text-[10px] text-[#4A4A4A]">
+                        <span className="text-[10px] text-[#64748b]">
                           Fast & Secure
                         </span>
                       </div>
@@ -575,7 +791,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                   </div>
                 </div>
 
-                <div className="border-t border-[#CAD2C5] pt-4">
+                <div className="border-t border-[#e2e8f0] pt-4">
                   <label className="flex items-start gap-3 cursor-pointer group">
                     <input
                       type="checkbox"
@@ -586,16 +802,16 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                           e.target.checked ? "true" : "false"
                         )
                       }
-                      className="mt-1 w-4 h-4 text-[#52796F] border-[#CAD2C5] rounded focus:ring-[#52796F] focus:ring-2"
+                      className="mt-1 w-4 h-4 text-[#2563eb] border-[#e2e8f0] rounded focus:ring-[#2563eb] focus:ring-2"
                       required
                     />
-                    <span className="text-sm text-[#4A4A4A] leading-relaxed">
+                    <span className="text-sm text-[#64748b] leading-relaxed">
                       I have read and agree to the{" "}
                       <a
                         href="/refund-policy"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#52796F] hover:text-[#3D5A51] underline font-medium"
+                        className="text-[#2563eb] hover:text-[#1d4ed8] underline font-medium"
                       >
                         Refund Policy
                       </a>
@@ -604,12 +820,12 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                   </label>
                 </div>
 
-                <div className="flex items-center justify-between py-3 border-t border-[#CAD2C5]">
-                  <span className="text-lg font-medium text-[#1A1A1A]">
+                <div className="flex items-center justify-between py-3 border-t border-[#e2e8f0]">
+                  <span className="text-lg font-medium text-[#1e293b]">
                     Order total
                   </span>
-                  <span className="text-2xl font-bold text-[#52796F]">
-                    {formatPrice(getCartTotal())}
+                  <span className="text-2xl font-bold text-[#2563eb]">
+                    {formatPrice(calculateTotal())}
                   </span>
                 </div>
               </div>
@@ -631,10 +847,10 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             {checkoutStep === "paypal" && (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">
+                <h3 className="text-lg font-medium text-[#1e293b] mb-2">
                   Processing PayPal payment...
                 </h3>
-                <p className="text-[#4A4A4A] text-sm">
+                <p className="text-[#64748b] text-sm">
                   Please wait while we confirm your payment
                 </p>
               </div>
@@ -658,10 +874,10 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-[#1A1A1A] mb-2">
+                <h3 className="text-xl font-semibold text-[#1e293b] mb-2">
                   Payment successful!
                 </h3>
-                <p className="text-[#4A4A4A] mb-6">
+                <p className="text-[#64748b] mb-6">
                   Thank you for your purchase. You will receive a confirmation
                   email shortly, with a link to download your file.
                 </p>
@@ -678,7 +894,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                             successData.finalAmount,
                             successData.finalCurrency
                           )
-                        : formatPrice(getCartTotal())}
+                        : formatPrice(calculateTotal())}
                     </div>
                   </div>
                 </div>
@@ -689,7 +905,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                     toggleCart();
                     resetCheckout();
                   }}
-                  className="w-full bg-[#52796F] hover:bg-[#3D5A51] text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                  className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm"
                 >
                   Close
                 </button>
@@ -697,19 +913,201 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             )}
           </div>
 
+          {/* FREQUENTLY BOUGHT TOGETHER - ACCORDION */}
+          {checkoutStep === "cart" &&
+            cart.items.length > 0 &&
+            !hasBundleInCart() &&
+            getWorkbooksInCart().length === 0 && (
+              <div className="border-t border-[#e2e8f0] p-4 bg-[#f8fafc]">
+                <button
+                  onClick={() => setIsWorkbooksExpanded(!isWorkbooksExpanded)}
+                  className="w-full p-3 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">💡</span>
+                      <div className="text-left">
+                        <h3 className="text-sm font-bold text-[#1e293b]">
+                          Frequently bought together
+                        </h3>
+                        <p className="text-xs text-[#64748b]">
+                          5 Learning Workbooks Bundle • Save{" "}
+                          {formatPrice(convertWorkbookPrice(10))}!
+                        </p>
+                      </div>
+                    </div>
+                    <svg
+                      className={`w-5 h-5 text-[#64748b] transition-transform ${
+                        isWorkbooksExpanded ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </button>
+
+                <div
+                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                    isWorkbooksExpanded
+                      ? "max-h-[800px] opacity-100 mt-2"
+                      : "max-h-0 opacity-0 mt-0"
+                  }`}
+                >
+                  <div className="p-4 bg-white border-2 border-blue-200 rounded-xl">
+                    <div className="mb-4">
+                      <div className="relative">
+                        <div className="m-auto w-32 sm:w-40 md:w-48 aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg overflow-hidden mb-3">
+                          <img
+                            src={workbooks[currentSlide].image}
+                            alt={workbooks[currentSlide].name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        {workbooks.length > 1 && (
+                          <>
+                            <button
+                              onClick={prevSlide}
+                              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center transition-all"
+                            >
+                              <svg
+                                className="w-5 h-5 text-[#1e293b]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 19l-7-7 7-7"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={nextSlide}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center transition-all"
+                            >
+                              <svg
+                                className="w-5 h-5 text-[#1e293b]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            </button>
+                          </>
+                        )}
+
+                        <div className="flex justify-center gap-1 mt-2">
+                          {workbooks.map((_, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setCurrentSlide(index)}
+                              className={`h-1.5 rounded-full transition-all ${
+                                index === currentSlide
+                                  ? "w-6 bg-blue-600"
+                                  : "w-1.5 bg-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="text-center mb-3">
+                        <h4 className="font-bold text-[#1e293b] text-sm mb-1">
+                          {workbooks[currentSlide].name}
+                        </h4>
+                        <p className="text-xs text-[#64748b]">
+                          {workbooks[currentSlide].pages} pages
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          addSingleWorkbook(workbooks[currentSlide])
+                        }
+                        disabled={isWorkbookInCart(workbooks[currentSlide].id)}
+                        className={`w-full py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
+                          isWorkbookInCart(workbooks[currentSlide].id)
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700 text-white active:scale-95"
+                        }`}
+                      >
+                        {isWorkbookInCart(workbooks[currentSlide].id)
+                          ? "✓ In Cart"
+                          : `Add This Book - ${formatPrice(
+                              convertWorkbookPrice(
+                                INDIVIDUAL_WORKBOOK_PRICE_EUR
+                              )
+                            )}`}
+                      </button>
+                    </div>
+
+                    <div className="relative my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200"></div>
+                      </div>
+                      <div className="relative flex justify-center text-xs">
+                        <span className="bg-white px-2 text-[#64748b]">or</span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={addWorkbooksBundle}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold text-sm transition-all active:scale-95 shadow-md"
+                    >
+                      <div className="flex items-center justify-center gap-2">
+                        <span>
+                          ⭐ Get All 5 Books for{" "}
+                          {formatPrice(
+                            convertWorkbookPrice(WORKBOOKS_PRICE_EUR)
+                          )}
+                        </span>
+                      </div>
+                      <div className="text-xs opacity-90 mt-1">
+                        Save {formatPrice(convertWorkbookPrice(10))} vs buying
+                        separately!
+                      </div>
+                    </button>
+
+                    <div className="mt-3 text-center text-xs text-[#64748b]">
+                      295 pages • Instant download
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           {/* FOOTER */}
           {(checkoutStep === "cart" || checkoutStep === "form") &&
             cart.items.length > 0 && (
-              <div className="border-t border-[#CAD2C5] p-6 bg-[#F8F9FA]">
+              <div className="border-t border-[#e2e8f0] p-6 bg-[#f8fafc]">
                 {checkoutStep === "cart" && (
                   <>
                     <div className="flex items-center justify-between mb-4">
-                      <span className="text-lg font-medium text-[#1A1A1A]">
+                      <span className="text-lg font-medium text-[#1e293b]">
                         Order total
                       </span>
-                      <span className="text-2xl font-bold text-[#52796F]">
-                        {formatPrice(getCartTotal())}
-                      </span>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-[#2563eb]">
+                          {formatPrice(calculateTotal())}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -719,17 +1117,17 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all duration-200 ${
                           cart.isConverting
                             ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-[#52796F] hover:bg-[#3D5A51] hover:shadow-lg"
+                            : "bg-[#2563eb] hover:bg-[#1d4ed8] hover:shadow-lg active:scale-98"
                         }`}
                       >
                         {cart.isConverting
                           ? "Updating prices..."
-                          : `Checkout - ${formatPrice(getCartTotal())}`}
+                          : `Checkout - ${formatPrice(calculateTotal())}`}
                       </button>
 
                       <button
                         onClick={clearCart}
-                        className="w-full py-2 px-4 rounded-lg border border-[#CAD2C5] text-[#4A4A4A] hover:bg-white transition-colors duration-200"
+                        className="w-full py-2 px-4 rounded-lg border border-[#e2e8f0] text-[#64748b] hover:bg-white hover:border-[#cbd5e1] transition-colors duration-200"
                       >
                         Clear cart
                       </button>
@@ -755,30 +1153,30 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         !formData.customerLastName ||
                         formData.acceptRefundPolicy !== "true"
                           ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-[#52796F] hover:bg-[#3D5A51] hover:shadow-lg"
+                          : "bg-[#2563eb] hover:bg-[#1d4ed8] hover:shadow-lg active:scale-98"
                       }`}
                     >
                       {isProcessing ? (
                         <div className="flex items-center justify-center gap-2">
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          Processing…
+                          Processing...
                         </div>
                       ) : (
-                        `Continue - ${formatPrice(getCartTotal())}`
+                        `Continue - ${formatPrice(calculateTotal())}`
                       )}
                     </button>
 
                     <button
                       onClick={() => setCheckoutStep("cart")}
                       disabled={isProcessing}
-                      className="w-full py-2 px-4 rounded-lg border border-[#CAD2C5] text-[#4A4A4A] hover:bg-white transition-colors duration-200"
+                      className="w-full py-2 px-4 rounded-lg border border-[#e2e8f0] text-[#64748b] hover:bg-white hover:border-[#cbd5e1] transition-colors duration-200"
                     >
                       Back
                     </button>
                   </div>
                 )}
 
-                <div className="mt-4 text-center text-xs text-[#4A4A4A]">
+                <div className="mt-4 text-center text-xs text-[#64748b]">
                   🔒 Secure payment • Instant download
                 </div>
               </div>

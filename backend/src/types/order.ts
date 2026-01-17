@@ -20,6 +20,7 @@ export interface CreateOrderRequest {
   // TIPI PAGAMENTI
   paymentProvider?: "STRIPE" | "PAYPAL";
   currency?: string;
+  workbooksAdded?: boolean;
 }
 
 // ============== TIPI PER UTENTI NORMALI (SENZA filePath) ==============

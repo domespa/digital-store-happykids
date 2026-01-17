@@ -1,13 +1,13 @@
+import { faCartArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function FinalCtaSect() {
   const { config, user } = useLandingContext();
-  const landingCart = useLandingCart(); // ✅ Rimosso parametro
+  const landingCart = useLandingCart();
 
   if (!config || !config.finalCta) return null;
-
-  const userCurrency = user?.currency || "USD";
 
   return (
     <section
@@ -112,10 +112,7 @@ export default function FinalCtaSect() {
                   Total Value:
                 </span>
                 <span className="text-xl text-gray-500 line-through">
-                  {landingCart.formatPrice(
-                    landingCart.originalPrice,
-                    userCurrency
-                  )}
+                  {landingCart.formattedOriginalPrice}
                 </span>
               </div>
               <div className="flex justify-between items-center">
@@ -124,10 +121,7 @@ export default function FinalCtaSect() {
                 </span>
                 <div className="text-right">
                   <div className="text-4xl font-bold text-blue-600">
-                    {landingCart.formatPrice(
-                      landingCart.mainPrice,
-                      userCurrency
-                    )}
+                    {landingCart.formattedMainPrice}
                   </div>
                   <div className="text-sm text-green-600 font-bold">
                     Save{" "}
@@ -159,7 +153,9 @@ export default function FinalCtaSect() {
               ) : (
                 <>
                   <span>{config.finalCta.ctaText}</span>
-                  <span className="text-2xl">→</span>
+                  <span className="text-2xl">
+                    <FontAwesomeIcon icon={faCartArrowDown} />
+                  </span>
                 </>
               )}
             </span>

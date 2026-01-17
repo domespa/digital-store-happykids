@@ -191,40 +191,15 @@ class EmailService {
         -8
       )} - H4ppyKids Store`;
 
-      // GENERIAMO IL LINK TEMPORANEO PER IL DOWNLOAD
-      const downloadLinks = (
-        await Promise.all(
-          order.orderItems.map(async (item) => {
-            console.log("🔍 Processing item:", {
-              productId: item.productId,
-              productName: item.product?.name,
-              filePath: item.product?.filePath,
-            });
+      // GENERIAMO LINK PER OGNI PRODOTTO
+      const downloadLinks = order.orderItems
+        .filter((item) => item.product?.filePath) // Solo prodotti con file
+        .map((item) => ({
+          productName: item.product!.name,
+          productId: item.product!.id,
+        }));
 
-            if (!item.product?.filePath) {
-              console.log("⚠️ SKIPPING - No filePath for:", item.product?.name);
-              return null;
-            }
-
-            console.log(
-              "🔗 Generating download link for:",
-              item.product.filePath
-            );
-            const downloadUrl = await cloudinaryService.generateDownload(
-              item.product.filePath
-            );
-
-            console.log("✅ Download URL generated successfully");
-
-            return {
-              productName: item.product.name,
-              downloadUrl: downloadUrl,
-            };
-          })
-        )
-      ).filter((link) => link !== null);
-
-      console.log("📋 Total download links generated:", downloadLinks.length);
+      console.log("📋 Products with download:", downloadLinks.length);
 
       const emailHTML = this.generateOrderConfirmationHTML(
         order,
@@ -259,24 +234,15 @@ class EmailService {
       if (order.status === "PAID") {
         subject = `Payment Completed - Order #${order.id.slice(-8)}`;
       } else if (order.status === "COMPLETED") {
-        subject = `Your products are ready - Order${order.id.slice(-8)}`;
+        subject = `Your products are ready - Order #${order.id.slice(-8)}`;
       }
 
-      const downloadLinks = (
-        await Promise.all(
-          order.orderItems.map(async (item) => {
-            if (!item.product?.filePath) return null;
-            const downloadUrl = await cloudinaryService.generateDownload(
-              item.product.filePath
-            );
-
-            return {
-              productName: item.product.name,
-              downloadUrl: downloadUrl,
-            };
-          })
-        )
-      ).filter((link) => link !== null);
+      const downloadLinks = order.orderItems
+        .filter((item) => item.product?.filePath)
+        .map((item) => ({
+          productName: item.product!.name,
+          productId: item.product!.id, // ← NUOVO
+        }));
 
       const emailHTML = this.generateOrderConfirmationHTML(
         order,
@@ -550,24 +516,24 @@ class EmailService {
   // Metodo privato per generare HTML dell'ordine
   private generateOrderConfirmationHTML(
     order: OrderResponse,
-    downloadLinks: Array<{ productName: string; downloadUrl: string }> = []
+    downloadLinks: Array<{ productName: string; productId: string }> = []
   ): string {
     const orderItemsHTML = order.orderItems
       .map(
         (item) => `
-      <tr style="border-bottom: 1px solid #eee;">
-        <td style="padding: 12px 8px; font-weight: 500;">${
-          item.product?.name || "Product not available"
-        }</td>
-        <td style="padding: 12px 8px; text-align: center;">${item.quantity}</td>
-        <td style="padding: 12px 8px; text-align: right;">€${item.price.toFixed(
-          2
-        )}</td>
-        <td style="padding: 12px 8px; text-align: right;">€${(
-          item.price * item.quantity
-        ).toFixed(2)}</td>
-      </tr>
-    `
+    <tr style="border-bottom: 1px solid #eee;">
+      <td style="padding: 12px 8px; font-weight: 500;">${
+        item.product?.name || "Product not available"
+      }</td>
+      <td style="padding: 12px 8px; text-align: center;">${item.quantity}</td>
+      <td style="padding: 12px 8px; text-align: right;">€${item.price.toFixed(
+        2
+      )}</td>
+      <td style="padding: 12px 8px; text-align: right;">€${(
+        item.price * item.quantity
+      ).toFixed(2)}</td>
+    </tr>
+  `
       )
       .join("");
 
@@ -576,127 +542,131 @@ class EmailService {
       downloadLinks.length > 0 &&
       (order.status === "COMPLETED" || order.status === "PAID")
         ? `
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; margin: 30px 0; border-radius: 12px; text-align: center;">
-            <h2 style="color: white; margin: 0 0 20px 0;">🎉 Your Ebook is Ready!</h2>
-            ${downloadLinks
-              .map(
-                (link) => `
-              <div style="background: white; padding: 20px; margin: 15px 0; border-radius: 8px;">
-                <h3 style="margin: 0 0 15px 0; color: #333;">📚 ${link.productName}</h3>
-                <a href="${process.env.BASE_URL}/api/orders/download/${order.id}" 
-                  style="display: inline-block; background: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                  Download Now
-                </a>
-                <p style="color: #666; font-size: 14px; margin: 15px 0 0 0;">
-                  ⏰ Valid for <strong>30 days</strong> • Max <strong>4 downloads</strong>
-                </p>
-              </div>
-            `
-              )
-              .join("")}
-            <div style="background: rgba(255,255,255,0.2); padding: 15px; margin-top: 20px; border-radius: 8px;">
-              <p style="color: white; margin: 0; font-size: 14px;">
-                ⚠️ <strong>Important:</strong> This link expires 30 days after purchase and can be used 4 times. Save your ebook to your device!
-              </p>
-            </div>
-          </div>
-        `
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; margin: 30px 0; border-radius: 12px; text-align: center;">
+      <h2 style="color: white; margin: 0 0 20px 0;">🎉 Your Products are Ready!</h2>
+      ${downloadLinks
+        .map((link) => {
+          const productId = link.productId;
+
+          return `
+        <div style="background: white; padding: 20px; margin: 15px 0; border-radius: 8px;">
+          <h3 style="margin: 0 0 15px 0; color: #333;">📚 ${
+            link.productName
+          }</h3>
+          <a href="${process.env.BASE_URL}/api/orders/download/${order.id}${
+            productId ? `?productId=${productId}` : ""
+          }" 
+            style="display: inline-block; background: #667eea; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+            Download Now
+          </a>
+          <p style="color: #666; font-size: 14px; margin: 15px 0 0 0;">
+            ⏰ Valid for <strong>30 days</strong> • Max <strong>4 downloads</strong>
+          </p>
+        </div>
+      `;
+        })
+        .join("")}
+      <div style="background: rgba(255,255,255,0.2); padding: 15px; margin-top: 20px; border-radius: 8px;">
+        <p style="color: white; margin: 0; font-size: 14px;">
+          ⚠️ <strong>Important:</strong> These links expire 30 days after purchase and can be used 4 times. Save your products to your device!
+        </p>
+      </div>
+    </div>
+  `
         : "";
 
     return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Order Confirmation - Digital Store</title>
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-          .order-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
-          .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          .table th { background: #f8f9fa; padding: 12px 8px; text-align: left; font-weight: 600; }
-          .total-row { background: #4F46E5; color: white; font-weight: bold; }
-          .footer { text-align: center; margin: 30px 0; color: #666; font-size: 14px; }
-          .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-          .status-pending { background: #FEF3C7; color: #92400E; }
-          .status-paid { background: #D1FAE5; color: #065F46; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1 style="margin: 0;">Order Confirmation</h1>
-            <p style="margin: 10px 0 0 0;">Thank you for your purchase!</p>
-          </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Order Confirmation - Digital Store</title>
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+        .order-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .table th { background: #f8f9fa; padding: 12px 8px; text-align: left; font-weight: 600; }
+        .total-row { background: #4F46E5; color: white; font-weight: bold; }
+        .footer { text-align: center; margin: 30px 0; color: #666; font-size: 14px; }
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-paid { background: #D1FAE5; color: #065F46; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1 style="margin: 0;">Order Confirmation</h1>
+          <p style="margin: 10px 0 0 0;">Thank you for your purchase!</p>
+        </div>
+        
+        <div class="content">
+          ${downloadSection}
           
-          <div class="content">
-            ${downloadSection}
-            
-            <div class="order-info">
-              <h2>Order Details</h2>
-              <p><strong>Order Number:</strong> ${order.id}</p>
-              <p><strong>Email:</strong> ${order.customerEmail}</p>
-              ${
-                order.customerFirstName
-                  ? `<p><strong>Name:</strong> ${order.customerFirstName} ${
-                      order.customerLastName || ""
-                    }</p>`
-                  : ""
-              }
-              <p><strong>Date:</strong> ${new Date(
-                order.createdAt
-              ).toLocaleString("en-US")}</p>
-              <p><strong>Status:</strong> 
-                <span class="status-badge ${
-                  order.status === "COMPLETED"
-                    ? "status-paid"
-                    : "status-pending"
-                }">
-                  ${
-                    order.status === "PENDING"
-                      ? "Pending payment"
-                      : order.status === "COMPLETED"
-                      ? "Completed"
-                      : order.status
-                  }
-                </span>
-              </p>
-            </div>
+          <div class="order-info">
+            <h2>Order Details</h2>
+            <p><strong>Order Number:</strong> ${order.id}</p>
+            <p><strong>Email:</strong> ${order.customerEmail}</p>
+            ${
+              order.customerFirstName
+                ? `<p><strong>Name:</strong> ${order.customerFirstName} ${
+                    order.customerLastName || ""
+                  }</p>`
+                : ""
+            }
+            <p><strong>Date:</strong> ${new Date(
+              order.createdAt
+            ).toLocaleString("en-US")}</p>
+            <p><strong>Status:</strong> 
+              <span class="status-badge ${
+                order.status === "COMPLETED" ? "status-paid" : "status-pending"
+              }">
+                ${
+                  order.status === "PENDING"
+                    ? "Pending payment"
+                    : order.status === "COMPLETED"
+                    ? "Completed"
+                    : order.status
+                }
+              </span>
+            </p>
+          </div>
 
-            <h3>Purchased Products</h3>
-            <table class="table" style="background: white; border-radius: 8px;">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th style="text-align: center;">Quantity</th>
-                  <th style="text-align: right;">Unit Price</th>
-                  <th style="text-align: right;">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${orderItemsHTML}
-                <tr class="total-row">
-                  <td colspan="3" style="padding: 15px 8px; text-align: right;"><strong>TOTAL:</strong></td>
-                  <td style="padding: 15px 8px; text-align: right;"><strong>€${order.total.toFixed(
-                    2
-                  )}</strong></td>
-                </tr>
-              </tbody>
-            </table>
+          <h3>Purchased Products</h3>
+          <table class="table" style="background: white; border-radius: 8px;">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th style="text-align: center;">Quantity</th>
+                <th style="text-align: right;">Unit Price</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${orderItemsHTML}
+              <tr class="total-row">
+                <td colspan="3" style="padding: 15px 8px; text-align: right;"><strong>TOTAL:</strong></td>
+                <td style="padding: 15px 8px; text-align: right;"><strong>€${order.total.toFixed(
+                  2
+                )}</strong></td>
+              </tr>
+            </tbody>
+          </table>
 
-            <div class="footer">
-              <p>If you have any questions, please contact us with order number: <strong>${
-                order.id
-              }</strong></p>
-              <p>H4ppyKids - Your digital wellness platform</p>
-            </div>
+          <div class="footer">
+            <p>If you have any questions, please contact us with order number: <strong>${
+              order.id
+            }</strong></p>
+            <p>H4ppyKids - Your digital wellness platform</p>
           </div>
         </div>
-      </body>
-      </html>
-    `;
+      </div>
+    </body>
+    </html>
+  `;
   }
 }
 

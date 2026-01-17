@@ -1,8 +1,16 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { useCart } from "./useCart";
 import { useLandingContext } from "../context/LandingContext";
 import type { ProductToAdd } from "../types/cart";
 import { trackAddToCart } from "../utils/analytics";
+
+interface ConvertedPrices {
+  mainPrice: number;
+  originalPrice: number;
+  currency: string;
+  formattedMainPrice: string;
+  formattedOriginalPrice: string;
+}
 
 export const useLandingCart = () => {
   const cart = useCart();
@@ -17,18 +25,212 @@ export const useLandingCart = () => {
   const cartRef = useRef(cart);
   cartRef.current = cart;
 
-  const getMainPrice = useCallback((): number => {
-    return backendProduct?.price ?? config?.pricing.mainPrice ?? 47;
-  }, [backendProduct?.price, config?.pricing.mainPrice]);
+  // ========================
+  //   STATE PREZZI CONVERTITI
+  // ========================
+  const [convertedPrices, setConvertedPrices] = useState<ConvertedPrices>({
+    mainPrice: 0,
+    originalPrice: 0,
+    currency: "EUR",
+    formattedMainPrice: "€0 EUR",
+    formattedOriginalPrice: "€0 EUR",
+  });
 
-  const getOriginalPrice = useCallback((): number => {
-    return (
-      backendProduct?.compareAtPrice ?? config?.pricing.originalPrice ?? 197
-    );
-  }, [backendProduct?.compareAtPrice, config?.pricing.originalPrice]);
+  const [isConverting, setIsConverting] = useState(false);
 
   // ========================
-  //     SINCRO VALUTA
+  //   CURRENCY SYMBOLS
+  // ========================
+  const currencySymbols: Record<string, string> = useMemo(
+    () => ({
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      AUD: "$",
+      CAD: "$",
+      JPY: "¥",
+      CHF: "CHF",
+      SEK: "kr",
+      NOK: "kr",
+      DKK: "kr",
+    }),
+    []
+  );
+
+  // ========================
+  //   FORMAT HELPER
+  // ========================
+  const formatPriceSync = useCallback(
+    (amount: number, currency: string): string => {
+      const currencyLocales: Record<string, string> = {
+        USD: "en-US",
+        GBP: "en-GB",
+        AUD: "en-AU",
+        CAD: "en-CA",
+        EUR: "it-IT",
+        JPY: "ja-JP",
+        CHF: "de-CH",
+        SEK: "sv-SE",
+        NOK: "nb-NO",
+        DKK: "da-DK",
+      };
+
+      const locale = currencyLocales[currency] || "en-US";
+
+      const formatted = amount.toLocaleString(locale, {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      // ✅ Per valute con simbolo "$" ambiguo, aggiungi sempre il codice
+      const ambiguousCurrencies = ["USD", "CAD", "AUD"];
+
+      if (ambiguousCurrencies.includes(currency)) {
+        // Rimuovi il codice valuta che toLocaleString aggiunge automaticamente
+        // e lo sostituiamo con uno spazio + codice per più chiarezza
+        return formatted.replace(currency, "").trim() + " " + currency;
+      }
+
+      return formatted;
+    },
+    []
+  );
+
+  // ========================
+  //   AUTO-CONVERT PRICES
+  // ========================
+  useEffect(() => {
+    const convertPrices = async () => {
+      if (!backendProduct || !user?.currency) {
+        // Fallback a config se backend non disponibile
+        if (config) {
+          const mainPrice = config.pricing.mainPrice ?? 47;
+          const originalPrice = config.pricing.originalPrice ?? 197;
+          const currency = config.pricing.currency ?? "USD";
+
+          setConvertedPrices({
+            mainPrice,
+            originalPrice,
+            currency,
+            formattedMainPrice: formatPriceSync(mainPrice, currency),
+            formattedOriginalPrice: formatPriceSync(originalPrice, currency),
+          });
+        }
+        return;
+      }
+
+      const productPrice = backendProduct.price;
+      const productCurrency = backendProduct.currency || "EUR";
+      const productCompareAt = backendProduct.compareAtPrice || productPrice;
+      const targetCurrency = user.currency;
+
+      // Stesso currency - no conversion
+      if (productCurrency === targetCurrency) {
+        setConvertedPrices({
+          mainPrice: productPrice,
+          originalPrice: productCompareAt,
+          currency: productCurrency,
+          formattedMainPrice: formatPriceSync(productPrice, productCurrency),
+          formattedOriginalPrice: formatPriceSync(
+            productCompareAt,
+            productCurrency
+          ),
+        });
+        return;
+      }
+
+      setIsConverting(true);
+
+      try {
+        const apiBase =
+          import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+
+        const [mainConv, compareConv] = await Promise.all([
+          fetch(
+            `${apiBase}/api/currency/convert?` +
+              new URLSearchParams({
+                amount: productPrice.toString(),
+                from: productCurrency,
+                to: targetCurrency,
+              })
+          ).then((r) => (r.ok ? r.json() : null)),
+          fetch(
+            `${apiBase}/api/currency/convert?` +
+              new URLSearchParams({
+                amount: productCompareAt.toString(),
+                from: productCurrency,
+                to: targetCurrency,
+              })
+          ).then((r) => (r.ok ? r.json() : null)),
+        ]);
+
+        if (mainConv && compareConv) {
+          const convertedMain =
+            mainConv.convertedAmount ?? mainConv.data?.convertedAmount;
+
+          const convertedCompare =
+            compareConv.convertedAmount ?? compareConv.data?.convertedAmount;
+
+          setConvertedPrices({
+            mainPrice: convertedMain,
+            originalPrice: convertedCompare,
+            currency: targetCurrency,
+            formattedMainPrice: formatPriceSync(convertedMain, targetCurrency),
+            formattedOriginalPrice: formatPriceSync(
+              convertedCompare,
+              targetCurrency
+            ),
+          });
+        } else {
+          // Fallback rates
+          const fallbackRates: Record<string, Record<string, number>> = {
+            USD: { EUR: 0.91, GBP: 0.77, AUD: 1.5, CAD: 1.35 },
+            EUR: { USD: 1.1, GBP: 0.85, AUD: 1.65, CAD: 1.48 },
+            GBP: { USD: 1.3, EUR: 1.18, AUD: 1.95, CAD: 1.75 },
+            AUD: { USD: 0.67, EUR: 0.61, GBP: 0.51, CAD: 0.9 },
+          };
+
+          const rate = fallbackRates[productCurrency]?.[targetCurrency] || 1;
+          const convertedMain = productPrice * rate;
+          const convertedCompare = productCompareAt * rate;
+
+          setConvertedPrices({
+            mainPrice: convertedMain,
+            originalPrice: convertedCompare,
+            currency: targetCurrency,
+            formattedMainPrice: formatPriceSync(convertedMain, targetCurrency),
+            formattedOriginalPrice: formatPriceSync(
+              convertedCompare,
+              targetCurrency
+            ),
+          });
+        }
+      } catch (error) {
+        console.error("Price conversion failed", error);
+
+        // Fallback completo
+        setConvertedPrices({
+          mainPrice: productPrice,
+          originalPrice: productCompareAt,
+          currency: productCurrency,
+          formattedMainPrice: formatPriceSync(productPrice, productCurrency),
+          formattedOriginalPrice: formatPriceSync(
+            productCompareAt,
+            productCurrency
+          ),
+        });
+      } finally {
+        setIsConverting(false);
+      }
+    };
+
+    convertPrices();
+  }, [backendProduct, user?.currency, config, formatPriceSync]);
+
+  // ========================
+  //     SINCRO VALUTA CART
   // ========================
   useEffect(() => {
     if (!isLoadingUser && user?.currency) {
@@ -43,17 +245,17 @@ export const useLandingCart = () => {
   }, [user?.currency, isLoadingUser]);
 
   // ========================
-  //      HELPER
+  //   ADD TO CART
   // ========================
   const addMainProductToCart = useCallback(() => {
     if (!config) return;
 
     const product: ProductToAdd = {
       id: `main-product-${config.productId}`,
-      productId: config.productId || "cmgagj3jr00044emfdvtzucfb",
+      productId: config.productId || "cmkcfleu40000brx7zyn51pla",
       name: backendProduct?.name || config.hero.title,
-      price: backendProduct?.price ?? config.pricing.mainPrice,
-      currency: config.pricing.currency,
+      price: convertedPrices.mainPrice,
+      currency: convertedPrices.currency,
       image: backendProduct?.images?.[0]?.url || config.hero.image,
       description: config.hero.subtitle,
     };
@@ -68,18 +270,12 @@ export const useLandingCart = () => {
       quantity: 1,
     });
   }, [
-    config?.productId,
-    config?.hero.title,
-    config?.hero.subtitle,
-    config?.hero.image,
-    config?.pricing.mainPrice,
-    config?.pricing.currency,
+    config,
     backendProduct?.name,
-    backendProduct?.price,
     backendProduct?.images,
+    convertedPrices.mainPrice,
+    convertedPrices.currency,
   ]);
-
-  // BONUS
   const addBonusToCart = useCallback(
     (bonusId: string) => {
       if (!config) return;
@@ -107,80 +303,46 @@ export const useLandingCart = () => {
         quantity: 1,
       });
     },
-    [config?.productId, config?.pricing.currency, config?.features.bonuses]
+    [config]
   );
 
-  // PASSIAMO VALUTA CORRETTA
+  // ========================
+  //   FORMAT PRICE (SYNC)
+  // ========================
   const formatPrice = useCallback(
     (amount: number, currency?: string): string => {
-      const displayCurrency = currency || user?.currency || "USD";
-
-      // Currency symbols mapping
-      const symbols: Record<string, string> = {
-        USD: "$",
-        EUR: "€",
-        GBP: "£",
-        AUD: "$", // Will show as "$45 AUD"
-        CAD: "$", // Will show as "$37 CAD"
-        JPY: "¥",
-        CHF: "CHF",
-        SEK: "kr",
-        NOK: "kr",
-        DKK: "kr",
-      };
-
-      const symbol = symbols[displayCurrency] || displayCurrency;
-
-      // Round to whole number for cleaner display
-      const rounded = Math.round(amount);
-
-      // Format: $45 AUD (symbol + amount + code)
-      return `${symbol}${rounded} ${displayCurrency}`;
+      const displayCurrency = currency || user?.currency || "EUR";
+      return formatPriceSync(amount, displayCurrency);
     },
-    [user?.currency]
+    [user?.currency, formatPriceSync]
   );
 
-  // CALC SAVING
-  const calculateSaving = useCallback((): {
-    originalPrice: number;
-    mainPrice: number;
-    savings: number;
-    savingsPercentage: number;
-    currency: string;
-  } | null => {
-    if (!config) return null;
-
-    const currency = user?.currency || config.pricing.currency;
-    const originalPrice = getOriginalPrice();
-    const mainPrice = getMainPrice();
-
-    const savings = originalPrice - mainPrice;
-    const savingsPercentage = Math.round((savings / originalPrice) * 100);
+  // ========================
+  //   CALCULATE SAVING
+  // ========================
+  const calculateSaving = useCallback(() => {
+    const savings = convertedPrices.originalPrice - convertedPrices.mainPrice;
+    const savingsPercentage = Math.round(
+      (savings / convertedPrices.originalPrice) * 100
+    );
 
     return {
-      originalPrice,
-      mainPrice,
+      originalPrice: convertedPrices.originalPrice,
+      mainPrice: convertedPrices.mainPrice,
       savings,
       savingsPercentage,
-      currency,
+      currency: convertedPrices.currency,
     };
-  }, [
-    config?.pricing.currency,
-    user?.currency,
-    backendProduct?.price,
-    backendProduct?.compareAtPrice,
-    config?.pricing.mainPrice,
-    config?.pricing.originalPrice,
-  ]);
+  }, [convertedPrices]);
 
   // ============================
-  //      COMBINIAMO GLI STATI
+  //   COMBINIAMO GLI STATI
   // ============================
-
-  const isLoading = isLoadingUser || cart.cart.isConverting || isLoadingProduct;
+  const isLoading =
+    isLoadingUser || cart.cart.isConverting || isLoadingProduct || isConverting;
 
   return {
-    // RITORNIAMO LO STATO DEL CARRELLO
+    // CART STATE
     cart: cart.cart,
     cartActions: {
       addItem: cart.addItem,
@@ -190,22 +352,30 @@ export const useLandingCart = () => {
       toggleCart: cart.toggleCart,
     },
 
-    // LE FUNZIONI
+    // FUNZIONI
     addMainProductToCart,
     addBonusToCart,
     formatPrice,
     calculateSaving,
 
+    // PREZZI GIÀ CONVERTITI E FORMATTATI
+    mainPrice: convertedPrices.mainPrice,
+    originalPrice: convertedPrices.originalPrice,
+    formattedMainPrice: convertedPrices.formattedMainPrice,
+    formattedOriginalPrice: convertedPrices.formattedOriginalPrice,
+    displayCurrency: convertedPrices.currency,
+
+    // STATI
     isLoading,
     isLoadingUser,
     isLoadingProduct,
+    isConverting,
     userCurrency: user?.currency,
 
-    mainPrice: backendProduct?.price ?? config?.pricing.mainPrice ?? 47,
-    originalPrice: config?.pricing.originalPrice ?? 197,
+    // BACKEND DATA
     backendProduct,
 
-    // I METODI PER LE CONVERSIONI DELLA VALUTA
+    // CURRENCY METHODS
     updateCurrency: cart.updateCurrency,
     refreshRates: cart.refreshRates,
   };

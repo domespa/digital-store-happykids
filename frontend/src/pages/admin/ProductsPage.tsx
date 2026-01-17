@@ -15,6 +15,7 @@ interface CreateProductForm {
   name: string;
   description: string;
   price: string;
+  compareAtPrice: string;
   fileName: string;
   filePath: string;
 }
@@ -23,13 +24,16 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [expandedPrices, setExpandedPrices] = useState<Record<string, boolean>>(
+    {}
+  );
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState<CreateProductForm>({
     name: "",
     description: "",
     price: "",
+    compareAtPrice: "",
     fileName: "",
     filePath: "",
   });
@@ -74,6 +78,9 @@ export default function ProductsPage() {
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
         price: parseFloat(formData.price),
+        compareAtPrice: formData.compareAtPrice
+          ? parseFloat(formData.compareAtPrice)
+          : undefined,
         fileName: formData.fileName.trim(),
         filePath: formData.filePath.trim(),
       };
@@ -105,6 +112,9 @@ export default function ProductsPage() {
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
         price: parseFloat(formData.price),
+        compareAtPrice: formData.compareAtPrice
+          ? parseFloat(formData.compareAtPrice)
+          : undefined,
         fileName: formData.fileName.trim(),
         filePath: formData.filePath.trim(),
       };
@@ -147,10 +157,14 @@ export default function ProductsPage() {
       name: product.name,
       description: product.description || "",
       price: product.price.toString(),
+      compareAtPrice: product.compareAtPrice?.toString() || "",
       fileName: product.fileName,
       filePath: product.filePath,
     });
     setShowCreateForm(true);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 100);
   };
 
   const openGallery = (product: Product) => {
@@ -168,6 +182,7 @@ export default function ProductsPage() {
       name: "",
       description: "",
       price: "",
+      compareAtPrice: "",
       fileName: "",
       filePath: "",
     });
@@ -187,6 +202,60 @@ export default function ProductsPage() {
       month: "short",
       day: "numeric",
     });
+  };
+
+  // Tassi di conversione (aggiorna con tassi reali se necessario)
+  const conversionRates: Record<string, Record<string, number>> = {
+    EUR: { USD: 1.1, GBP: 0.85, AUD: 1.65, CAD: 1.48, EUR: 1 },
+    USD: { EUR: 0.91, GBP: 0.77, AUD: 1.5, CAD: 1.35, USD: 1 },
+    GBP: { EUR: 1.18, USD: 1.3, AUD: 1.95, CAD: 1.75, GBP: 1 },
+    AUD: { EUR: 0.61, USD: 0.67, GBP: 0.51, CAD: 0.9, AUD: 1 },
+    CAD: { EUR: 0.68, USD: 0.74, GBP: 0.57, AUD: 1.11, CAD: 1 },
+  };
+
+  const currencyInfo: Record<
+    string,
+    { symbol: string; flag: string; name: string }
+  > = {
+    USD: { symbol: "$", flag: "🇺🇸", name: "US Dollar" },
+    EUR: { symbol: "€", flag: "🇪🇺", name: "Euro" },
+    GBP: { symbol: "£", flag: "🇬🇧", name: "British Pound" },
+    AUD: { symbol: "$", flag: "🇦🇺", name: "Australian Dollar" },
+    CAD: { symbol: "$", flag: "🇨🇦", name: "Canadian Dollar" },
+  };
+
+  const convertPrice = (
+    amount: number,
+    fromCurrency: string,
+    toCurrency: string
+  ): number => {
+    if (fromCurrency === toCurrency) return amount;
+    const rate = conversionRates[fromCurrency]?.[toCurrency] || 1;
+    return amount * rate;
+  };
+
+  const formatCurrencyPrice = (amount: number, currency: string): string => {
+    const locales: Record<string, string> = {
+      USD: "en-US",
+      GBP: "en-GB",
+      AUD: "en-AU",
+      CAD: "en-CA",
+      EUR: "it-IT",
+    };
+
+    return amount.toLocaleString(locales[currency] || "en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const togglePriceExpansion = (productId: string) => {
+    setExpandedPrices((prev) => ({
+      ...prev,
+      [productId]: !prev[productId],
+    }));
   };
 
   const filteredProducts = products.filter((product) => {
@@ -286,14 +355,6 @@ export default function ProductsPage() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Product Name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-              />
-              <Input
                 label="Price (EUR)"
                 type="number"
                 step="0.01"
@@ -303,7 +364,117 @@ export default function ProductsPage() {
                 }
                 required
               />
+              <Input
+                label="Original Price (EUR) - Optional"
+                type="number"
+                step="0.01"
+                value={formData.compareAtPrice}
+                onChange={(e) =>
+                  setFormData({ ...formData, compareAtPrice: e.target.value })
+                }
+                placeholder="47.00"
+              />
             </div>
+
+            {/* CONVERSIONI IN TEMPO REALE */}
+            {formData.price && parseFloat(formData.price) > 0 && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                  💱 Price in all currencies:
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                  {Object.keys(currencyInfo).map((currency) => {
+                    const converted = convertPrice(
+                      parseFloat(formData.price),
+                      "EUR",
+                      currency
+                    );
+                    const info = currencyInfo[currency];
+                    const isCurrentCurrency = currency === "EUR";
+
+                    return (
+                      <div
+                        key={currency}
+                        className={`flex items-center justify-between p-2 rounded ${
+                          isCurrentCurrency
+                            ? "bg-blue-100 dark:bg-blue-800/30 border border-blue-300 dark:border-blue-700"
+                            : "bg-white dark:bg-gray-800"
+                        }`}
+                      >
+                        <span className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                          <span>{info.flag}</span>
+                          <span className="font-medium">{currency}</span>
+                        </span>
+                        <span
+                          className={`font-semibold ${
+                            isCurrentCurrency
+                              ? "text-blue-700 dark:text-blue-300"
+                              : "text-gray-900 dark:text-gray-100"
+                          }`}
+                        >
+                          {formatCurrencyPrice(converted, currency)}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* COMPARE AT CONVERSIONS */}
+                {formData.compareAtPrice &&
+                  parseFloat(formData.compareAtPrice) >
+                    parseFloat(formData.price) && (
+                    <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                        Original prices (strikethrough):
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        {Object.keys(currencyInfo).map((currency) => {
+                          const converted = convertPrice(
+                            parseFloat(formData.compareAtPrice),
+                            "EUR",
+                            currency
+                          );
+                          const info = currencyInfo[currency];
+
+                          return (
+                            <div
+                              key={`compare-${currency}`}
+                              className="flex items-center justify-between p-2 rounded bg-white dark:bg-gray-800"
+                            >
+                              <span className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                                <span>{info.flag}</span>
+                                <span className="font-medium">{currency}</span>
+                              </span>
+                              <span className="font-semibold text-gray-500 dark:text-gray-400 line-through">
+                                {formatCurrencyPrice(converted, currency)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* SAVINGS CALCULATION */}
+                      <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded">
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                          💰 Customers save:{" "}
+                          {formatPrice(
+                            parseFloat(formData.compareAtPrice) -
+                              parseFloat(formData.price)
+                          )}
+                          (
+                          {Math.round(
+                            ((parseFloat(formData.compareAtPrice) -
+                              parseFloat(formData.price)) /
+                              parseFloat(formData.compareAtPrice)) *
+                              100
+                          )}
+                          % OFF)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
 
             <Input
               label="Description"
@@ -420,6 +591,35 @@ export default function ProductsPage() {
                     {formatPrice(product.price)}
                   </span>
                 </div>
+
+                {/* COMPARE AT PRICE */}
+                {product.compareAtPrice &&
+                  product.compareAtPrice > product.price && (
+                    <div className="flex justify-between">
+                      <span>Original Price:</span>
+                      <span className="text-gray-500 dark:text-gray-500 line-through">
+                        {formatPrice(product.compareAtPrice)}
+                      </span>
+                    </div>
+                  )}
+
+                {/* SAVINGS */}
+                {product.compareAtPrice &&
+                  product.compareAtPrice > product.price && (
+                    <div className="flex justify-between">
+                      <span>You Save:</span>
+                      <span className="font-semibold text-green-600 dark:text-green-400">
+                        {formatPrice(product.compareAtPrice - product.price)} (
+                        {Math.round(
+                          ((product.compareAtPrice - product.price) /
+                            product.compareAtPrice) *
+                            100
+                        )}
+                        % OFF)
+                      </span>
+                    </div>
+                  )}
+
                 <div className="flex justify-between">
                   <span>File:</span>
                   <span>{product.fileName}</span>
@@ -428,6 +628,92 @@ export default function ProductsPage() {
                   <span>Created:</span>
                   <span>{formatDate(product.createdAt)}</span>
                 </div>
+              </div>
+
+              {/* MULTI-CURRENCY SECTION */}
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => togglePriceExpansion(product.id)}
+                  className="w-full text-xs"
+                >
+                  💱 {expandedPrices[product.id] ? "Hide" : "View"} Prices in
+                  All Currencies
+                </Button>
+
+                {expandedPrices[product.id] && (
+                  <div className="mt-3 space-y-2 text-xs bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                    {Object.keys(currencyInfo).map((currency) => {
+                      const converted = convertPrice(
+                        product.price,
+                        "EUR",
+                        currency
+                      );
+                      const info = currencyInfo[currency];
+                      const isCurrentCurrency = currency === "EUR";
+
+                      return (
+                        <div
+                          key={currency}
+                          className={`flex justify-between items-center ${
+                            isCurrentCurrency
+                              ? "font-semibold text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          <span className="flex items-center gap-1">
+                            <span>{info.flag}</span>
+                            <span>{currency}</span>
+                            {isCurrentCurrency && (
+                              <span className="ml-1">
+                                <Badge variant="info">Current</Badge>
+                              </span>
+                            )}
+                          </span>
+                          <span className="font-semibold">
+                            {formatCurrencyPrice(converted, currency)}
+                          </span>
+                        </div>
+                      );
+                    })}
+
+                    {/* COMPARE AT PRICES */}
+                    {product.compareAtPrice &&
+                      product.compareAtPrice > product.price && (
+                        <>
+                          <div className="border-t border-gray-300 dark:border-gray-600 my-2 pt-2">
+                            <p className="text-gray-700 dark:text-gray-300 font-medium mb-2">
+                              Original Prices:
+                            </p>
+                          </div>
+                          {Object.keys(currencyInfo).map((currency) => {
+                            const converted = convertPrice(
+                              product.compareAtPrice!,
+                              "EUR",
+                              currency
+                            );
+                            const info = currencyInfo[currency];
+
+                            return (
+                              <div
+                                key={`compare-${currency}`}
+                                className="flex justify-between items-center text-gray-500 dark:text-gray-400 line-through"
+                              >
+                                <span className="flex items-center gap-1">
+                                  <span>{info.flag}</span>
+                                  <span>{currency}</span>
+                                </span>
+                                <span className="font-medium">
+                                  {formatCurrencyPrice(converted, currency)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </>
+                      )}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">

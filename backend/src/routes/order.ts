@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createOrder, getOrderById } from "../controllers/orderController";
 import { optionalAuth } from "../middleware/auth";
-import { cloudinaryService } from "../services/cloudinaryService";
+import { r2Service } from "../services/r2Service";
 import { prisma } from "../utils/prisma";
 
 const router = Router();
@@ -9,8 +9,12 @@ const router = Router();
 router.get("/download/:orderId", async (req, res) => {
   try {
     const { orderId } = req.params;
+    const { productId } = req.query;
 
     console.log("📥 Download request for order:", orderId);
+    if (productId) {
+      console.log("📦 Specific product requested:", productId);
+    }
 
     // 1. Trova ordine
     const order = await prisma.order.findUnique({
@@ -90,10 +94,24 @@ router.get("/download/:orderId", async (req, res) => {
       });
     }
 
-    // 5. Trova il file da scaricare (primo prodotto con filePath)
-    const productWithFile = order.orderItems.find(
-      (item) => item.product?.filePath
-    );
+    // 5. Trova il file da scaricare
+    let productWithFile;
+
+    if (productId) {
+      productWithFile = order.orderItems.find(
+        (item) => item.product?.id === productId && item.product?.filePath
+      );
+
+      if (!productWithFile) {
+        return res.status(404).json({
+          success: false,
+          error: "Product not found in order",
+          message: "The requested product is not part of this order.",
+        });
+      }
+    } else {
+      productWithFile = order.orderItems.find((item) => item.product?.filePath);
+    }
 
     if (!productWithFile || !productWithFile.product?.filePath) {
       return res.status(404).json({
@@ -118,19 +136,21 @@ router.get("/download/:orderId", async (req, res) => {
       `✅ Download authorized: ${newDownloadCount}/${downloadLimit} for order ${orderId}`
     );
 
-    // 7. Genera URL Cloudinary e redirect
-    const downloadUrl = await cloudinaryService.generateDownload(
+    // 7. Genera URL download tramite R2Service
+    const downloadUrl = await r2Service.generateDownload(
       productWithFile.product.filePath
     );
 
     // 8. Log per tracking
     console.log({
       orderId: order.id,
+      productId: productWithFile.product.id,
       productName: productWithFile.product.name,
       downloadCount: newDownloadCount,
       remainingDownloads: remainingDownloads,
       expiresOn: expirationDate.toISOString(),
       customerEmail: order.customerEmail,
+      fileSource: productWithFile.product.filePath.split(":")[0],
     });
 
     // 9. Redirect al file

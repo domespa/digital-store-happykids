@@ -2,6 +2,8 @@ export interface CreateProductRequest {
   name: string;
   description?: string;
   price: number;
+  currency?: string;
+  compareAtPrice?: number;
   fileName: string;
   filePath: string;
   categoryId?: string;
@@ -11,6 +13,8 @@ export interface UpdateProductRequest {
   name?: string;
   description?: string;
   price?: number;
+  currency?: string;
+  compareAtPrice?: number;
   fileName?: string;
   filePath?: string;
   isActive?: boolean;
@@ -28,6 +32,8 @@ export interface ProductResponse {
   description: string | null;
   shortDescription: string | null;
   price: number;
+  currency: string;
+  compareAtPrice: number | null;
   originalPrice: number | null;
   fileName: string | null;
   filePath: string | null;
@@ -57,13 +63,22 @@ export interface PublicProductResponse {
   price: number;
   displayPrice: number;
   currency: string;
+  compareAtPrice: number;
+  displayCompareAtPrice: number;
   originalPrice: number;
   originalCurrency: string;
   formattedPrice: string;
+  formattedCompareAtPrice: string;
   exchangeRate: number;
   exchangeSource: "api" | "fallback" | "same";
   isActive: boolean;
   createdAt: Date;
+  images?: Array<{
+    id: string;
+    url: string;
+    altText: string | null;
+    isMain: boolean;
+  }>;
 }
 
 export interface CurrencyInfo {
@@ -112,6 +127,7 @@ export interface ProductFilters {
   sortOrder?: "asc" | "desc";
   page?: string;
   limit?: string;
+  currency?: string;
 }
 
 export interface CurrencyConversionResponse {

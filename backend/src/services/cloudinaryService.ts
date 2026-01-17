@@ -49,27 +49,30 @@ export class CloudinaryService {
     }
   }
 
-  // GENERA URL PUBBLICO (senza API, senza scadenza)
-  async generateDownload(secureUrl: string): Promise<string> {
-    console.log("🔗 Returning direct download URL");
-    console.log("📋 URL:", secureUrl);
+  // GENERA URL DOWNLOAD (supporta Cloudinary + Google Drive)
+  async generateDownload(filePath: string): Promise<string> {
+    console.log("🔗 Generating download URL for:", filePath);
 
-    // Se è già un URL completo con res.cloudinary.com, ritornalo così com'è
-    if (secureUrl.includes("res.cloudinary.com")) {
-      console.log("✅ Using direct secure_url from Cloudinary");
-      return secureUrl;
+    // GOOGLE DRIVE SUPPORT
+    if (filePath.startsWith("gdrive:")) {
+      const driveId = filePath.replace("gdrive:", "");
+      const downloadUrl = `https://drive.google.com/uc?export=download&id=${driveId}`;
+      console.log("✅ Google Drive download URL:", downloadUrl);
+      return downloadUrl;
     }
 
-    // ✅ Altrimenti (se è solo il public_id), costruisci l'URL
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME!;
-    const publicId = secureUrl.endsWith(".pdf")
-      ? secureUrl
-      : `${secureUrl}.pdf`;
+    // CLOUDINARY
+    if (filePath.includes("res.cloudinary.com")) {
+      console.log("✅ Using direct Cloudinary URL");
+      return filePath;
+    }
 
-    // URL DIRETTO SENZA fl_attachment (non serve per file pubblici)
+    // Costruisci URL Cloudinary da public_id
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME!;
+    const publicId = filePath.endsWith(".pdf") ? filePath : `${filePath}.pdf`;
     const url = `https://res.cloudinary.com/${cloudName}/raw/upload/${publicId}`;
 
-    console.log("🔗 Generated URL:", url);
+    console.log("🔗 Generated Cloudinary URL:", url);
     return url;
   }
 

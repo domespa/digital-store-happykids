@@ -6,15 +6,8 @@ interface PricingSect {
 }
 
 export default function PricingSect({}: PricingSect = {}) {
-  const landingContext = useLandingContext();
-  const landingCart = useLandingCart({ landingContext });
-
-  const { config, user, isLoading: isLoadingUser } = landingContext;
-  const {
-    isLoading: isLoadingCart,
-    formatPrice,
-    calculateSaving,
-  } = landingCart;
+  const { config, user, isLoading: isLoadingUser } = useLandingContext();
+  const landingCart = useLandingCart();
 
   if (isLoadingUser || !config || landingCart.isLoadingProduct) {
     return (
@@ -24,10 +17,7 @@ export default function PricingSect({}: PricingSect = {}) {
     );
   }
 
-  const savings = calculateSaving();
-  const userCurrency = user?.currency || "USD";
-  const displayMainPrice = landingCart.mainPrice;
-  const displayOriginalPrice = landingCart.originalPrice;
+  const savings = landingCart.calculateSaving();
 
   return (
     <section className="py-12 lg:py-16 bg-gradient-to-br from-gray-50 to-teal-50/20 relative overflow-hidden">
@@ -61,34 +51,39 @@ export default function PricingSect({}: PricingSect = {}) {
               </div>
             </div>
 
-            {isLoadingCart && (
+            {/* Loading State */}
+            {(landingCart.isLoading || landingCart.isConverting) && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 text-center">
                 <div className="flex items-center justify-center gap-2 text-blue-600 text-sm font-medium">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span>Updating prices for {userCurrency}...</span>
+                  <span>
+                    Updating prices for {landingCart.displayCurrency}...
+                  </span>
                 </div>
               </div>
             )}
 
+            {/* Price Display */}
             <div className="text-center mb-8 pt-4">
               <div className="inline-block bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-xl p-5 mb-5">
                 <div className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-1">
                   Regular Price
                 </div>
                 <div className="text-2xl font-bold text-gray-400 line-through mb-3">
-                  {formatPrice(displayOriginalPrice, userCurrency)}
+                  {landingCart.formattedOriginalPrice}
                 </div>
                 <div className="text-xs font-semibold text-teal-700 uppercase tracking-wide mb-2">
                   Your Price Today
                 </div>
                 <div className="text-5xl font-bold text-teal-600">
-                  {formatPrice(displayMainPrice, userCurrency)}
+                  {landingCart.formattedMainPrice}
                 </div>
                 <div className="text-sm text-gray-600 font-medium mt-2">
                   One-time payment • Lifetime access
                 </div>
               </div>
 
+              {/* Savings Badge */}
               {savings && (
                 <div className="inline-flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-3 rounded-xl border border-green-200">
                   <span className="text-2xl">🎉</span>
@@ -97,7 +92,7 @@ export default function PricingSect({}: PricingSect = {}) {
                       You Save
                     </div>
                     <div className="text-lg font-bold text-green-600">
-                      {formatPrice(savings.savings, userCurrency)} (
+                      {landingCart.formatPrice(savings.savings)} (
                       {savings.savingsPercentage}%)
                     </div>
                   </div>
@@ -105,6 +100,7 @@ export default function PricingSect({}: PricingSect = {}) {
               )}
             </div>
 
+            {/* What's Included */}
             <div className="bg-teal-50 rounded-xl p-5 sm:p-6 mb-6 border border-teal-200">
               <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">
                 Everything Included
@@ -136,6 +132,7 @@ export default function PricingSect({}: PricingSect = {}) {
               </div>
             </div>
 
+            {/* Highlights Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               {config.pricing.highlights.map((highlight, index) => {
                 const colors = [
@@ -169,22 +166,23 @@ export default function PricingSect({}: PricingSect = {}) {
               })}
             </div>
 
+            {/* CTA Button */}
             <div className="text-center space-y-5">
               <button
                 onClick={landingCart.addMainProductToCart}
-                disabled={isLoadingCart}
+                disabled={landingCart.isLoading}
                 className={`
                   w-full py-5 px-8 rounded-xl text-lg font-semibold text-white 
                   transition-all transform hover:scale-[1.02] shadow-lg
                   ${
-                    isLoadingCart
+                    landingCart.isLoading
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-teal-600 hover:bg-teal-700"
                   }
                 `}
               >
                 <span className="flex items-center justify-center gap-2">
-                  {isLoadingCart ? (
+                  {landingCart.isLoading ? (
                     <>
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                       <span>Loading...</span>
@@ -210,6 +208,7 @@ export default function PricingSect({}: PricingSect = {}) {
                 </span>
               </button>
 
+              {/* Guarantees Box */}
               <div className="bg-gray-50 rounded-lg p-5 border border-gray-200">
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <span className="text-xl">🔒</span>
@@ -243,6 +242,7 @@ export default function PricingSect({}: PricingSect = {}) {
               </div>
             </div>
 
+            {/* Trust Badges */}
             <div className="mt-6 pt-6 border-t border-gray-200">
               <div className="flex flex-wrap justify-center gap-3 text-sm">
                 <div className="flex items-center gap-2 bg-teal-50 px-3 py-2 rounded-lg border border-teal-200">
@@ -268,6 +268,7 @@ export default function PricingSect({}: PricingSect = {}) {
           </div>
         </div>
 
+        {/* Bottom Trust Element */}
         <div className="mt-10 text-center">
           <div className="inline-block bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-200 max-w-xl">
             <div className="text-4xl mb-3">⚡</div>

@@ -134,6 +134,7 @@ export interface Product {
   shortDescription: string | null;
   price: number;
   originalPrice: number | null;
+  compareAtPrice?: number;
   fileName: string;
   filePath: string;
   isActive: boolean;
@@ -160,6 +161,8 @@ export interface CreateProductRequest {
   name: string;
   description?: string;
   price: number;
+  currency?: string;
+  compareAtPrice?: number;
   fileName: string;
   filePath: string;
   categoryId?: string;

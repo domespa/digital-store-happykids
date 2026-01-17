@@ -259,6 +259,7 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
     discountCode,
     paymentProvider = "STRIPE",
     currency = "EUR",
+    workbooksAdded,
   }: CreateOrderRequest & {
     paymentProvider?: "STRIPE" | "PAYPAL";
     currency?: string;
@@ -283,6 +284,16 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
     }
   }
 
+  const finalItems = [...items];
+
+  if (workbooksAdded) {
+    const WORKBOOKS_PRODUCT_ID = "cmkfg5osj0005mlb9u0blcig9";
+    finalItems.push({
+      productId: WORKBOOKS_PRODUCT_ID,
+      quantity: 1,
+    });
+  }
+
   const supportedCurrencies = currencyService
     .getSupportedCurrencies()
     .map((c) => c.code);
@@ -297,7 +308,10 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
   // VERIFICA PRODOTTI
   const productIds = items.map((item) => item.productId);
   const products = await prisma.product.findMany({
-    where: { id: { in: productIds }, isActive: true },
+    where: {
+      id: { in: finalItems.map((item) => item.productId) },
+      isActive: true,
+    },
   });
 
   console.log("🔍 PRODUCTS DEBUG:", {

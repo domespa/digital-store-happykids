@@ -61,7 +61,7 @@ export default function TestimonialSect() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
         {/* Header */}
         <div className="text-center mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2 rounded-full text-sm font-bold text-green-600 mb-6">
+          <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2 rounded-full text-lg font-bold text-green-600 mb-6">
             <span>💪</span>
             <span>Success Stories</span>
           </div>

@@ -1,5 +1,14 @@
 import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
+import FormattedPrice from "./FormattedPrice";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowDown,
+  faArrowRight,
+  faStar,
+  faStarHalfStroke,
+  faDownload,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function HeroSect() {
   const { config, user, isLoading } = useLandingContext();
@@ -27,8 +36,6 @@ export default function HeroSect() {
     );
   }
 
-  const userCurrency = user?.currency || "USD";
-
   return (
     <section className="relative min-h-screen flex items-center py-10 lg:py-10 overflow-hidden bg-gradient-to-br from-slate-50 to-white">
       {/* Background */}
@@ -46,7 +53,7 @@ export default function HeroSect() {
                 <img
                   src={config.hero.image}
                   alt="Screen Detox Protocol"
-                  className="w-full h-auto"
+                  className="w-full h-[700px]"
                   loading="eager"
                 />
 
@@ -83,14 +90,6 @@ export default function HeroSect() {
               RIGHT: CONTENT
           ======================================== */}
           <div className="space-y-6 animate-slide-up">
-            {/* Badge - Meno Aggressivo */}
-            <div className="inline-flex items-center gap-2 bg-blue-50 border-2 border-blue-200 px-5 py-2.5 rounded-full shadow-md">
-              <span className="text-xl">✓</span>
-              <span className="font-bold text-blue-700 text-sm uppercase tracking-wide">
-                Tested by 2,000+ Parents
-              </span>
-            </div>
-
             {/* Main Headline */}
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl lg:text-4xl font-black leading-tight text-gray-900">
@@ -102,7 +101,6 @@ export default function HeroSect() {
                 {config.hero.subtitle}
               </p>
             </div>
-
             {/* Social Proof - Colori Scuri */}
             <div className="flex flex-wrap items-center gap-6">
               {/* Avatars - Testo Nero su Sfondo Chiaro */}
@@ -118,7 +116,7 @@ export default function HeroSect() {
                   ))}
                 </div>
                 <div className="text-left">
-                  <p className="font-black text-gray-900 text-lg">
+                  <p className="font-bold text-gray-900 text-lg">
                     2,000+ parents
                   </p>
                   <p className="text-sm text-gray-700 font-medium">
@@ -132,23 +130,22 @@ export default function HeroSect() {
                 <div className="flex items-center gap-0.5">
                   {[...Array(4)].map((_, i) => (
                     <span key={i} className="text-yellow-500 text-xl">
-                      ★
+                      <FontAwesomeIcon icon={faStar} />
                     </span>
                   ))}
                   <span className="relative inline-block text-xl">
-                    <span className="text-gray-300">★</span>
+                    <span className="text-yellow-500">
+                      <FontAwesomeIcon icon={faStarHalfStroke} />
+                    </span>
                     <span
                       className="absolute top-0 left-0 text-yellow-500 overflow-hidden inline-block"
                       style={{ width: "80%" }}
-                    >
-                      ★
-                    </span>
+                    ></span>
                   </span>
                 </div>
-                <span className="font-black text-gray-900 text-lg">4.8/5</span>
+                <span className="font-bold text-gray-900 text-lg">4.8/5</span>
               </div>
             </div>
-
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button
@@ -167,7 +164,7 @@ export default function HeroSect() {
                     <>
                       <span>{config.hero.ctaText}</span>
                       <span className="text-2xl group-hover:translate-x-1 transition-transform">
-                        →
+                        <FontAwesomeIcon icon={faArrowRight} />
                       </span>
                     </>
                   )}
@@ -186,50 +183,79 @@ export default function HeroSect() {
               >
                 <span className="flex items-center justify-center gap-2">
                   <span>See What's Inside</span>
-                  <span className="text-xl">↓</span>
+                  <span className="text-xl">
+                    <FontAwesomeIcon icon={faArrowDown} />
+                  </span>
                 </span>
               </button>
             </div>
-
             {/* Price & Value */}
             <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl p-6 space-y-4 border-2 border-blue-200 shadow-lg">
-              <div className="flex items-baseline gap-3 flex-wrap">
-                <span className="text-5xl font-black text-gray-900">
-                  {landingCart.formatPrice(landingCart.mainPrice, userCurrency)}
-                </span>
-                <span className="text-2xl text-gray-600 line-through font-medium">
-                  {landingCart.formatPrice(
-                    landingCart.originalPrice,
-                    userCurrency
-                  )}
-                </span>
-                <span className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-full text-base font-bold shadow-lg">
-                  Save{" "}
-                  {Math.round(
-                    ((landingCart.originalPrice - landingCart.mainPrice) /
-                      landingCart.originalPrice) *
-                      100
-                  )}
-                  %
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-x-6 gap-y-3 text-base">
-                {[
-                  { icon: "⚡", text: "Instant download" },
-                  { icon: "♾️", text: "Lifetime access" },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2 text-gray-900 font-bold"
-                  >
-                    <span className="text-xl">{item.icon}</span>
-                    <span>{item.text}</span>
+              {landingCart.isLoading || landingCart.isConverting ? (
+                // SKELETON LOADING
+                <div className="space-y-4 animate-pulse">
+                  <div className="flex items-baseline gap-3 flex-wrap justify-center">
+                    <div className="h-10 w-32 bg-gray-300 rounded"></div>
+                    <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-20 bg-green-200 rounded-full"></div>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
+                    <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                    <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              ) : (
+                // PREZZI REALI
+                <>
+                  <div className="flex items-baseline gap-3 flex-wrap justify-center">
+                    {/* PREZZO PRINCIPALE - Grande con codice piccolo */}
+                    <FormattedPrice
+                      value={landingCart.formattedMainPrice}
+                      className="text-4xl font-bold text-gray-900"
+                      currencyClassName="text-xl font-normal opacity-60 ml-1"
+                    />
 
+                    {/* PREZZO ORIGINALE BARRATO - Medio con codice piccolo */}
+                    <span className="text-2xl text-gray-600 line-through font-medium">
+                      {landingCart.formattedOriginalPrice.split(" ")[0]}
+                    </span>
+
+                    <span className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-full text-base font-bold shadow-lg">
+                      Save{" "}
+                      {Math.round(
+                        ((landingCart.originalPrice - landingCart.mainPrice) /
+                          landingCart.originalPrice) *
+                          100
+                      )}
+                      %
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-base">
+                    {[
+                      {
+                        icon: <FontAwesomeIcon icon={faDownload} />,
+                        text: "Instant download",
+                        color: "text-blue-500",
+                      },
+                      {
+                        icon: "♾️",
+                        text: "Lifetime access",
+                        color: "text-blue-500",
+                      },
+                    ].map((item, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 text-gray-900 font-bold"
+                      >
+                        <span className="text-xl">{item.icon}</span>
+                        <span>{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             {/* Trust Badges */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
               {config.trustBar.stats.map((stat, i) => (
