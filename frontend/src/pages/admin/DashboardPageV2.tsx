@@ -125,38 +125,50 @@ export default function DashboardPageV2() {
   }, [] as OnlineUser[]);
 
   // ========== DEDUPLICAZIONE USER HISTORY ==========
-  const uniqueUserHistory = userHistory.reduce(
-    (acc, h) => {
-      const key = `${h.city}-${h.country}-${h.timestamp}`;
-      if (
-        !acc.some(
-          (item) => `${item.city}-${item.country}-${item.timestamp}` === key,
-        )
-      ) {
-        acc.push(h);
-      }
-      return acc;
-    },
-    [] as typeof userHistory,
-  );
+  // const uniqueUserHistory = userHistory.reduce(
+  //   (acc, h) => {
+  //     const key = `${h.city}-${h.country}-${h.timestamp}`;
+  //     if (
+  //       !acc.some(
+  //         (item) => `${item.city}-${item.country}-${item.timestamp}` === key,
+  //       )
+  //     ) {
+  //       acc.push(h);
+  //     }
+  //     return acc;
+  //   },
+  //   [] as typeof userHistory,
+  // );
 
   // ========== COMBINED USERS CON FIX ==========
   const combinedUsers = [
-    // Utenti online con timestamp reale
     ...uniqueOnlineUsers.map((u) => ({
+      sessionId: u.sessionId,
       city: u.location?.city ?? "Unknown",
       country: u.location?.country ?? "Unknown",
       timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
       isOnline: true,
     })),
-    // Utenti offline dalla history (escludi duplicati con online)
-    ...uniqueUserHistory.filter(
-      (h) =>
-        !uniqueOnlineUsers.some(
-          (u) =>
-            u.location?.city === h.city && u.location?.country === h.country,
-        ),
-    ),
+    ...userHistory
+      .filter(
+        (h) =>
+          !uniqueOnlineUsers.some(
+            (u) =>
+              u.location?.city === h.city &&
+              u.location?.country === h.country &&
+              Math.abs(
+                new Date(u.connectedAt).getTime() -
+                  new Date(h.timestamp).getTime(),
+              ) < 60000,
+          ),
+      )
+      .map((h) => ({
+        sessionId: h.id,
+        city: h.city,
+        country: h.country,
+        timestamp: h.timestamp,
+        isOnline: false,
+      })),
   ];
 
   // ========== DEDUPLICAZIONE FINALE ==========
@@ -172,7 +184,7 @@ export default function DashboardPageV2() {
   );
 
   // ========== ORDINAMENTO OTTIMIZZATO ==========
-  const combinedUsersSorted = [...uniqueCombinedUsers].sort((a, b) => {
+  const combinedUsersSorted = [...combinedUsers].sort((a, b) => {
     // Prima gli online
     if (a.isOnline && !b.isOnline) return -1;
     if (!a.isOnline && b.isOnline) return 1;

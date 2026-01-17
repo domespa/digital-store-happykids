@@ -25,7 +25,7 @@ export function useUserHistory(limit: number = 50) {
             Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -49,11 +49,6 @@ export function useUserHistory(limit: number = 50) {
 
   useEffect(() => {
     loadHistory();
-
-    // Refresh ogni 30 secondi
-    const interval = setInterval(loadHistory, 30000);
-
-    return () => clearInterval(interval);
   }, [loadHistory]);
 
   return {
