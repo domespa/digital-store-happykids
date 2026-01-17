@@ -6,7 +6,7 @@ import { useCompleteDashboard } from "../../hooks/useCompleteDashboard";
 import Globe from "react-globe.gl";
 import { useEffect, useRef, useState } from "react";
 import { useUserHistory } from "../../hooks/useUserHistory";
-import type { OnlineUser } from "../../types/admin"; // ✅ AGGIUNTO IMPORT
+import type { OnlineUser } from "../../types/admin";
 
 // ============================================
 //   CONSTANTS
@@ -108,7 +108,7 @@ const StatCard = ({
 // ============================================
 export default function DashboardPageV2() {
   // ========== HOOKS ==========
-  const { onlineUsers, totalOnline } = useRealTimeUsers();
+  const { onlineUsers } = useRealTimeUsers();
   const dashboard = useCompleteDashboard();
   const { history: userHistory, loading: historyLoading } = useUserHistory(50);
 
@@ -123,6 +123,63 @@ export default function DashboardPageV2() {
     }
     return acc;
   }, [] as OnlineUser[]);
+
+  // ========== DEDUPLICAZIONE USER HISTORY ==========
+  const uniqueUserHistory = userHistory.reduce(
+    (acc, h) => {
+      const key = `${h.city}-${h.country}-${h.timestamp}`;
+      if (
+        !acc.some(
+          (item) => `${item.city}-${item.country}-${item.timestamp}` === key,
+        )
+      ) {
+        acc.push(h);
+      }
+      return acc;
+    },
+    [] as typeof userHistory,
+  );
+
+  // ========== COMBINED USERS CON FIX ==========
+  const combinedUsers = [
+    // Utenti online con timestamp reale
+    ...uniqueOnlineUsers.map((u) => ({
+      city: u.location?.city ?? "Unknown",
+      country: u.location?.country ?? "Unknown",
+      timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
+      isOnline: true,
+    })),
+    // Utenti offline dalla history (escludi duplicati con online)
+    ...uniqueUserHistory.filter(
+      (h) =>
+        !uniqueOnlineUsers.some(
+          (u) =>
+            u.location?.city === h.city && u.location?.country === h.country,
+        ),
+    ),
+  ];
+
+  // ========== DEDUPLICAZIONE FINALE ==========
+  const uniqueCombinedUsers = combinedUsers.reduce(
+    (acc, user) => {
+      const key = `${user.city}-${user.country}`;
+      if (!acc.some((u) => `${u.city}-${u.country}` === key)) {
+        acc.push(user);
+      }
+      return acc;
+    },
+    [] as typeof combinedUsers,
+  );
+
+  // ========== ORDINAMENTO OTTIMIZZATO ==========
+  const combinedUsersSorted = [...uniqueCombinedUsers].sort((a, b) => {
+    // Prima gli online
+    if (a.isOnline && !b.isOnline) return -1;
+    if (!a.isOnline && b.isOnline) return 1;
+
+    // Poi ordina per timestamp (più recente prima)
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+  });
 
   // ========== GLOBE DATA ==========
   const globePoints = uniqueOnlineUsers
@@ -159,38 +216,7 @@ export default function DashboardPageV2() {
     controls.enablePan = false;
     controls.enableRotate = true;
     controls.rotateSpeed = 0.5;
-
-    console.log("✅ Globe: Responsive, No Zoom, Auto-rotate");
   }, [globeReady]);
-
-  // ========== COMBINED USERS CON FIX ==========
-  const combinedUsers = [
-    // Utenti online con timestamp reale
-    ...uniqueOnlineUsers.map((u) => ({
-      city: u.location?.city ?? "Unknown",
-      country: u.location?.country ?? "Unknown",
-      timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(), // ✅ USA TIMESTAMP REALE
-      isOnline: true,
-    })),
-    // Utenti offline dalla history (escludi duplicati con online)
-    ...userHistory.filter(
-      (h) =>
-        !uniqueOnlineUsers.some(
-          (u) =>
-            u.location?.city === h.city && u.location?.country === h.country,
-        ),
-    ),
-  ];
-
-  // ========== ORDINAMENTO OTTIMIZZATO ==========
-  const combinedUsersSorted = [...combinedUsers].sort((a, b) => {
-    // Prima gli online
-    if (a.isOnline && !b.isOnline) return -1;
-    if (!a.isOnline && b.isOnline) return 1;
-
-    // Poi ordina per timestamp (più recente prima)
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-  });
 
   // ========== LOADING STATE ==========
   if (dashboard.loading) {
@@ -256,7 +282,8 @@ export default function DashboardPageV2() {
             <span>👥</span>
             <span>User History</span>
             <span className="ml-auto text-sm font-normal text-gray-500">
-              {uniqueOnlineUsers.length} online / {combinedUsers.length} total
+              {uniqueOnlineUsers.length} online / {uniqueCombinedUsers.length}{" "}
+              total
             </span>
           </h3>
 
