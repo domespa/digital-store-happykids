@@ -18,7 +18,8 @@ import type { Socket } from "socket.io-client";
 import type { ProductImage } from "../types/admin";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL + "/api" || "http://localhost:5000/api";
+  import.meta.env.VITE_API_URL + "/api" ||
+  "https://digital-store-happykids-backend.onrender.com/api";
 
 // Environment-aware logging
 const isDev = import.meta.env.DEV;
@@ -144,7 +145,7 @@ adminApiInstance.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // ========================
@@ -163,13 +164,13 @@ export const adminOrders = {
     });
 
     const response = await adminApiInstance.get(
-      `/admin/orders?${params.toString()}`
+      `/admin/orders?${params.toString()}`,
     );
     return response.data;
   },
 
   getById: async (
-    orderId: string
+    orderId: string,
   ): Promise<{ success: boolean; order: AdminOrderResponse }> => {
     const response = await adminApiInstance.get(`/orders/${orderId}`);
     return response.data;
@@ -177,20 +178,20 @@ export const adminOrders = {
 
   updateStatus: async (
     orderId: string,
-    updateData: UpdateOrderStatusRequest
+    updateData: UpdateOrderStatusRequest,
   ): Promise<{ success: boolean; order: AdminOrderResponse }> => {
     const response = await adminApiInstance.put(
       `/admin/orders/${orderId}/status`,
-      updateData
+      updateData,
     );
     return response.data;
   },
 
   resendEmail: async (
-    orderId: string
+    orderId: string,
   ): Promise<{ success: boolean; message: string }> => {
     const response = await adminApiInstance.post(
-      `/admin/orders/${orderId}/resend-email`
+      `/admin/orders/${orderId}/resend-email`,
     );
     return response.data;
   },
@@ -222,7 +223,7 @@ export const adminDashboard = {
 
   getOverview: async (period: string = "week"): Promise<any> => {
     const response = await adminApiInstance.get(
-      `/admin/analytics/overview?period=${period}`
+      `/admin/analytics/overview?period=${period}`,
     );
     return response.data.data;
   },
@@ -234,7 +235,7 @@ export const adminDashboard = {
 
   getRecentActivity: async (
     limit: number = 15,
-    options?: { signal?: AbortSignal }
+    options?: { signal?: AbortSignal },
   ): Promise<{
     success: boolean;
     activities: RecentActivity[];
@@ -251,7 +252,7 @@ export const adminDashboard = {
   }> => {
     const response = await adminApiInstance.get(
       `/admin/dashboard/recent-activity?limit=${limit}`,
-      options?.signal ? { signal: options.signal } : undefined
+      options?.signal ? { signal: options.signal } : undefined,
     );
     return response.data;
   },
@@ -267,7 +268,7 @@ export const adminUsers = {
   getSessions: async (filters: any = {}): Promise<UserSession[]> => {
     const params = new URLSearchParams(filters);
     const response = await adminApiInstance.get(
-      `/admin/users/sessions?${params.toString()}`
+      `/admin/users/sessions?${params.toString()}`,
     );
     return response.data.sessions || [];
   },
@@ -284,7 +285,7 @@ export const adminWebSocket = {
     const WS_URL =
       import.meta.env.VITE_API_URL?.replace("https://", "wss://").replace(
         "http://",
-        "ws://"
+        "ws://",
       ) || "ws://localhost:5000";
 
     console.log("🔌 Creating WebSocket connection to:", WS_URL);
@@ -447,7 +448,7 @@ export const adminAuth = {
 // PRODUCTS MANAGEMENT
 export const adminProducts = {
   getAll: async (
-    filters: ProductFilters = {}
+    filters: ProductFilters = {},
   ): Promise<ProductListResponse> => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
@@ -456,41 +457,41 @@ export const adminProducts = {
       }
     });
     const response = await adminApiInstance.get(
-      `/admin/products?${params.toString()}`
+      `/admin/products?${params.toString()}`,
     );
     return response.data;
   },
 
   create: async (
-    productData: CreateProductRequest
+    productData: CreateProductRequest,
   ): Promise<ProductMutationResponse> => {
     const response = await adminApiInstance.post(
       "/admin/products",
-      productData
+      productData,
     );
     return response.data;
   },
 
   update: async (
     productId: string,
-    productData: UpdateProductRequest
+    productData: UpdateProductRequest,
   ): Promise<ProductMutationResponse> => {
     const response = await adminApiInstance.put(
       `/admin/products/${productId}`,
-      productData
+      productData,
     );
     return response.data;
   },
 
   delete: async (productId: string): Promise<ProductMutationResponse> => {
     const response = await adminApiInstance.delete(
-      `/admin/products/${productId}`
+      `/admin/products/${productId}`,
     );
     return response.data;
   },
 
   getImages: async (
-    productId: string
+    productId: string,
   ): Promise<{
     success: boolean;
     message: string;
@@ -498,14 +499,14 @@ export const adminProducts = {
     total: number;
   }> => {
     const response = await adminApiInstance.get(
-      `/admin/products/${productId}/images`
+      `/admin/products/${productId}/images`,
     );
     return response.data;
   },
 
   uploadImages: async (
     productId: string,
-    files: File[]
+    files: File[],
   ): Promise<{
     success: boolean;
     message: string;
@@ -524,34 +525,34 @@ export const adminProducts = {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
+      },
     );
     return response.data;
   },
 
   deleteImage: async (
     productId: string,
-    imageId: string
+    imageId: string,
   ): Promise<{
     success: boolean;
     message: string;
   }> => {
     const response = await adminApiInstance.delete(
-      `/admin/products/${productId}/images/${imageId}`
+      `/admin/products/${productId}/images/${imageId}`,
     );
     return response.data;
   },
 
   setFeaturedImage: async (
     productId: string,
-    imageId: string
+    imageId: string,
   ): Promise<{
     success: boolean;
     message: string;
     image: ProductImage;
   }> => {
     const response = await adminApiInstance.patch(
-      `/admin/products/${productId}/images/${imageId}/featured`
+      `/admin/products/${productId}/images/${imageId}/featured`,
     );
     return response.data;
   },
@@ -559,7 +560,7 @@ export const adminProducts = {
   uploadEbook: async (
     productId: string,
     file: File,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<{
     success: boolean;
     message: string;
@@ -607,8 +608,8 @@ export const adminProducts = {
             const error = JSON.parse(xhr.responseText);
             reject(
               new Error(
-                error.message || `Upload failed with status ${xhr.status}`
-              )
+                error.message || `Upload failed with status ${xhr.status}`,
+              ),
             );
           } catch (err) {
             reject(new Error(`Upload failed with status ${xhr.status}`));
@@ -626,7 +627,7 @@ export const adminProducts = {
 
       xhr.open(
         "POST",
-        `${API_BASE_URL}/admin/products/${productId}/upload-ebook`
+        `${API_BASE_URL}/admin/products/${productId}/upload-ebook`,
       );
       xhr.setRequestHeader("Authorization", `Bearer ${adminToken}`);
       xhr.send(formData);
@@ -651,11 +652,11 @@ export const adminAnalytics = {
 
       devLog(
         "🔄 Calling API:",
-        `/admin/analytics/period-data?${params.toString()}`
+        `/admin/analytics/period-data?${params.toString()}`,
       );
 
       const response = await adminApiInstance.get(
-        `/admin/analytics/period-data?${params.toString()}`
+        `/admin/analytics/period-data?${params.toString()}`,
       );
 
       devLog("✅ API Response:", response.data);
@@ -668,21 +669,21 @@ export const adminAnalytics = {
 
   getDashboard: async (period: string = "week") => {
     const response = await adminApiInstance.get(
-      `/admin/analytics/dashboard?period=${period}`
+      `/admin/analytics/dashboard?period=${period}`,
     );
     return response.data;
   },
 
   getSales: async (period: string = "week") => {
     const response = await adminApiInstance.get(
-      `/admin/analytics/sales?period=${period}`
+      `/admin/analytics/sales?period=${period}`,
     );
     return response.data;
   },
 
   getOverview: async (period: string = "week") => {
     const response = await adminApiInstance.get(
-      `/admin/analytics/overview?period=${period}`
+      `/admin/analytics/overview?period=${period}`,
     );
     return response.data;
   },
@@ -694,14 +695,14 @@ export const adminAnalytics = {
 
   getInsights: async (period: string = "week") => {
     const response = await adminApiInstance.get(
-      `/admin/analytics/insights?period=${period}`
+      `/admin/analytics/insights?period=${period}`,
     );
     return response.data;
   },
 
   getTopProducts: async (period: string = "week", limit: number = 10) => {
     const response = await adminApiInstance.get(
-      `/admin/analytics/top-products?period=${period}&limit=${limit}`
+      `/admin/analytics/top-products?period=${period}&limit=${limit}`,
     );
     return response.data;
   },
@@ -709,16 +710,16 @@ export const adminAnalytics = {
   comparePeriods: async (
     currentPeriod: string,
     previousPeriod: string,
-    metric: string
+    metric: string,
   ) => {
     const response = await adminApiInstance.get(
-      `/admin/analytics/compare?currentPeriod=${currentPeriod}&previousPeriod=${previousPeriod}&metric=${metric}`
+      `/admin/analytics/compare?currentPeriod=${currentPeriod}&previousPeriod=${previousPeriod}&metric=${metric}`,
     );
     return response.data;
   },
 
   refreshDashboard: async (
-    period: string = "week"
+    period: string = "week",
   ): Promise<{
     stats: DashboardStats;
     periodData: PeriodDataPoint[];
@@ -746,7 +747,7 @@ export const adminAnalytics = {
   getTotalVisits: async (): Promise<number> => {
     try {
       const response = await adminApiInstance.get(
-        "/admin/analytics/total-visits"
+        "/admin/analytics/total-visits",
       );
       return response.data.totalVisits || 0;
     } catch (error) {
@@ -758,7 +759,7 @@ export const adminAnalytics = {
   clearAnalyticsCache: async (): Promise<{ success: boolean }> => {
     try {
       const response = await adminApiInstance.post(
-        "/admin/analytics/clear-cache"
+        "/admin/analytics/clear-cache",
       );
       return response.data;
     } catch (error) {
@@ -772,7 +773,7 @@ export const adminAnalytics = {
 //   UTILITY FUNCTIONS
 // ========================
 export function convertTimePeriodToApiPeriod(
-  timePeriod: string
+  timePeriod: string,
 ): "today" | "week" | "month" | "year" | "total" {
   switch (timePeriod.toLowerCase()) {
     case "oggi":
@@ -823,7 +824,7 @@ export const adminApi = {
   clearAnalyticsCache: adminAnalytics.clearAnalyticsCache,
   getCompleteDashboard: async (period: string = "today") => {
     const response = await adminApiInstance.get(
-      `/admin/dashboard/complete?period=${period}`
+      `/admin/dashboard/complete?period=${period}`,
     );
     return response.data;
   },

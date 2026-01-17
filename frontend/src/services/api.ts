@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL + "/api" || "http://localhost:5000/api";
+  import.meta.env.VITE_API_URL + "/api" ||
+  "https://digital-store-happykids-backend.onrender.com/api";
 // ========================
 //      SETUP AXIOS
 // ========================
@@ -35,7 +36,7 @@ export const auth = {
     email: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
   ) => {
     const response = await api.post("/auth/register", {
       email,

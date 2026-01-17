@@ -96,9 +96,9 @@ async function createTestOrderWithBothProducts() {
     order.orderItems.forEach((item, index) => {
       console.log(`${index + 1}. ${item.product!.name}:`);
       console.log(
-        `   http://localhost:5000/api/orders/download/${order.id}?productId=${
+        `   https://digital-store-happykids-backend.onrender.com/api/orders/download/${order.id}?productId=${
           item.product!.id
-        }`
+        }`,
       );
       console.log("");
     });
