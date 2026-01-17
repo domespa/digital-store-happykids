@@ -96,7 +96,7 @@ try {
   locationTrackingService = new LocationTrackingWebSocket(
     httpServer,
     websocketService, // Passa il riferimento direttamente
-    "/location"
+    "/location",
   );
   console.log("✅ LocationTrackingService initialized");
 
@@ -137,13 +137,12 @@ const allowedOrigins = process.env.FRONTEND_URL
 app.use(
   cors({
     origin: [
-      ...allowedOrigins,
-      "http://localhost:3001",
+      "https://h4ppykids.com",
+      "https://www.h4ppykids.com",
       "http://localhost:5173",
-      "http://localhost:3000",
     ],
     credentials: true,
-  })
+  }),
 );
 
 // 3. RATE LIMITING GLOBALE
@@ -255,7 +254,7 @@ const supportRoutes = setupSupportRoutes(
       ticketCreation: { windowMs: 3600000, max: 5 }, // 5 tickets/hour
       messaging: { windowMs: 300000, max: 20 }, // 20 messages/5min
     },
-  }
+  },
 );
 
 app.use("/api/support", supportRoutes);
@@ -404,7 +403,7 @@ app.use(
     error: unknown,
     req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    next: express.NextFunction,
   ) => {
     console.error("Global error:", error);
 
@@ -476,7 +475,7 @@ app.use(
         stack: error instanceof Error ? error.stack : undefined,
       }),
     });
-  }
+  },
 );
 
 //=====================================================
