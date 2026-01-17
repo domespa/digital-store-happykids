@@ -32,12 +32,21 @@ export function useRealTimeUsers() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const maxReconnectAttempts = 5;
+  const isRefreshingRef = useRef(false);
 
   const refreshData = useCallback(async () => {
+    if (isRefreshingRef.current) {
+      console.log("⏭️ Skipping refresh - already in progress");
+      return;
+    }
+
     try {
+      isRefreshingRef.current = true;
       setLoading(true);
+
       const users = await adminUsers.getOnline();
       console.log("📊 Refreshed users:", users?.length || 0);
+
       setOnlineUsers(users || []);
       setError(null);
     } catch (err) {
@@ -45,6 +54,7 @@ export function useRealTimeUsers() {
       setError("Failed to refresh data");
     } finally {
       setLoading(false);
+      isRefreshingRef.current = false;
     }
   }, []);
 
@@ -58,11 +68,11 @@ export function useRealTimeUsers() {
     reconnectAttemptsRef.current += 1;
     const delay = Math.min(
       1000 * Math.pow(2, reconnectAttemptsRef.current),
-      10000
+      10000,
     );
 
     console.log(
-      `🔄 Scheduling reconnect attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts} in ${delay}ms`
+      `🔄 Scheduling reconnect attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts} in ${delay}ms`,
     );
 
     reconnectTimeoutRef.current = setTimeout(() => {
@@ -111,7 +121,7 @@ export function useRealTimeUsers() {
                 if (data.user) {
                   setOnlineUsers((prev: OnlineUser[]) => {
                     const filtered = prev.filter(
-                      (u) => u.sessionId !== data.user?.sessionId
+                      (u) => u.sessionId !== data.user?.sessionId,
                     );
                     const newUser = data.user as OnlineUser;
                     console.log("➕ User connected:", newUser.sessionId);
@@ -127,7 +137,7 @@ export function useRealTimeUsers() {
                   console.log("➖ User disconnected:", data.sessionId);
                   setOnlineUsers((prev: OnlineUser[]) => {
                     const remaining = prev.filter(
-                      (u) => u.sessionId !== data.sessionId
+                      (u) => u.sessionId !== data.sessionId,
                     );
                     console.log(`📊 Remaining users: ${remaining.length}`);
                     return remaining;
@@ -147,8 +157,8 @@ export function useRealTimeUsers() {
                             lastActivity:
                               data.timestamp || new Date().toISOString(),
                           }
-                        : user
-                    )
+                        : user,
+                    ),
                   );
                 }
                 break;
@@ -187,8 +197,7 @@ export function useRealTimeUsers() {
           console.log("✅ Connected to WebSocket");
           setIsConnected(true);
           setError(null);
-          reconnectAttemptsRef.current = 0; // Reset counter
-          refreshData();
+          reconnectAttemptsRef.current = 0;
         });
 
         // Event: disconnect
@@ -197,9 +206,7 @@ export function useRealTimeUsers() {
           console.log("⚠️ Disconnected from WebSocket. Reason:", reason);
           setIsConnected(false);
 
-          // Auto-reconnect only for certain reasons
           if (reason === "io server disconnect") {
-            // Server forcefully disconnected, try to reconnect
             console.log("🔄 Server disconnected us, attempting reconnect...");
             handleReconnect();
           } else if (
@@ -218,7 +225,7 @@ export function useRealTimeUsers() {
           setIsConnected(true);
           setError(null);
           reconnectAttemptsRef.current = 0;
-          refreshData();
+          refreshData(); // Solo dopo reconnect
         });
 
         // Event: reconnect_attempt
@@ -264,7 +271,6 @@ export function useRealTimeUsers() {
 
     setupWebSocket();
 
-    // Cleanup
     return () => {
       mounted = false;
 
@@ -285,23 +291,6 @@ export function useRealTimeUsers() {
       }
     };
   }, [refreshData, handleReconnect]);
-
-  // Ping interval per mantenere la connessione viva
-  useEffect(() => {
-    if (!isConnected || !wsRef.current) return;
-
-    const pingInterval = setInterval(() => {
-      if (wsRef.current && isConnected) {
-        console.log("💓 Sending keepalive ping");
-        // Se il tuo WebSocket supporta emit custom
-        if (typeof wsRef.current.emit === "function") {
-          wsRef.current.emit("ping");
-        }
-      }
-    }, 25000); // Ogni 25 secondi
-
-    return () => clearInterval(pingInterval);
-  }, [isConnected]);
 
   return {
     onlineUsers,

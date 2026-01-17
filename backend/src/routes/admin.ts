@@ -23,6 +23,16 @@ import { FileUploadService } from "../services/uploadService";
 import { cache } from "../utils/cache";
 import type { AnalyticsFilters } from "../types/analytics";
 
+interface LocationData {
+  country: string;
+  city: string;
+  region: string;
+  countryCode: string;
+  timezone: string;
+  socketId: string;
+  timestamp: Date;
+}
+
 const getLocationTracking = () => {
   return (globalThis as any).locationTrackingWebSocket;
 };
@@ -136,19 +146,7 @@ router.get("/users/online", async (req, res) => {
       });
     }
 
-    const stats = await webSocketService.getConnectionStats();
-    const onlineCount = webSocketService.getOnlineUsersCount();
-
-    interface LocationData {
-      country: string;
-      city: string;
-      region: string;
-      countryCode: string;
-      timezone: string;
-      socketId: string;
-      timestamp: Date;
-    }
-
+    // OTTIENI LIVE LOCATIONS
     const liveLocations: LocationData[] = locationTrackingService
       ? locationTrackingService.getOnlineUserLocations()
       : [];
@@ -156,6 +154,18 @@ router.get("/users/online", async (req, res) => {
     console.log(
       "📍 Live locations from tracking service:",
       liveLocations.length,
+    );
+
+    // ✅ DEDUPLICAZIONE PER SOCKET ID
+    const uniqueLocations = liveLocations.reduce((acc, loc) => {
+      if (!acc.some((l) => l.socketId === loc.socketId)) {
+        acc.push(loc);
+      }
+      return acc;
+    }, [] as LocationData[]);
+
+    console.log(
+      `✅ After deduplication: ${uniqueLocations.length} unique locations`,
     );
 
     const locationBySocketId = new Map<
@@ -169,7 +179,7 @@ router.get("/users/online", async (req, res) => {
       }
     >();
 
-    liveLocations.forEach((loc) => {
+    uniqueLocations.forEach((loc) => {
       locationBySocketId.set(loc.socketId, {
         country: loc.country,
         city: loc.city,
@@ -179,7 +189,7 @@ router.get("/users/online", async (req, res) => {
       });
     });
 
-    // CACHE PER RECENT CONNECTIONS (30 secondi)
+    // ✅ CACHE PER RECENT CONNECTIONS (30 secondi)
     const cacheKey = "online_users_connections";
     let recentConnections = cache.get<any[]>(cacheKey);
 
@@ -189,7 +199,7 @@ router.get("/users/online", async (req, res) => {
         where: {
           isActive: true,
           lastPing: {
-            gte: new Date(Date.now() - 5 * 60 * 1000),
+            gte: new Date(Date.now() - 5 * 60 * 1000), // Ultimi 5 minuti
           },
         },
         include: {
@@ -214,64 +224,73 @@ router.get("/users/online", async (req, res) => {
       console.log("✅ Cache HIT: online users connections");
     }
 
-    // ===============================
-    // AUTHENTICATED USERS
-    // ===============================
-    const onlineUsers = recentConnections
+    // ✅ AUTHENTICATED USERS (deduplicati)
+    const authenticatedUsersMap = new Map();
+
+    recentConnections
       .filter((conn) => conn.user)
-      .map((conn) => {
-        const socketLocation = locationBySocketId.get(conn.socketId);
+      .forEach((conn) => {
+        // Usa sessionId come chiave unica
+        if (!authenticatedUsersMap.has(conn.socketId)) {
+          const socketLocation = locationBySocketId.get(conn.socketId);
 
-        const location = socketLocation ?? {
-          country: "Italy",
-          city: "Rome",
-          region: "Lazio",
-          countryCode: "IT",
-          timezone: "Europe/Rome",
-        };
+          const location = socketLocation ?? {
+            country: "Italy",
+            city: "Rome",
+            region: "Lazio",
+            countryCode: "IT",
+            timezone: "Europe/Rome",
+          };
 
-        return {
-          id: conn.user!.id,
-          email: conn.user!.email,
-          firstName: conn.user!.firstName,
-          lastName: conn.user!.lastName,
-          sessionId: conn.socketId,
-          ipAddress: conn.ipAddress,
-          userAgent: conn.userAgent,
-          location,
-          currentPage: "/dashboard",
-          connectedAt: conn.connectedAt.toISOString(),
-          lastActivity: conn.lastPing.toISOString(),
-          isAuthenticated: true,
-        };
+          authenticatedUsersMap.set(conn.socketId, {
+            id: conn.user!.id,
+            email: conn.user!.email,
+            firstName: conn.user!.firstName,
+            lastName: conn.user!.lastName,
+            sessionId: conn.socketId,
+            ipAddress: conn.ipAddress,
+            userAgent: conn.userAgent,
+            location,
+            currentPage: "/dashboard",
+            connectedAt: conn.connectedAt.toISOString(),
+            lastActivity: conn.lastPing.toISOString(),
+            isAuthenticated: true,
+          });
+        }
       });
 
-    // ===============================
-    // ANONYMOUS USERS (INVARIATO)
-    // ===============================
-    const anonymousVisitors = liveLocations.map(
-      (loc: LocationData, index: number) => ({
-        id: `anonymous-${loc.socketId}`,
-        email: "anonymous@visitor.com",
-        firstName: "Anonymous",
-        lastName: `Visitor ${index + 1}`,
-        sessionId: loc.socketId,
-        ipAddress: "unknown",
-        userAgent: "unknown",
-        location: {
-          country: loc.country,
-          city: loc.city,
-          region: loc.region,
-          countryCode: loc.countryCode,
-          timezone: loc.timezone,
-        },
-        currentPage: "/",
-        connectedAt: loc.timestamp.toISOString(),
-        lastActivity: loc.timestamp.toISOString(),
-        isAuthenticated: false,
-      }),
-    );
+    const onlineUsers = Array.from(authenticatedUsersMap.values());
 
+    // ✅ ANONYMOUS USERS (deduplicati e solo se non già autenticati)
+    const anonymousVisitorsMap = new Map();
+
+    uniqueLocations.forEach((loc: LocationData, index: number) => {
+      // ✅ SALTA SE GIÀ PRESENTE COME AUTENTICATO
+      if (!authenticatedUsersMap.has(loc.socketId)) {
+        anonymousVisitorsMap.set(loc.socketId, {
+          id: `anonymous-${loc.socketId}`,
+          email: "anonymous@visitor.com",
+          firstName: "Anonymous",
+          lastName: `Visitor ${index + 1}`,
+          sessionId: loc.socketId,
+          ipAddress: "unknown",
+          userAgent: "unknown",
+          location: {
+            country: loc.country,
+            city: loc.city,
+            region: loc.region,
+            countryCode: loc.countryCode,
+            timezone: loc.timezone,
+          },
+          currentPage: "/",
+          connectedAt: loc.timestamp.toISOString(),
+          lastActivity: loc.timestamp.toISOString(),
+          isAuthenticated: false,
+        });
+      }
+    });
+
+    const anonymousVisitors = Array.from(anonymousVisitorsMap.values());
     const allUsers = [...onlineUsers, ...anonymousVisitors];
 
     console.log(
@@ -283,12 +302,10 @@ router.get("/users/online", async (req, res) => {
       users: allUsers,
       total: allUsers.length,
       stats: {
-        totalOnline: onlineCount,
-        totalConnections: stats.totalConnections,
-        averageConnectionsPerUser: stats.averageConnectionsPerUser,
+        totalOnline: allUsers.length,
         authenticated: onlineUsers.length,
         anonymous: anonymousVisitors.length,
-        locationDataAvailable: liveLocations.length > 0,
+        locationDataAvailable: uniqueLocations.length > 0,
         detectionMethod: "socket+ip",
         precisionLevel: "city",
       },

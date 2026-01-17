@@ -6,12 +6,14 @@ import { useCompleteDashboard } from "../../hooks/useCompleteDashboard";
 import Globe from "react-globe.gl";
 import { useEffect, useRef, useState } from "react";
 import { useUserHistory } from "../../hooks/useUserHistory";
+import type { OnlineUser } from "../../types/admin"; // ✅ AGGIUNTO IMPORT
 
 // ============================================
 //   CONSTANTS
 // ============================================
 const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   Catania: { lat: 37.5079, lng: 15.083 },
+  Belpasso: { lat: 37.5917, lng: 14.9833 },
   Rome: { lat: 41.9028, lng: 12.4964 },
   Milan: { lat: 45.4642, lng: 9.19 },
   Naples: { lat: 40.8518, lng: 14.2681 },
@@ -114,8 +116,16 @@ export default function DashboardPageV2() {
   const globeEl = useRef<any>(null);
   const [globeReady, setGlobeReady] = useState(false);
 
+  // ========== DEDUPLICAZIONE UTENTI ONLINE ==========
+  const uniqueOnlineUsers = onlineUsers.reduce((acc, user) => {
+    if (!acc.some((u) => u.sessionId === user.sessionId)) {
+      acc.push(user);
+    }
+    return acc;
+  }, [] as OnlineUser[]);
+
   // ========== GLOBE DATA ==========
-  const globePoints = onlineUsers
+  const globePoints = uniqueOnlineUsers
     .filter((user) => {
       const cityKey = user.location?.city?.replace(/\s+/g, "");
       return cityKey && CITY_COORDINATES[cityKey];
@@ -137,7 +147,6 @@ export default function DashboardPageV2() {
   useEffect(() => {
     if (!globeEl.current || !globeReady) return;
 
-    // ✅ Altitude responsive: mobile più lontano, desktop normale
     const isMobile = window.innerWidth < 768;
     const altitude = isMobile ? 5.5 : 2.8;
 
@@ -150,27 +159,38 @@ export default function DashboardPageV2() {
     controls.enablePan = false;
     controls.enableRotate = true;
     controls.rotateSpeed = 0.5;
+
+    console.log("✅ Globe: Responsive, No Zoom, Auto-rotate");
   }, [globeReady]);
 
+  // ========== COMBINED USERS CON FIX ==========
   const combinedUsers = [
-    ...onlineUsers.map((u) => ({
+    // Utenti online con timestamp reale
+    ...uniqueOnlineUsers.map((u) => ({
       city: u.location?.city ?? "Unknown",
-      country: u.location?.country ?? "",
-      timestamp: new Date().toISOString(),
+      country: u.location?.country ?? "Unknown",
+      timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(), // ✅ USA TIMESTAMP REALE
       isOnline: true,
     })),
+    // Utenti offline dalla history (escludi duplicati con online)
     ...userHistory.filter(
       (h) =>
-        !onlineUsers.some(
+        !uniqueOnlineUsers.some(
           (u) =>
-            u.location?.city === h.city && u.location?.country === h.country
-        )
+            u.location?.city === h.city && u.location?.country === h.country,
+        ),
     ),
   ];
 
-  const combinedUsersSorted = [...combinedUsers].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+  // ========== ORDINAMENTO OTTIMIZZATO ==========
+  const combinedUsersSorted = [...combinedUsers].sort((a, b) => {
+    // Prima gli online
+    if (a.isOnline && !b.isOnline) return -1;
+    if (!a.isOnline && b.isOnline) return 1;
+
+    // Poi ordina per timestamp (più recente prima)
+    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+  });
 
   // ========== LOADING STATE ==========
   if (dashboard.loading) {
@@ -209,7 +229,7 @@ export default function DashboardPageV2() {
             <span>🌍</span>
             <span>Live User Locations</span>
             <span className="ml-auto text-sm font-normal text-gray-500">
-              {totalOnline} online
+              {uniqueOnlineUsers.length} online
             </span>
           </h3>
           <div className="relative h-[300px] md:h-[500px] bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center">
@@ -236,23 +256,25 @@ export default function DashboardPageV2() {
             <span>👥</span>
             <span>User History</span>
             <span className="ml-auto text-sm font-normal text-gray-500">
-              {onlineUsers.length}/{combinedUsers.length}
+              {uniqueOnlineUsers.length} online / {combinedUsers.length} total
             </span>
           </h3>
 
           <div className="h-[500px] overflow-y-auto space-y-2">
             {historyLoading ? (
               <p className="text-center text-gray-500">Loading...</p>
+            ) : combinedUsersSorted.length === 0 ? (
+              <p className="text-center text-gray-500 mt-10">No visitors yet</p>
             ) : (
               combinedUsersSorted.map((entry, index) => {
                 const reverseIndex = combinedUsersSorted.length - index;
 
                 return (
                   <div
-                    key={`${entry.city}-${entry.timestamp}`}
+                    key={`${entry.city}-${entry.country}-${entry.timestamp}-${index}`}
                     className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg"
                   >
-                    <div className="w-6 text-xs font-bold text-gray-400">
+                    <div className="w-8 text-xs font-bold text-gray-400">
                       #{reverseIndex}
                     </div>
 
@@ -266,7 +288,9 @@ export default function DashboardPageV2() {
 
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
-                        Utente da {entry.city} - {entry.country}
+                        {entry.city && entry.city !== "Unknown"
+                          ? `Visitor from ${entry.city} - ${entry.country}`
+                          : `Visitor from ${entry.country}`}
                       </p>
                       <p className="text-xs text-gray-500">
                         {formatTimeAgo(entry.timestamp)}
@@ -274,7 +298,7 @@ export default function DashboardPageV2() {
                     </div>
 
                     {entry.isOnline && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
                         Online
                       </span>
                     )}
@@ -285,6 +309,7 @@ export default function DashboardPageV2() {
           </div>
         </Card>
       </div>
+
       {/* ==================== FILTRI ==================== */}
       <div className="flex items-center gap-3">
         <TimeFilters
@@ -335,7 +360,12 @@ export default function DashboardPageV2() {
           icon="💳"
           color="pink"
         />
-        <StatCard title="Online" value={totalOnline} icon="👥" color="cyan" />
+        <StatCard
+          title="Online"
+          value={uniqueOnlineUsers.length}
+          icon="👥"
+          color="cyan"
+        />
       </div>
 
       {/* ==================== CHARTS ==================== */}
@@ -392,10 +422,10 @@ export default function DashboardPageV2() {
                       activity.metadata.status === "COMPLETED"
                         ? "bg-green-100 text-green-700"
                         : activity.metadata.status === "PAID"
-                        ? "bg-blue-100 text-blue-700"
-                        : activity.metadata.status === "PENDING"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-100 text-gray-700"
+                          ? "bg-blue-100 text-blue-700"
+                          : activity.metadata.status === "PENDING"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {activity.metadata.status}
