@@ -198,6 +198,14 @@ export default function DashboardPageV2() {
     })),
   ];
 
+  console.log("🔍 DEBUG combinedUsers:", {
+    total: combinedUsers.length,
+    online: combinedUsers.filter((u) => u.isOnline).length,
+    offline: combinedUsers.filter((u) => !u.isOnline).length,
+    firstOnline: combinedUsers.find((u) => u.isOnline),
+    firstOffline: combinedUsers.find((u) => !u.isOnline),
+  });
+
   // ========== DEDUPLICAZIONE FINALE ==========
   const uniqueCombinedUsers = combinedUsers.reduce(
     (acc, user) => {
