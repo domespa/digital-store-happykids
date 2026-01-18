@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import { useLandingContext } from "../../context/LandingContext";
 import { useCart } from "../../hooks/useCart";
 import CookieBanner from "../CookieBanner";
-import ExitIntentPopup from "./conversion/ExitIntentPopup";
+// import ExitIntentPopup from "./conversion/ExitIntentPopup";
 import SocialProofNotification from "./conversion/SocialProofNotification";
 
 const LandingPageContent = () => {
@@ -69,7 +69,7 @@ const LandingPageContent = () => {
       {/* Always visible */}
       <StickyCtaBar />
       <Footer />
-      <ExitIntentPopup />
+      {/* <ExitIntentPopup /> */}
       <SocialProofNotification />
     </div>
   );
