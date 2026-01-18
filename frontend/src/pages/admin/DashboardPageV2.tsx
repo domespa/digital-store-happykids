@@ -415,11 +415,6 @@ export default function DashboardPageV2() {
                         )}
                       </p>
                     </div>
-                    ``` --- ## 📋 **Risultato:** **Online:** ``` #1 ● Visitor
-                    from Catania - Italy ● Connected at 14:32 ``` **Offline con
-                    durata:** ``` #2 ● Visitor from United States 14:32 - 14:45
-                    (13m) ``` **Offline senza durata (vecchi record):** ``` #3 ●
-                    Visitor from Italy ● Last seen at 11:30
                     {entry.isOnline && (
                       <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
                         Online
