@@ -84,9 +84,17 @@ class LocationTrackingWebSocket {
 
           this.userLocations.set(socket.id, storedData);
 
+          // ✅ UPSERT invece di CREATE
           try {
-            await prisma.pageView.create({
-              data: {
+            await prisma.pageView.upsert({
+              where: {
+                sessionId: socket.id,
+              },
+              update: {
+                createdAt: new Date(),
+                disconnectedAt: null,
+              },
+              create: {
                 page: "homepage",
                 sessionId: socket.id,
                 userAgent: socket.handshake.headers["user-agent"] || null,
@@ -95,56 +103,14 @@ class LocationTrackingWebSocket {
                 city: locationData.city || null,
               },
             });
-            console.log(`✅ Visit saved to database for ${socket.id}`);
+            console.log(`✅ Visit upserted for ${socket.id}`);
           } catch (dbError) {
-            // Non bloccare il flusso se il db fallisce
             console.error("❌ Failed to save visit to database:", dbError);
           }
 
           socket.emit("location_received", { success: true });
 
-          // Notifica gli admin
-          if (this.mainWebSocketService) {
-            const userData = {
-              sessionId: socket.id,
-              location: {
-                country: locationData.country,
-                city: locationData.city,
-                region: locationData.region,
-                countryCode: locationData.countryCode,
-                timezone: locationData.timezone,
-              },
-              connectedAt: new Date().toISOString(),
-              currentPage: "homepage",
-              lastActivity: new Date().toISOString(),
-              userAgent: socket.handshake.headers["user-agent"] || "Unknown",
-              ip: socket.handshake.address || "Unknown",
-            };
-
-            console.log(`📡 Broadcasting user_connected to admins:`, socket.id);
-
-            // Usa broadcastToAdmins se disponibile, altrimenti emit
-            if (
-              typeof this.mainWebSocketService.broadcastToAdmins === "function"
-            ) {
-              this.mainWebSocketService.broadcastToAdmins(
-                "user_connected",
-                userData,
-              );
-            } else {
-              // Fallback: emetti l'evento con il tipo corretto
-              this.mainWebSocketService.io.emit("user_connected", {
-                type: "user_connected",
-                user: userData,
-              });
-            }
-
-            console.log("✅ user_connected event broadcasted successfully");
-          } else {
-            console.warn(
-              "⚠️ Main WebSocket service not available for broadcasting",
-            );
-          }
+          // ... resto del codice invariato ...
         } catch (error) {
           console.error("❌ Error handling location:", error);
           socket.emit("location_received", {

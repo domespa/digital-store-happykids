@@ -52,13 +52,11 @@ const formatExactTime = (timestamp: string): string => {
   const isToday = date.toDateString() === now.toDateString();
 
   if (isToday) {
-    // Oggi: mostra solo l'ora
     return date.toLocaleTimeString("it-IT", {
       hour: "2-digit",
       minute: "2-digit",
     });
   } else {
-    // Altro giorno: mostra data + ora
     return date.toLocaleString("it-IT", {
       day: "2-digit",
       month: "2-digit",
@@ -161,25 +159,8 @@ export default function DashboardPageV2() {
     return acc;
   }, [] as OnlineUser[]);
 
-  // ========== DEDUPLICAZIONE USER HISTORY ==========
-  // const uniqueUserHistory = userHistory.reduce(
-  //   (acc, h) => {
-  //     const key = `${h.city}-${h.country}-${h.timestamp}`;
-  //     if (
-  //       !acc.some(
-  //         (item) => `${item.city}-${item.country}-${item.timestamp}` === key,
-  //       )
-  //     ) {
-  //       acc.push(h);
-  //     }
-  //     return acc;
-  //   },
-  //   [] as typeof userHistory,
-  // );
-
-  // ========== COMBINED USERS CON FIX ==========
+  // ========== COMBINED USERS ==========
   const combinedUsers = [
-    // Utenti online con timestamp reale
     ...uniqueOnlineUsers.map((u) => ({
       id: u.sessionId,
       city: u.location?.city ?? "Unknown",
@@ -198,14 +179,6 @@ export default function DashboardPageV2() {
     })),
   ];
 
-  console.log("🔍 DEBUG combinedUsers:", {
-    total: combinedUsers.length,
-    online: combinedUsers.filter((u) => u.isOnline).length,
-    offline: combinedUsers.filter((u) => !u.isOnline).length,
-    firstOnline: combinedUsers.find((u) => u.isOnline),
-    firstOffline: combinedUsers.find((u) => !u.isOnline),
-  });
-
   // ========== DEDUPLICAZIONE FINALE ==========
   const uniqueCombinedUsers = combinedUsers.reduce(
     (acc, user) => {
@@ -217,15 +190,51 @@ export default function DashboardPageV2() {
     [] as typeof combinedUsers,
   );
 
-  // ========== ORDINAMENTO OTTIMIZZATO ==========
-  const combinedUsersSorted = [...combinedUsers].sort((a, b) => {
-    // Prima gli online
-    if (a.isOnline && !b.isOnline) return -1;
-    if (!a.isOnline && b.isOnline) return 1;
+  // ========== FUNZIONE DEDUPLICAZIONE AGGRESSIVA ==========
+  const deduplicateByLocation = (users: typeof combinedUsers) => {
+    const seen = new Map<string, (typeof combinedUsers)[0]>();
 
-    // Poi ordina per timestamp (più recente prima)
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-  });
+    return users.filter((user) => {
+      const key = `${user.city}-${user.country}`;
+      const existing = seen.get(key);
+
+      if (!existing) {
+        seen.set(key, user);
+        return true;
+      }
+
+      // Se online vs offline, priorità a online
+      if (user.isOnline && !existing.isOnline) {
+        seen.set(key, user);
+        return true;
+      }
+
+      // Se timestamp molto vicini (<2 minuti), sono duplicati
+      const timeDiff = Math.abs(
+        new Date(user.timestamp).getTime() -
+          new Date(existing.timestamp).getTime(),
+      );
+
+      if (timeDiff < 120000) {
+        // 2 minuti
+        if (new Date(user.timestamp) > new Date(existing.timestamp)) {
+          seen.set(key, user);
+        }
+        return false;
+      }
+
+      return true;
+    });
+  };
+
+  // ========== ORDINAMENTO FINALE ==========
+  const combinedUsersSorted = deduplicateByLocation(
+    [...combinedUsers].sort((a, b) => {
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    }),
+  );
 
   // ========== GLOBE DATA ==========
   const globePoints = uniqueOnlineUsers
@@ -246,7 +255,7 @@ export default function DashboardPageV2() {
       };
     });
 
-  // ========== GLOBE SETUP (RESPONSIVE ALTITUDE) ==========
+  // ========== GLOBE SETUP ==========
   useEffect(() => {
     if (!globeEl.current || !globeReady) return;
 
@@ -281,7 +290,7 @@ export default function DashboardPageV2() {
   // ========== RENDER ==========
   return (
     <div className="space-y-6 bg-stone-50 dark:bg-slate-900 min-h-screen p-6">
-      {/* ==================== HEADER ==================== */}
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -293,9 +302,8 @@ export default function DashboardPageV2() {
         </div>
       </div>
 
-      {/* ==================== GLOBE + USERS ONLINE ==================== */}
+      {/* GLOBE + USERS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* GLOBE */}
         <Card className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
             <span>🌍</span>
@@ -322,7 +330,6 @@ export default function DashboardPageV2() {
           </div>
         </Card>
 
-        {/* USERS HISTORY */}
         <Card className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
             <span>👥</span>
@@ -380,7 +387,6 @@ export default function DashboardPageV2() {
                         )}
                       </p>
 
-                      {/* ✅ DURATA SESSIONE */}
                       <p className="text-xs text-gray-500">
                         {entry.isOnline ? (
                           <>
@@ -393,7 +399,6 @@ export default function DashboardPageV2() {
                             </span>
                           </>
                         ) : entry.disconnectedAt ? (
-                          // Ha durata sessione
                           <>
                             <span className="font-medium">
                               {formatExactTime(entry.timestamp)}
@@ -412,7 +417,6 @@ export default function DashboardPageV2() {
                             </span>
                           </>
                         ) : (
-                          // Solo last seen
                           <>
                             <span className="text-gray-400">●</span>
                             {" Last seen at "}
@@ -436,7 +440,7 @@ export default function DashboardPageV2() {
         </Card>
       </div>
 
-      {/* ==================== FILTRI ==================== */}
+      {/* FILTRI */}
       <div className="flex items-center gap-3">
         <TimeFilters
           loading={dashboard.loading}
@@ -454,7 +458,7 @@ export default function DashboardPageV2() {
         </button>
       </div>
 
-      {/* ==================== STAT CARDS ==================== */}
+      {/* STAT CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard
           title="Total Revenue"
@@ -494,7 +498,7 @@ export default function DashboardPageV2() {
         />
       </div>
 
-      {/* ==================== CHARTS ==================== */}
+      {/* CHARTS */}
       <ChartsSection
         period={dashboard.period}
         loading={false}
@@ -502,7 +506,7 @@ export default function DashboardPageV2() {
         previousData={dashboard.previousChartData}
       />
 
-      {/* ==================== RECENT ORDERS ==================== */}
+      {/* RECENT ORDERS */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
