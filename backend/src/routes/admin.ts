@@ -385,7 +385,7 @@ router.get("/users/sessions", async (req, res) => {
 });
 
 // ====================================
-//   USER VISIT HISTORY (FIXED)
+//   USER VISIT HISTORY
 // ====================================
 router.get("/users/history", async (req: Request, res: Response) => {
   try {
@@ -394,32 +394,18 @@ router.get("/users/history", async (req: Request, res: Response) => {
     const liveLocations = locationTracking?.getOnlineUserLocations() || [];
 
     console.log(`📊 Live locations: ${liveLocations.length}`);
+    const onlineSessionIds = new Set(
+      liveLocations.map((loc: any) => loc.socketId).filter(Boolean),
+    );
 
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const activeConnections = await prisma.webSocketConnection.findMany({
-      where: {
-        isActive: true,
-        lastPing: { gte: fiveMinutesAgo },
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            createdAt: true,
-          },
-        },
-      },
-    });
+    console.log(`📊 Online session IDs: ${onlineSessionIds.size}`);
 
-    console.log(`📊 Active connections from DB: ${activeConnections.length}`);
     const onlineHistory = liveLocations.map((loc: any, index: number) => ({
       id: loc.socketId || `loc-${index}`,
       city: loc.city || "Unknown",
       country: loc.country || "Unknown",
       timestamp: loc.timestamp?.toISOString() || new Date().toISOString(),
+      disconnectedAt: null,
       isOnline: true,
     }));
 
@@ -428,16 +414,14 @@ router.get("/users/history", async (req: Request, res: Response) => {
     const recentVisits = await prisma.pageView.findMany({
       where: {
         country: { not: null },
-        createdAt: {
-          lt: fiveMinutesAgo,
-        },
       },
       orderBy: {
         createdAt: "desc",
       },
-      take: Math.max(0, limit - onlineHistory.length),
+      take: limit * 2,
       select: {
         id: true,
+        sessionId: true,
         country: true,
         city: true,
         createdAt: true,
@@ -445,16 +429,24 @@ router.get("/users/history", async (req: Request, res: Response) => {
       },
     });
 
-    console.log(`📊 Offline visits: ${recentVisits.length} entries`);
+    console.log(`📊 DB visits: ${recentVisits.length} entries`);
 
-    const offlineHistory = recentVisits.map((visit) => ({
-      id: visit.id,
-      city: visit.city || "Unknown",
-      country: visit.country || "Unknown",
-      timestamp: visit.createdAt.toISOString(),
-      disconnectedAt: visit.disconnectedAt?.toISOString() || null,
-      isOnline: false,
-    }));
+    const offlineHistory = recentVisits
+      .filter(
+        (visit) => visit.sessionId && !onlineSessionIds.has(visit.sessionId),
+      )
+      .slice(0, Math.max(0, limit - onlineHistory.length))
+      .map((visit) => ({
+        id: visit.id,
+        city: visit.city || "Unknown",
+        country: visit.country || "Unknown",
+        timestamp: visit.createdAt.toISOString(),
+        disconnectedAt: visit.disconnectedAt?.toISOString() || null,
+        isOnline: false,
+      }));
+
+    console.log(`📊 Offline history: ${offlineHistory.length} entries`);
+
     const history = [...onlineHistory, ...offlineHistory];
 
     console.log(
