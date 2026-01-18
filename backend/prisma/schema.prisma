@@ -330,7 +330,7 @@ model PageView {
   city      String?  
   userAgent String?
   createdAt DateTime @default(now())
-    disconnectedAt DateTime? @map("disconnected_at") 
+  disconnectedAt DateTime? @map("disconnected_at") 
 
 
   @@map("page_views")

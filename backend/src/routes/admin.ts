@@ -408,6 +408,7 @@ router.get("/users/history", async (req: Request, res: Response) => {
             email: true,
             firstName: true,
             lastName: true,
+            createdAt: true,
           },
         },
       },
