@@ -53,7 +53,7 @@ export default function HeroSect() {
                 <img
                   src={config.hero.image}
                   alt="Screen Detox Protocol"
-                  className="w-full h-[700px]"
+                  className="w-full h-[500px] sm:h-[600px] lg:h-[700px] object-cover"
                   loading="eager"
                 />
 
