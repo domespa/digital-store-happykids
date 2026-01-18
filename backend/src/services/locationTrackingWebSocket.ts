@@ -84,7 +84,6 @@ class LocationTrackingWebSocket {
 
           this.userLocations.set(socket.id, storedData);
 
-          // ✅ UPSERT invece di CREATE
           try {
             await prisma.pageView.upsert({
               where: {
@@ -109,8 +108,6 @@ class LocationTrackingWebSocket {
           }
 
           socket.emit("location_received", { success: true });
-
-          // ... resto del codice invariato ...
         } catch (error) {
           console.error("❌ Error handling location:", error);
           socket.emit("location_received", {
