@@ -152,12 +152,12 @@ export default function DashboardPageV2() {
   const [globeReady, setGlobeReady] = useState(false);
 
   // ========== DEDUPLICAZIONE UTENTI ONLINE ==========
-  const uniqueOnlineUsers = onlineUsers.reduce((acc, user) => {
+  const uniqueOnlineUsers = onlineUsers.reduce<OnlineUser[]>((acc, user) => {
     if (!acc.some((u) => u.sessionId === user.sessionId)) {
       acc.push(user);
     }
     return acc;
-  }, [] as OnlineUser[]);
+  }, []);
 
   // ========== COMBINED USERS ==========
   const combinedUsers = [
@@ -179,56 +179,23 @@ export default function DashboardPageV2() {
     })),
   ];
 
-  // ========== DEDUPLICAZIONE FINALE ==========
-  const uniqueCombinedUsers = combinedUsers.reduce(
-    (acc, user) => {
-      if (!acc.some((u) => u.id === user.id)) {
-        acc.push(user);
-      }
-      return acc;
-    },
-    [] as typeof combinedUsers,
-  );
-
-  // ========== FUNZIONE DEDUPLICAZIONE AGGRESSIVA ==========
-  const deduplicateByLocation = (users: typeof combinedUsers) => {
+  // ========== DEDUPLICAZIONE SOLO PER SESSION ID ==========
+  const deduplicateBySessionId = (
+    users: typeof combinedUsers,
+  ): typeof combinedUsers => {
     const seen = new Map<string, (typeof combinedUsers)[0]>();
 
     return users.filter((user) => {
-      const key = `${user.city}-${user.country}`;
-      const existing = seen.get(key);
-
-      if (!existing) {
-        seen.set(key, user);
-        return true;
-      }
-
-      // Se online vs offline, priorità a online
-      if (user.isOnline && !existing.isOnline) {
-        seen.set(key, user);
-        return true;
-      }
-
-      // Se timestamp molto vicini (<2 minuti), sono duplicati
-      const timeDiff = Math.abs(
-        new Date(user.timestamp).getTime() -
-          new Date(existing.timestamp).getTime(),
-      );
-
-      if (timeDiff < 120000) {
-        // 2 minuti
-        if (new Date(user.timestamp) > new Date(existing.timestamp)) {
-          seen.set(key, user);
-        }
+      if (seen.has(user.id)) {
         return false;
       }
-
+      seen.set(user.id, user);
       return true;
     });
   };
 
   // ========== ORDINAMENTO FINALE ==========
-  const combinedUsersSorted = deduplicateByLocation(
+  const combinedUsersSorted = deduplicateBySessionId(
     [...combinedUsers].sort((a, b) => {
       if (a.isOnline && !b.isOnline) return -1;
       if (!a.isOnline && b.isOnline) return 1;
@@ -335,7 +302,7 @@ export default function DashboardPageV2() {
             <span>👥</span>
             <span>User History</span>
             <span className="ml-auto text-sm font-normal text-gray-500">
-              {uniqueOnlineUsers.length} online / {uniqueCombinedUsers.length}{" "}
+              {uniqueOnlineUsers.length} online / {combinedUsersSorted.length}{" "}
               total
             </span>
           </h3>
@@ -352,20 +319,25 @@ export default function DashboardPageV2() {
                 return (
                   <div
                     key={entry.id}
-                    className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700 rounded-lg"
+                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 dark:bg-slate-700 rounded-lg"
                   >
-                    <div className="w-8 text-xs font-bold text-gray-400">
+                    {/* Index - Responsive */}
+                    <div className="w-6 sm:w-8 text-[10px] sm:text-xs font-bold text-gray-400">
                       #{reverseIndex}
                     </div>
+
+                    {/* Status dot */}
                     <div
-                      className={`w-2 h-2 rounded-full ${
+                      className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         entry.isOnline
                           ? "bg-green-500 animate-pulse"
                           : "bg-gray-400"
                       }`}
                     />
+
+                    {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
+                      <p className="text-xs sm:text-sm font-medium truncate">
                         {entry.city && entry.city !== "Unknown" ? (
                           <>
                             <span className="font-semibold">{entry.city}</span>
@@ -387,13 +359,12 @@ export default function DashboardPageV2() {
                         )}
                       </p>
 
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[10px] sm:text-xs text-gray-500">
                         {entry.isOnline ? (
                           <>
                             <span className="text-green-600 dark:text-green-400 font-bold">
                               ●
-                            </span>
-                            {" Connected at "}
+                            </span>{" "}
                             <span className="font-medium">
                               {formatExactTime(entry.timestamp)}
                             </span>
@@ -419,7 +390,7 @@ export default function DashboardPageV2() {
                         ) : (
                           <>
                             <span className="text-gray-400">●</span>
-                            {" Last seen at "}
+                            {" Last "}
                             <span className="font-medium">
                               {formatExactTime(entry.timestamp)}
                             </span>
@@ -427,8 +398,10 @@ export default function DashboardPageV2() {
                         )}
                       </p>
                     </div>
+
+                    {/* Online badge */}
                     {entry.isOnline && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                      <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium flex-shrink-0">
                         Online
                       </span>
                     )}
