@@ -22,7 +22,7 @@ class LocationTrackingWebSocket {
   constructor(
     httpServer: HTTPServer,
     mainWebSocketService?: any,
-    path: string = "/location"
+    path: string = "/location",
   ) {
     this.io = new Server(httpServer, {
       path,
@@ -45,14 +45,14 @@ class LocationTrackingWebSocket {
     console.log("🗺️ LocationTrackingWebSocket initialized");
     console.log(
       "🔗 Main WebSocket service available:",
-      !!this.mainWebSocketService
+      !!this.mainWebSocketService,
     );
 
     // Log aggiuntivo per debug
     if (!this.mainWebSocketService) {
       console.error("❌ CRITICAL: Main WebSocket service is NOT available!");
       console.error(
-        "   This means user connections will NOT be broadcasted to admins!"
+        "   This means user connections will NOT be broadcasted to admins!",
       );
     } else {
       console.log("✅ Main WebSocket service is properly connected");
@@ -87,10 +87,12 @@ class LocationTrackingWebSocket {
           try {
             await prisma.pageView.create({
               data: {
-                page: "homepage", // Puoi renderlo dinamico dopo
+                page: "homepage",
+                sessionId: socket.id,
                 userAgent: socket.handshake.headers["user-agent"] || null,
                 ipAddress: socket.handshake.address || null,
                 country: locationData.country || null,
+                city: locationData.city || null,
               },
             });
             console.log(`✅ Visit saved to database for ${socket.id}`);
@@ -127,7 +129,7 @@ class LocationTrackingWebSocket {
             ) {
               this.mainWebSocketService.broadcastToAdmins(
                 "user_connected",
-                userData
+                userData,
               );
             } else {
               // Fallback: emetti l'evento con il tipo corretto
@@ -140,7 +142,7 @@ class LocationTrackingWebSocket {
             console.log("✅ user_connected event broadcasted successfully");
           } else {
             console.warn(
-              "⚠️ Main WebSocket service not available for broadcasting"
+              "⚠️ Main WebSocket service not available for broadcasting",
             );
           }
         } catch (error) {
@@ -152,13 +154,34 @@ class LocationTrackingWebSocket {
         }
       });
 
-      socket.on("disconnect", (reason: string) => {
+      socket.on("disconnect", async (reason: string) => {
         const location = this.userLocations.get(socket.id);
 
         if (location) {
           console.log(
-            `🔄 User disconnecting - ${socket.id}: ${location.city}, ${location.country}`
+            `🔄 User disconnecting - ${socket.id}: ${location.city}, ${location.country}`,
           );
+
+          try {
+            const updated = await prisma.pageView.updateMany({
+              where: {
+                sessionId: socket.id,
+                disconnectedAt: null,
+              },
+              data: {
+                disconnectedAt: new Date(),
+              },
+            });
+
+            if (updated.count > 0) {
+              console.log(`✅ Updated disconnectedAt for session ${socket.id}`);
+            } else {
+              console.warn(`⚠️ No pageView found to update for ${socket.id}`);
+            }
+          } catch (dbError) {
+            console.error("❌ Failed to update disconnectedAt:", dbError);
+          }
+
           this.userLocations.delete(socket.id);
           console.log(`🗺️ Remaining locations: ${this.userLocations.size}`);
 
@@ -172,7 +195,7 @@ class LocationTrackingWebSocket {
 
             console.log(
               `📡 Broadcasting user_disconnected to admins:`,
-              socket.id
+              socket.id,
             );
 
             if (
@@ -180,7 +203,7 @@ class LocationTrackingWebSocket {
             ) {
               this.mainWebSocketService.broadcastToAdmins(
                 "user_disconnected",
-                disconnectData
+                disconnectData,
               );
             } else {
               this.mainWebSocketService.io.emit("user_disconnected", {
@@ -194,7 +217,7 @@ class LocationTrackingWebSocket {
         }
 
         console.log(
-          `📍 Location tracking client disconnected: ${socket.id}, reason: ${reason}`
+          `📍 Location tracking client disconnected: ${socket.id}, reason: ${reason}`,
         );
       });
 
@@ -222,7 +245,7 @@ class LocationTrackingWebSocket {
             ) {
               this.mainWebSocketService.broadcastToAdmins(
                 "user_activity",
-                activityData
+                activityData,
               );
             } else {
               this.mainWebSocketService.io.emit("user_activity", {
@@ -261,7 +284,7 @@ class LocationTrackingWebSocket {
   getOnlineUserLocations(): LocationData[] {
     const locations = Array.from(this.userLocations.values());
     console.log(
-      `🔍 getOnlineUserLocations - returning ${locations.length} locations`
+      `🔍 getOnlineUserLocations - returning ${locations.length} locations`,
     );
     return locations;
   }
@@ -270,7 +293,7 @@ class LocationTrackingWebSocket {
     const location = this.userLocations.get(socketId) || null;
     console.log(
       `🔍 getUserLocation for ${socketId}:`,
-      location ? `${location.city}, ${location.country}` : "NOT FOUND"
+      location ? `${location.city}, ${location.country}` : "NOT FOUND",
     );
     return location;
   }
@@ -331,7 +354,7 @@ class LocationTrackingWebSocket {
       return true;
     }
     console.log(
-      "❌ Cannot send admin notification - main service not available"
+      "❌ Cannot send admin notification - main service not available",
     );
     return false;
   }
@@ -353,7 +376,7 @@ class LocationTrackingWebSocket {
     console.log(
       "🧹 LocationTrackingWebSocket cleanup - clearing",
       this.userLocations.size,
-      "locations"
+      "locations",
     );
     this.userLocations.clear();
     this.io.close();
@@ -388,7 +411,7 @@ class LocationTrackingWebSocket {
         },
         connectedAt: location.timestamp.toISOString(),
         lastActivity: location.timestamp.toISOString(),
-      })
+      }),
     );
 
     if (typeof this.mainWebSocketService.broadcastToAdmins === "function") {

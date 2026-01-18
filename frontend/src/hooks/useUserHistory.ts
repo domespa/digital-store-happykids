@@ -5,6 +5,7 @@ interface UserHistoryEntry {
   city: string;
   country: string;
   timestamp: string;
+  disconnectedAt?: string | null;
   isOnline: boolean;
 }
 

@@ -324,11 +324,14 @@ model DiscountCode {
 model PageView {
   id        String   @id @default(uuid())
   page      String
+  sessionId String?   @map("session_id")
   ipAddress String?
   country   String?
   city      String?  
   userAgent String?
   createdAt DateTime @default(now())
+    disconnectedAt DateTime? @map("disconnected_at") 
+
 
   @@map("page_views")
 }

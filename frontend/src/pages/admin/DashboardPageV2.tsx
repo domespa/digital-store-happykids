@@ -45,6 +45,43 @@ const formatPrice = (amount: number): string => {
   }).format(amount);
 };
 
+const formatExactTime = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  const now = new Date();
+
+  const isToday = date.toDateString() === now.toDateString();
+
+  if (isToday) {
+    // Oggi: mostra solo l'ora
+    return date.toLocaleTimeString("it-IT", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } else {
+    // Altro giorno: mostra data + ora
+    return date.toLocaleString("it-IT", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+};
+
+const formatSessionDuration = (startTime: string, endTime?: string): string => {
+  const start = new Date(startTime);
+  const end = endTime ? new Date(endTime) : new Date();
+
+  const diffMs = end.getTime() - start.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+
+  if (diffHours > 0) {
+    return `${diffHours}h ${diffMins % 60}m`;
+  }
+  return `${diffMins}m`;
+};
+
 const formatTimeAgo = (timestamp: string): string => {
   const now = new Date();
   const time = new Date(timestamp);
@@ -148,6 +185,7 @@ export default function DashboardPageV2() {
       city: u.location?.city ?? "Unknown",
       country: u.location?.country ?? "Unknown",
       timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
+      disconnectedAt: null as string | null,
       isOnline: true,
     })),
     ...userHistory.map((h) => ({
@@ -155,6 +193,7 @@ export default function DashboardPageV2() {
       city: h.city,
       country: h.country,
       timestamp: h.timestamp,
+      disconnectedAt: h.disconnectedAt || null,
       isOnline: h.isOnline,
     })),
   ];
@@ -303,7 +342,6 @@ export default function DashboardPageV2() {
                     <div className="w-8 text-xs font-bold text-gray-400">
                       #{reverseIndex}
                     </div>
-
                     <div
                       className={`w-2 h-2 rounded-full ${
                         entry.isOnline
@@ -311,18 +349,77 @@ export default function DashboardPageV2() {
                           : "bg-gray-400"
                       }`}
                     />
-
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
-                        {entry.city && entry.city !== "Unknown"
-                          ? `Visitor from ${entry.city} - ${entry.country}`
-                          : `Visitor from ${entry.country}`}
+                        {entry.city && entry.city !== "Unknown" ? (
+                          <>
+                            <span className="font-semibold">{entry.city}</span>
+                            <span className="text-gray-400 mx-1">•</span>
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {entry.country}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-gray-500 dark:text-gray-400">
+                              Unknown City
+                            </span>
+                            <span className="text-gray-400 mx-1">•</span>
+                            <span className="font-semibold">
+                              {entry.country}
+                            </span>
+                          </>
+                        )}
                       </p>
+
+                      {/* ✅ DURATA SESSIONE */}
                       <p className="text-xs text-gray-500">
-                        {formatTimeAgo(entry.timestamp)}
+                        {entry.isOnline ? (
+                          <>
+                            <span className="text-green-600 dark:text-green-400 font-bold">
+                              ●
+                            </span>
+                            {" Connected at "}
+                            <span className="font-medium">
+                              {formatExactTime(entry.timestamp)}
+                            </span>
+                          </>
+                        ) : entry.disconnectedAt ? (
+                          // Ha durata sessione
+                          <>
+                            <span className="font-medium">
+                              {formatExactTime(entry.timestamp)}
+                            </span>
+                            {" - "}
+                            <span className="font-medium">
+                              {formatExactTime(entry.disconnectedAt)}
+                            </span>
+                            <span className="text-gray-400 ml-1">
+                              (
+                              {formatSessionDuration(
+                                entry.timestamp,
+                                entry.disconnectedAt,
+                              )}
+                              )
+                            </span>
+                          </>
+                        ) : (
+                          // Solo last seen
+                          <>
+                            <span className="text-gray-400">●</span>
+                            {" Last seen at "}
+                            <span className="font-medium">
+                              {formatExactTime(entry.timestamp)}
+                            </span>
+                          </>
+                        )}
                       </p>
                     </div>
-
+                    ``` --- ## 📋 **Risultato:** **Online:** ``` #1 ● Visitor
+                    from Catania - Italy ● Connected at 14:32 ``` **Offline con
+                    durata:** ``` #2 ● Visitor from United States 14:32 - 14:45
+                    (13m) ``` **Offline senza durata (vecchi record):** ``` #3 ●
+                    Visitor from Italy ● Last seen at 11:30
                     {entry.isOnline && (
                       <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
                         Online

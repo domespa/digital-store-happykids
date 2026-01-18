@@ -440,6 +440,7 @@ router.get("/users/history", async (req: Request, res: Response) => {
         country: true,
         city: true,
         createdAt: true,
+        disconnectedAt: true,
       },
     });
 
@@ -450,6 +451,7 @@ router.get("/users/history", async (req: Request, res: Response) => {
       city: visit.city || "Unknown",
       country: visit.country || "Unknown",
       timestamp: visit.createdAt.toISOString(),
+      disconnectedAt: visit.disconnectedAt?.toISOString() || null,
       isOnline: false,
     }));
     const history = [...onlineHistory, ...offlineHistory];
