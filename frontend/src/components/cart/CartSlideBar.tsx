@@ -322,7 +322,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
       image: workbook.image,
       description: `${workbook.pages} pages workbook for ages 3-5`,
     });
-    setIsWorkbooksExpanded(false);
   };
 
   const addWorkbooksBundle = () => {
@@ -337,7 +336,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
       image: workbooks[0].image,
       description: "Complete bundle: 295 pages of educational activities",
     });
-    setIsWorkbooksExpanded(false);
   };
 
   // Check se user ha tutti e 5 workbook individuali nel cart
@@ -975,8 +973,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
           {/* FREQUENTLY BOUGHT TOGETHER - ACCORDION */}
           {checkoutStep === "cart" &&
             cart.items.length > 0 &&
-            !hasBundleInCart() &&
-            getWorkbooksInCart().length === 0 && (
+            !hasBundleInCart() && (
               <div className="border-t border-[#e2e8f0] p-4 bg-[#f8fafc]">
                 <button
                   onClick={() => setIsWorkbooksExpanded(!isWorkbooksExpanded)}
