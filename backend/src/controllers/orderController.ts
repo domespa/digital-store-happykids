@@ -28,7 +28,7 @@ const emailService = new EmailService();
 // ============== UTILITY FUNCTIONS ==============
 
 const formatAdminOrderResponse = (
-  order: OrderWithAdminDetails
+  order: OrderWithAdminDetails,
 ): AdminOrderResponse => ({
   id: order.id,
   customerEmail: order.customerEmail,
@@ -39,8 +39,8 @@ const formatAdminOrderResponse = (
   paymentProvider: order.stripePaymentIntentId
     ? "STRIPE"
     : order.paypalOrderId
-    ? "PAYPAL"
-    : null,
+      ? "PAYPAL"
+      : null,
   paymentStatus: order.paymentStatus,
   paypalOrderId: order.paypalOrderId || undefined,
   stripePaymentIntentId: order.stripePaymentIntentId || undefined,
@@ -76,7 +76,7 @@ const formatAdminOrderResponse = (
 });
 
 const formatUserOrderResponse = (
-  order: OrderWithUserDetails
+  order: OrderWithUserDetails,
 ): UserOrderResponse => ({
   id: order.id,
   customerEmail: order.customerEmail,
@@ -87,8 +87,8 @@ const formatUserOrderResponse = (
   paymentProvider: order.stripePaymentIntentId
     ? "STRIPE"
     : order.paypalOrderId
-    ? "PAYPAL"
-    : null,
+      ? "PAYPAL"
+      : null,
   paymentStatus: order.paymentStatus,
   createdAt: order.createdAt,
   updatedAt: order.updatedAt,
@@ -111,7 +111,7 @@ const formatUserOrderResponse = (
 
 export const formatOrderResponse = (
   order: OrderWithDetails,
-  isAdmin: boolean = false
+  isAdmin: boolean = false,
 ): AdminOrderResponse => {
   if (isAdmin) {
     return formatAdminOrderResponse(order as OrderWithAdminDetails);
@@ -231,7 +231,7 @@ export const getOrdersAdmin = catchAsync(
     ]);
 
     const ordersResponse: AdminOrderResponse[] = orders.map(
-      formatAdminOrderResponse
+      formatAdminOrderResponse,
     );
 
     res.json({
@@ -245,7 +245,7 @@ export const getOrdersAdmin = catchAsync(
         totalPages: Math.ceil(total / limitNum),
       },
     } as OrderListResponse);
-  }
+  },
 );
 
 // CREAZIONE ORDINE
@@ -279,7 +279,7 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
     if (!item.productId || !item.quantity || item.quantity <= 0) {
       throw new CustomError(
         "Each item must have productId and positive quantity",
-        400
+        400,
       );
     }
   }
@@ -406,7 +406,7 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
     const conversion = await currencyService.convertPrice(
       total,
       "EUR",
-      currency
+      currency,
     );
     displayTotal = conversion.convertedAmount;
     exchangeRate = conversion.rate;
@@ -529,12 +529,12 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
   const orderResponse = formatOrderResponse(order, isAdmin);
 
   // INVIA EMAIL CONFERMA
-  try {
-    await emailService.sendOrderConfirmation(orderResponse);
-    console.log(`Order confirmation email sent for order: ${order.id}`);
-  } catch (emailError) {
-    console.error("Failed to send order confirmation email:", emailError);
-  }
+  // try {
+  //   await emailService.sendOrderConfirmation(orderResponse);
+  //   console.log(`Order confirmation email sent for order: ${order.id}`);
+  // } catch (emailError) {
+  //   console.error("Failed to send order confirmation email:", emailError);
+  // }
 
   res.status(201).json({
     success: true,
@@ -588,7 +588,7 @@ export const getUserOrders = catchAsync(async (req: Request, res: Response) => {
   ]);
 
   const ordersResponse: UserOrderResponse[] = orders.map(
-    formatUserOrderResponse
+    formatUserOrderResponse,
   );
 
   res.json({
@@ -697,20 +697,20 @@ export const updateOrderStatus = catchAsync(
       });
 
       const allDigital = orderWithItems?.orderItems.every(
-        (item) => item.product?.isDigital === true
+        (item) => item.product?.isDigital === true,
       );
 
       if (allDigital) {
         // Automatically mark as COMPLETED for digital products
         data.status = "COMPLETED";
         console.log(
-          `✅ Auto-completing digital order ${id} (all products are digital)`
+          `✅ Auto-completing digital order ${id} (all products are digital)`,
         );
       } else {
         // For physical products, mark as PAID only
         data.status = "PAID";
         console.log(
-          `💳 Marking order ${id} as PAID (contains physical products)`
+          `💳 Marking order ${id} as PAID (contains physical products)`,
         );
       }
     }
@@ -749,7 +749,7 @@ export const updateOrderStatus = catchAsync(
       try {
         await emailService.sendOrderStatusUpdate(orderResponse, previousStatus);
         console.log(
-          `Order status update email sent for order: ${updatedOrder.id}`
+          `Order status update email sent for order: ${updatedOrder.id}`,
         );
 
         if (updateData.status === "PAID" || updateData.status === "COMPLETED") {
@@ -766,7 +766,7 @@ export const updateOrderStatus = catchAsync(
       message: "Order status updated successfully",
       order: orderResponse,
     });
-  }
+  },
 );
 
 // RESEND EMAIL ORDINE
@@ -811,14 +811,14 @@ export const resendOrderEmail = catchAsync(
     if (order.status !== "COMPLETED" && order.status !== "PAID") {
       throw new CustomError(
         "Cannot send download email for incomplete orders",
-        400
+        400,
       );
     }
 
     if (order.paymentStatus !== "SUCCEEDED") {
       throw new CustomError(
         "Cannot send download email for unpaid orders",
-        400
+        400,
       );
     }
 
@@ -838,5 +838,5 @@ export const resendOrderEmail = catchAsync(
       console.error("Failed to resend download email:", emailError);
       throw new CustomError("Failed to send email. Please try again.", 500);
     }
-  }
+  },
 );
