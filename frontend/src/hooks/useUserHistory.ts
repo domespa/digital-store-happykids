@@ -3,7 +3,7 @@ import { adminWebSocket } from "../services/adminApi";
 
 interface UserHistoryEntry {
   id: string;
-  visitorNumber?: number; // ✅ NUOVO: numero progressivo dal backend
+  visitorNumber?: number;
   city: string;
   country: string;
   timestamp: string;
@@ -73,12 +73,15 @@ export function useUserHistory(limit: number = 20) {
             console.log(`✅ NEW USER CONNECTED:`, data);
 
             setHistory((prev) => {
-              // Incrementa il totale
-              setTotalVisitors((t) => t + 1);
+              const visitorNum = data.visitorNumber || totalVisitors + 1;
+
+              if (data.visitorNumber) {
+                setTotalVisitors(data.visitorNumber);
+              }
 
               const newVisitor: UserHistoryEntry = {
                 id: data.sessionId,
-                visitorNumber: totalVisitors + 1,
+                visitorNumber: visitorNum,
                 city: data.location?.city || "Unknown",
                 country: data.location?.country || "Unknown",
                 timestamp: data.connectedAt || new Date().toISOString(),
@@ -91,7 +94,9 @@ export function useUserHistory(limit: number = 20) {
               return updated.slice(0, limit);
             });
 
-            console.log(`✅ Visitor added to list (INSTANT, NO FETCH)`);
+            console.log(
+              `✅ Visitor #${data.visitorNumber || "N/A"} added to list (INSTANT, NO FETCH)`,
+            );
           } else if (data.type === "user_disconnected") {
             console.log(`✅ USER DISCONNECTED:`, data);
 

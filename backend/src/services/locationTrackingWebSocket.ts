@@ -95,7 +95,6 @@ class LocationTrackingWebSocket {
     this.io.on("connection", (socket: Socket) => {
       console.log(`📍 Location tracking client connected: ${socket.id}`);
 
-      // ✅ SEND_LOCATION CON BROADCAST IMMEDIATO
       socket.on("send_location", async (locationData: any) => {
         try {
           console.log(`📍 Location received from ${socket.id}:`, {
