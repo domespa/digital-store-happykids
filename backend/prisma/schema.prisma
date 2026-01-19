@@ -350,6 +350,7 @@ model EmailQueue {
   @@map("email_queue")
 }
 
+
 model PasswordResetToken {
   id        String   @id @default(cuid())
   token     String   @unique

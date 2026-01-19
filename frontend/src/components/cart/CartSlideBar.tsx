@@ -399,7 +399,12 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
 
   const processCheckout = async () => {
     try {
-      const result = await processCheckoutData(formData);
+      const hasBundle = cart.items.some(
+        (item) => item.productId === WORKBOOKS_BUNDLE_ID,
+      );
+
+      const discountCode = hasBundle ? "BUNDLE20" : undefined;
+      const result = await processCheckoutData(formData, discountCode);
 
       if (result.success) {
         trackAddPaymentInfo(

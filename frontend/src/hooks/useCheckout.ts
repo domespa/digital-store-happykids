@@ -15,7 +15,8 @@ export const useCheckout = () => {
   const [error, setError] = useState<string | null>(null);
 
   const processCheckoutData = async (
-    formData: CheckoutForm
+    formData: CheckoutForm,
+    discountCode?: string,
   ): Promise<CheckoutResult> => {
     setIsProcessing(true);
     setError(null);
@@ -52,6 +53,7 @@ export const useCheckout = () => {
         paymentProvider: formData.paymentProvider,
         currency: getDisplayCurrency(),
         totalAmount: cart.displayTotal,
+        ...(discountCode && { discountCode }),
       };
 
       console.log("🛒 SENDING TO BACKEND:", checkoutData);
