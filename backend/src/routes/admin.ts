@@ -389,7 +389,15 @@ router.get("/users/sessions", async (req, res) => {
 // ====================================
 router.get("/users/history", async (req: Request, res: Response) => {
   try {
-    const limit = parseInt(req.query.limit as string) || 50;
+    const limit = 20;
+
+    const totalVisitors = await prisma.pageView.count({
+      where: {
+        country: { not: null },
+      },
+    });
+
+    console.log(`📊 Total visitors ever: ${totalVisitors}`);
 
     let liveLocations: any[] = [];
     try {
@@ -410,10 +418,9 @@ router.get("/users/history", async (req: Request, res: Response) => {
       liveLocations.map((loc: any) => loc.socketId).filter(Boolean),
     );
 
-    console.log(`📊 Online session IDs: ${onlineSessionIds.size}`);
-
     const onlineHistory = liveLocations.map((loc: any, index: number) => ({
       id: loc.socketId || `loc-${index}`,
+      visitorNumber: totalVisitors - index,
       city: loc.city || "Unknown",
       country: loc.country || "Unknown",
       timestamp: loc.timestamp?.toISOString() || new Date().toISOString(),
@@ -423,14 +430,17 @@ router.get("/users/history", async (req: Request, res: Response) => {
 
     console.log(`✅ Online history: ${onlineHistory.length} entries`);
 
+    const offlineLimit = Math.max(0, limit - onlineHistory.length);
+
     const recentVisits = await prisma.pageView.findMany({
       where: {
         country: { not: null },
+        sessionId: { notIn: Array.from(onlineSessionIds) },
       },
       orderBy: {
         createdAt: "desc",
       },
-      take: limit * 2,
+      take: offlineLimit,
       select: {
         id: true,
         sessionId: true,
@@ -443,32 +453,29 @@ router.get("/users/history", async (req: Request, res: Response) => {
 
     console.log(`📊 DB visits: ${recentVisits.length} entries`);
 
-    const offlineHistory = recentVisits
-      .filter(
-        (visit) => visit.sessionId && !onlineSessionIds.has(visit.sessionId),
-      )
-      .slice(0, Math.max(0, limit - onlineHistory.length))
-      .map((visit) => ({
-        id: visit.id,
-        city: visit.city || "Unknown",
-        country: visit.country || "Unknown",
-        timestamp: visit.createdAt.toISOString(),
-        disconnectedAt: visit.disconnectedAt?.toISOString() || null,
-        isOnline: false,
-      }));
+    const offlineHistory = recentVisits.map((visit, index) => ({
+      id: visit.id,
+      visitorNumber: totalVisitors - onlineHistory.length - index,
+      city: visit.city || "Unknown",
+      country: visit.country || "Unknown",
+      timestamp: visit.createdAt.toISOString(),
+      disconnectedAt: visit.disconnectedAt?.toISOString() || null,
+      isOnline: false,
+    }));
 
     console.log(`📊 Offline history: ${offlineHistory.length} entries`);
 
-    const history = [...onlineHistory, ...offlineHistory];
+    const history = [...onlineHistory, ...offlineHistory].slice(0, limit);
 
     console.log(
-      `✅ Total history: ${history.length} (${onlineHistory.length} online, ${offlineHistory.length} offline)`,
+      `✅ Returning ${history.length} visitors (${onlineHistory.length} online, ${offlineHistory.length} offline)`,
     );
 
     res.json({
       success: true,
       history,
       total: history.length,
+      totalVisitors,
       onlineCount: onlineHistory.length,
     });
   } catch (error) {

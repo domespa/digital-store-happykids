@@ -59,10 +59,44 @@ class LocationTrackingWebSocket {
     }
   }
 
+  // ✅ METODO MIGLIORATO PER BROADCAST AGLI ADMIN
+  private broadcastToAdmins(event: string, data: any) {
+    if (!this.mainWebSocketService) {
+      console.warn(
+        `⚠️ Cannot broadcast ${event} - main WebSocket not available`,
+      );
+      return;
+    }
+
+    try {
+      // Metodo 1: Usa broadcastToAdmins se disponibile
+      if (typeof this.mainWebSocketService.broadcastToAdmins === "function") {
+        this.mainWebSocketService.broadcastToAdmins(event, data);
+        console.log(
+          `✅ Broadcasted ${event} to admins via broadcastToAdmins()`,
+        );
+      }
+      // Metodo 2: Fallback a emit diretto
+      else if (this.mainWebSocketService.io) {
+        this.mainWebSocketService.io.emit(event, {
+          type: event,
+          ...data,
+          timestamp: new Date().toISOString(),
+        });
+        console.log(`✅ Broadcasted ${event} to admins via io.emit()`);
+      } else {
+        console.error(`❌ No broadcast method available for ${event}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error broadcasting ${event}:`, error);
+    }
+  }
+
   private setupEventHandlers(): void {
     this.io.on("connection", (socket: Socket) => {
       console.log(`📍 Location tracking client connected: ${socket.id}`);
 
+      // ✅ SEND_LOCATION CON BROADCAST IMMEDIATO
       socket.on("send_location", async (locationData: any) => {
         try {
           console.log(`📍 Location received from ${socket.id}:`, {
@@ -103,6 +137,17 @@ class LocationTrackingWebSocket {
               },
             });
             console.log(`✅ Visit upserted for ${socket.id}`);
+
+            // ✅ BROADCAST IMMEDIATO AGLI ADMIN
+            this.broadcastToAdmins("user_connected", {
+              sessionId: socket.id,
+              location: {
+                country: storedData.country,
+                city: storedData.city,
+                region: storedData.region,
+              },
+              connectedAt: storedData.timestamp.toISOString(),
+            });
           } catch (dbError) {
             console.error("❌ Failed to save visit to database:", dbError);
           }
@@ -117,6 +162,7 @@ class LocationTrackingWebSocket {
         }
       });
 
+      // ✅ DISCONNECT CON BROADCAST IMMEDIATO
       socket.on("disconnect", async (reason: string) => {
         const location = this.userLocations.get(socket.id);
 
@@ -138,6 +184,17 @@ class LocationTrackingWebSocket {
 
             if (updated.count > 0) {
               console.log(`✅ Updated disconnectedAt for session ${socket.id}`);
+
+              // ✅ BROADCAST IMMEDIATO AGLI ADMIN
+              this.broadcastToAdmins("user_disconnected", {
+                sessionId: socket.id,
+                disconnectReason: reason,
+                disconnectedAt: new Date().toISOString(),
+                location: {
+                  country: location.country,
+                  city: location.city,
+                },
+              });
             } else {
               console.warn(`⚠️ No pageView found to update for ${socket.id}`);
             }
@@ -147,36 +204,6 @@ class LocationTrackingWebSocket {
 
           this.userLocations.delete(socket.id);
           console.log(`🗺️ Remaining locations: ${this.userLocations.size}`);
-
-          // Notifica gli admin della disconnessione
-          if (this.mainWebSocketService) {
-            const disconnectData = {
-              sessionId: socket.id,
-              disconnectReason: reason,
-              disconnectedAt: new Date().toISOString(),
-            };
-
-            console.log(
-              `📡 Broadcasting user_disconnected to admins:`,
-              socket.id,
-            );
-
-            if (
-              typeof this.mainWebSocketService.broadcastToAdmins === "function"
-            ) {
-              this.mainWebSocketService.broadcastToAdmins(
-                "user_disconnected",
-                disconnectData,
-              );
-            } else {
-              this.mainWebSocketService.io.emit("user_disconnected", {
-                type: "user_disconnected",
-                ...disconnectData,
-              });
-            }
-
-            console.log("✅ user_disconnected event broadcasted successfully");
-          }
         }
 
         console.log(
@@ -184,6 +211,7 @@ class LocationTrackingWebSocket {
         );
       });
 
+      // USER ACTIVITY
       socket.on("user_activity", (data: any) => {
         const locationData = this.userLocations.get(socket.id);
 
@@ -193,35 +221,18 @@ class LocationTrackingWebSocket {
           this.userLocations.set(socket.id, locationData);
 
           // Notifica gli admin dell'attività
-          if (this.mainWebSocketService) {
-            const activityData = {
-              sessionId: socket.id,
-              page: data.page || "unknown",
-              timestamp: new Date().toISOString(),
-              action: data.action || "page_view",
-            };
-
-            console.log(`📡 Broadcasting user_activity for ${socket.id}`);
-
-            if (
-              typeof this.mainWebSocketService.broadcastToAdmins === "function"
-            ) {
-              this.mainWebSocketService.broadcastToAdmins(
-                "user_activity",
-                activityData,
-              );
-            } else {
-              this.mainWebSocketService.io.emit("user_activity", {
-                type: "user_activity",
-                ...activityData,
-              });
-            }
-          }
+          this.broadcastToAdmins("user_activity", {
+            sessionId: socket.id,
+            page: data.page || "unknown",
+            timestamp: new Date().toISOString(),
+            action: data.action || "page_view",
+          });
         } else {
           console.warn(`⚠️ Activity received for unknown user: ${socket.id}`);
         }
       });
 
+      // PING/PONG
       socket.on("ping", () => {
         socket.emit("pong");
 
@@ -232,7 +243,7 @@ class LocationTrackingWebSocket {
         }
       });
 
-      // Gestisci errori del socket
+      // ERRORI
       socket.on("error", (error: Error) => {
         console.error(`❌ Socket error for ${socket.id}:`, error);
       });
@@ -307,12 +318,7 @@ class LocationTrackingWebSocket {
         connectedUsers: this.userLocations.size,
       };
 
-      if (typeof this.mainWebSocketService.broadcastToAdmins === "function") {
-        this.mainWebSocketService.broadcastToAdmins("system", testData);
-      } else {
-        this.mainWebSocketService.io.emit("system", testData);
-      }
-
+      this.broadcastToAdmins("system", testData);
       console.log("📡 Admin notification test sent");
       return true;
     }
@@ -329,11 +335,7 @@ class LocationTrackingWebSocket {
         timestamp: new Date().toISOString(),
       };
 
-      if (typeof this.mainWebSocketService.broadcastToAdmins === "function") {
-        this.mainWebSocketService.broadcastToAdmins("system", shutdownData);
-      } else {
-        this.mainWebSocketService.io.emit("system", shutdownData);
-      }
+      this.broadcastToAdmins("system", shutdownData);
     }
 
     console.log(
@@ -377,18 +379,10 @@ class LocationTrackingWebSocket {
       }),
     );
 
-    if (typeof this.mainWebSocketService.broadcastToAdmins === "function") {
-      this.mainWebSocketService.broadcastToAdmins("user_count", {
-        count: allUsers.length,
-        users: allUsers,
-      });
-    } else {
-      this.mainWebSocketService.io.emit("user_count", {
-        type: "user_count",
-        count: allUsers.length,
-        data: allUsers,
-      });
-    }
+    this.broadcastToAdmins("user_count", {
+      count: allUsers.length,
+      users: allUsers,
+    });
 
     console.log("✅ Admin sync completed");
   }
