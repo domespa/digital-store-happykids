@@ -185,6 +185,43 @@ app.get("/api/health", (req, res) => {
     },
   });
 });
+app.get("/api/test-email", async (req, res) => {
+  try {
+    console.log("🧪 Testing email connection...");
+
+    const EmailService = (await import("./services/emailService")).default;
+    const emailService = new EmailService();
+
+    // Test connessione
+    const isConnected = await emailService.testEmailConnection();
+
+    if (!isConnected) {
+      return res.status(500).json({
+        success: false,
+        error: "Email connection failed",
+      });
+    }
+
+    // Invia email di test
+    await emailService.sendEmail({
+      to: "dumiii1988@gmail.com",
+      subject: "🧪 Test Email H4ppyKids",
+      html: "<h1>✅ Email funzionante!</h1><p>Configurazione Namecheap OK!</p>",
+    });
+
+    res.json({
+      success: true,
+      message: "Email sent successfully! Check dumiii1988@gmail.com",
+    });
+  } catch (error: any) {
+    console.error("❌ Email test failed:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error.toString(),
+    });
+  }
+});
 
 //=====================================================
 // ================ ROUTE PUBBLICHE ===================
