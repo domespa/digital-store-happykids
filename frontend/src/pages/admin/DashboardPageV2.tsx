@@ -47,23 +47,13 @@ const formatPrice = (amount: number): string => {
 
 const formatExactTime = (timestamp: string): string => {
   const date = new Date(timestamp);
-  const now = new Date();
 
-  const isToday = date.toDateString() === now.toDateString();
-
-  if (isToday) {
-    return date.toLocaleTimeString("it-IT", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } else {
-    return date.toLocaleString("it-IT", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
+  return date.toLocaleString("it-IT", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const formatSessionDuration = (startTime: string, endTime?: string): string => {
@@ -74,10 +64,11 @@ const formatSessionDuration = (startTime: string, endTime?: string): string => {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
 
+  if (diffMins < 1) return "(<1m)"; // ✅ Invece di (0m)
   if (diffHours > 0) {
-    return `${diffHours}h ${diffMins % 60}m`;
+    return `(${diffHours}h ${diffMins % 60}m)`;
   }
-  return `${diffMins}m`;
+  return `(${diffMins}m)`;
 };
 
 const formatTimeAgo = (timestamp: string): string => {
@@ -319,92 +310,86 @@ export default function DashboardPageV2() {
                 return (
                   <div
                     key={entry.id}
-                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 dark:bg-slate-700 rounded-lg"
+                    className="p-2 sm:p-3 bg-gray-50 dark:bg-slate-700 rounded-lg space-y-1.5"
                   >
-                    {/* Index - Responsive */}
-                    <div className="w-6 sm:w-8 text-[10px] sm:text-xs font-bold text-gray-400">
-                      #{reverseIndex}
+                    {/* Header: Visitatore + Location */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div
+                          className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            entry.isOnline
+                              ? "bg-green-500 animate-pulse"
+                              : "bg-gray-400"
+                          }`}
+                        />
+                        <p className="text-xs sm:text-sm font-medium truncate">
+                          <span className="text-gray-500 dark:text-gray-400">
+                            Visitatore nr {reverseIndex}
+                          </span>
+                          <span className="mx-1.5">•</span>
+                          {entry.city && entry.city !== "Unknown" ? (
+                            <>
+                              <span className="font-semibold">
+                                {entry.city}
+                              </span>
+                              <span className="text-gray-400 mx-1">•</span>
+                              <span className="text-gray-600 dark:text-gray-400">
+                                {entry.country}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-gray-500 dark:text-gray-400">
+                                Unknown City
+                              </span>
+                              <span className="text-gray-400 mx-1">•</span>
+                              <span className="font-semibold">
+                                {entry.country}
+                              </span>
+                            </>
+                          )}
+                        </p>
+                      </div>
+
+                      {entry.isOnline && (
+                        <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium flex-shrink-0">
+                          Online
+                        </span>
+                      )}
                     </div>
 
-                    {/* Status dot */}
-                    <div
-                      className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                        entry.isOnline
-                          ? "bg-green-500 animate-pulse"
-                          : "bg-gray-400"
-                      }`}
-                    />
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm font-medium truncate">
-                        {entry.city && entry.city !== "Unknown" ? (
-                          <>
-                            <span className="font-semibold">{entry.city}</span>
-                            <span className="text-gray-400 mx-1">•</span>
-                            <span className="text-gray-600 dark:text-gray-400">
-                              {entry.country}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-gray-500 dark:text-gray-400">
-                              Unknown City
-                            </span>
-                            <span className="text-gray-400 mx-1">•</span>
-                            <span className="font-semibold">
-                              {entry.country}
-                            </span>
-                          </>
-                        )}
-                      </p>
-
-                      <p className="text-[10px] sm:text-xs text-gray-500">
-                        {entry.isOnline ? (
-                          <>
-                            <span className="text-green-600 dark:text-green-400 font-bold">
-                              ●
-                            </span>{" "}
-                            <span className="font-medium">
-                              {formatExactTime(entry.timestamp)}
-                            </span>
-                          </>
-                        ) : entry.disconnectedAt ? (
-                          <>
-                            <span className="font-medium">
-                              {formatExactTime(entry.timestamp)}
-                            </span>
-                            {" - "}
-                            <span className="font-medium">
-                              {formatExactTime(entry.disconnectedAt)}
-                            </span>
-                            <span className="text-gray-400 ml-1">
-                              (
-                              {formatSessionDuration(
-                                entry.timestamp,
-                                entry.disconnectedAt,
-                              )}
-                              )
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-gray-400">●</span>
-                            {" Last "}
-                            <span className="font-medium">
-                              {formatExactTime(entry.timestamp)}
-                            </span>
-                          </>
-                        )}
-                      </p>
+                    {/* Time info */}
+                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 pl-4">
+                      {entry.isOnline ? (
+                        // Online: solo A:
+                        <div>
+                          <span className="font-medium">A:</span>{" "}
+                          {formatExactTime(entry.timestamp)}
+                        </div>
+                      ) : entry.disconnectedAt ? (
+                        <div className="space-y-0.5">
+                          <div>
+                            <span className="font-medium">A:</span>{" "}
+                            {formatExactTime(entry.timestamp)}
+                          </div>
+                          <div>
+                            <span className="font-medium">P:</span>{" "}
+                            {formatExactTime(entry.disconnectedAt)}
+                          </div>
+                          <div className="text-gray-500">
+                            {formatSessionDuration(
+                              entry.timestamp,
+                              entry.disconnectedAt,
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <span className="font-medium">Visto:</span>{" "}
+                          {formatExactTime(entry.timestamp)}
+                        </div>
+                      )}
                     </div>
-
-                    {/* Online badge */}
-                    {entry.isOnline && (
-                      <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium flex-shrink-0">
-                        Online
-                      </span>
-                    )}
                   </div>
                 );
               })

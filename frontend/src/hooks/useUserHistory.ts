@@ -10,7 +10,7 @@ interface UserHistoryEntry {
   isOnline: boolean;
 }
 
-export function useUserHistory(limit: number = 50) {
+export function useUserHistory(limit: number = 20) {
   const [history, setHistory] = useState<UserHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
