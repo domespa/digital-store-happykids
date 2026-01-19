@@ -59,7 +59,6 @@ class LocationTrackingWebSocket {
     }
   }
 
-  // ✅ METODO MIGLIORATO PER BROADCAST AGLI ADMIN
   private broadcastToAdmins(event: string, data: any) {
     if (!this.mainWebSocketService) {
       console.warn(

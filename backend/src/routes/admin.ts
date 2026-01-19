@@ -385,8 +385,9 @@ router.get("/users/sessions", async (req, res) => {
 });
 
 // ====================================
-//   USER VISIT HISTORY
+//   USER VISIT HISTORY - CODICE COMPLETO
 // ====================================
+
 router.get("/users/history", async (req: Request, res: Response) => {
   try {
     const limit = 20;
@@ -465,6 +466,7 @@ router.get("/users/history", async (req: Request, res: Response) => {
 
     console.log(`📊 Offline history: ${offlineHistory.length} entries`);
 
+    // ✅ COMBINA E LIMITA A 20
     const history = [...onlineHistory, ...offlineHistory].slice(0, limit);
 
     console.log(

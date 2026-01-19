@@ -3,6 +3,7 @@ import { adminWebSocket } from "../services/adminApi";
 
 interface UserHistoryEntry {
   id: string;
+  visitorNumber?: number; // ✅ NUOVO: numero progressivo dal backend
   city: string;
   country: string;
   timestamp: string;
@@ -14,6 +15,7 @@ export function useUserHistory(limit: number = 20) {
   const [history, setHistory] = useState<UserHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalVisitors, setTotalVisitors] = useState(0);
   const wsRef = useRef<any>(null);
 
   const loadHistory = useCallback(async () => {
@@ -37,7 +39,11 @@ export function useUserHistory(limit: number = 20) {
 
       if (result.success) {
         setHistory(result.history || []);
+        setTotalVisitors(result.totalVisitors || 0);
         setError(null);
+        console.log(
+          `✅ History loaded: ${result.history.length} visitors, total: ${result.totalVisitors}`,
+        );
       } else {
         throw new Error("Invalid response");
       }
@@ -49,7 +55,6 @@ export function useUserHistory(limit: number = 20) {
     }
   }, [limit]);
 
-  // Initial load
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
@@ -64,12 +69,50 @@ export function useUserHistory(limit: number = 20) {
         wsRef.current = adminWebSocket.connect((data: any) => {
           if (!mounted) return;
 
-          if (
-            data.type === "user_connected" ||
-            data.type === "user_disconnected"
-          ) {
-            console.log(`🔄 UserHistory: ${data.type} - reloading`);
-            loadHistory();
+          if (data.type === "user_connected") {
+            console.log(`✅ NEW USER CONNECTED:`, data);
+
+            setHistory((prev) => {
+              // Incrementa il totale
+              setTotalVisitors((t) => t + 1);
+
+              const newVisitor: UserHistoryEntry = {
+                id: data.sessionId,
+                visitorNumber: totalVisitors + 1,
+                city: data.location?.city || "Unknown",
+                country: data.location?.country || "Unknown",
+                timestamp: data.connectedAt || new Date().toISOString(),
+                disconnectedAt: null,
+                isOnline: true,
+              };
+
+              const updated = [newVisitor, ...prev];
+
+              return updated.slice(0, limit);
+            });
+
+            console.log(`✅ Visitor added to list (INSTANT, NO FETCH)`);
+          } else if (data.type === "user_disconnected") {
+            console.log(`✅ USER DISCONNECTED:`, data);
+
+            setHistory((prev) =>
+              prev.map((visitor) => {
+                if (visitor.id === data.sessionId) {
+                  console.log(
+                    `✅ Updating visitor ${data.sessionId} to offline`,
+                  );
+                  return {
+                    ...visitor,
+                    isOnline: false,
+                    disconnectedAt:
+                      data.disconnectedAt || new Date().toISOString(),
+                  };
+                }
+                return visitor;
+              }),
+            );
+
+            console.log(`✅ Visitor updated to offline (INSTANT, NO FETCH)`);
           }
         });
 
@@ -96,12 +139,13 @@ export function useUserHistory(limit: number = 20) {
         wsRef.current = null;
       }
     };
-  }, [loadHistory]);
+  }, [limit, totalVisitors]);
 
   return {
     history,
     loading,
     error,
+    totalVisitors,
     refresh: loadHistory,
   };
 }

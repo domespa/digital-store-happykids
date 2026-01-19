@@ -64,7 +64,7 @@ const formatSessionDuration = (startTime: string, endTime?: string): string => {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
 
-  if (diffMins < 1) return "(<1m)"; // ✅ Invece di (0m)
+  if (diffMins < 1) return "(<1m)";
   if (diffHours > 0) {
     return `(${diffHours}h ${diffMins % 60}m)`;
   }
@@ -136,7 +136,7 @@ export default function DashboardPageV2() {
   // ========== HOOKS ==========
   const { onlineUsers } = useRealTimeUsers();
   const dashboard = useCompleteDashboard();
-  const { history: userHistory, loading: historyLoading } = useUserHistory(50);
+  const { history: userHistory, loading: historyLoading } = useUserHistory(20);
 
   // ========== GLOBE STATE ==========
   const globeEl = useRef<any>(null);
@@ -154,6 +154,7 @@ export default function DashboardPageV2() {
   const combinedUsers = [
     ...uniqueOnlineUsers.map((u) => ({
       id: u.sessionId,
+      visitorNumber: undefined,
       city: u.location?.city ?? "Unknown",
       country: u.location?.country ?? "Unknown",
       timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
@@ -162,6 +163,7 @@ export default function DashboardPageV2() {
     })),
     ...userHistory.map((h) => ({
       id: h.id,
+      visitorNumber: h.visitorNumber,
       city: h.city,
       country: h.country,
       timestamp: h.timestamp,
@@ -304,8 +306,8 @@ export default function DashboardPageV2() {
             ) : combinedUsersSorted.length === 0 ? (
               <p className="text-center text-gray-500 mt-10">No visitors yet</p>
             ) : (
-              combinedUsersSorted.map((entry, index) => {
-                const reverseIndex = combinedUsersSorted.length - index;
+              combinedUsersSorted.map((entry) => {
+                const visitorNumber = entry.visitorNumber || entry.id;
 
                 return (
                   <div
@@ -324,7 +326,7 @@ export default function DashboardPageV2() {
                         />
                         <p className="text-xs sm:text-sm font-medium truncate">
                           <span className="text-gray-500 dark:text-gray-400">
-                            Visitatore nr {reverseIndex}
+                            Visitatore nr {visitorNumber}
                           </span>
                           <span className="mx-1.5">•</span>
                           {entry.city && entry.city !== "Unknown" ? (
@@ -361,7 +363,6 @@ export default function DashboardPageV2() {
                     {/* Time info */}
                     <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 pl-4">
                       {entry.isOnline ? (
-                        // Online: solo A:
                         <div>
                           <span className="font-medium">A:</span>{" "}
                           {formatExactTime(entry.timestamp)}
