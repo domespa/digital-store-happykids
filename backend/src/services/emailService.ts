@@ -14,11 +14,14 @@ interface EmailOptions {
 // CONF NAMECHEAPCHOP
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || "mail.privateemail.com",
-  port: parseInt(process.env.EMAIL_PORT || "587"),
-  secure: false,
+  port: parseInt(process.env.EMAIL_PORT || "465"),
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
@@ -38,7 +41,7 @@ class EmailService {
   async sendPasswordResetEmail(
     email: string,
     firstName: string,
-    resetToken: string
+    resetToken: string,
   ): Promise<void> {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
@@ -89,7 +92,7 @@ class EmailService {
   async sendEmailVerificationEmail(
     email: string,
     firstName: string,
-    verificationToken: string
+    verificationToken: string,
   ): Promise<void> {
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
@@ -137,7 +140,7 @@ class EmailService {
   // EMAIL NOTIFICA CAMBIO PASSWORD
   async sendPasswordChangedNotificationEmail(
     email: string,
-    firstName: string
+    firstName: string,
   ): Promise<void> {
     const htmlContent = `
       <!DOCTYPE html>
@@ -188,7 +191,7 @@ class EmailService {
       console.log("📦 Order Items:", order.orderItems.length);
 
       const emailSubject = `Order Confirmation #${order.id.slice(
-        -8
+        -8,
       )} - H4ppyKids Store`;
 
       // GENERIAMO LINK PER OGNI PRODOTTO
@@ -203,7 +206,7 @@ class EmailService {
 
       const emailHTML = this.generateOrderConfirmationHTML(
         order,
-        downloadLinks
+        downloadLinks,
       );
 
       await this.sendEmail({
@@ -214,7 +217,7 @@ class EmailService {
       });
 
       console.log(
-        `✅ Order confirmation email sent to: ${order.customerEmail}`
+        `✅ Order confirmation email sent to: ${order.customerEmail}`,
       );
       return true;
     } catch (error) {
@@ -226,7 +229,7 @@ class EmailService {
   // EMAIL AGGIORNAMENTO ORDINE
   async sendOrderStatusUpdate(
     order: OrderResponse,
-    previousStatus?: string
+    previousStatus?: string,
   ): Promise<boolean> {
     try {
       let subject = `Order Update #${order.id.slice(-8)}`;
@@ -246,7 +249,7 @@ class EmailService {
 
       const emailHTML = this.generateOrderConfirmationHTML(
         order,
-        downloadLinks
+        downloadLinks,
       );
 
       await this.sendEmail({
@@ -257,7 +260,7 @@ class EmailService {
       });
 
       console.log(
-        `Order status update email sent to: ${order.customerEmail} (${previousStatus} → ${order.status})`
+        `Order status update email sent to: ${order.customerEmail} (${previousStatus} → ${order.status})`,
       );
       return true;
     } catch (error) {
@@ -276,7 +279,7 @@ class EmailService {
       console.log("💰 Total:", order.total);
 
       const emailSubject = `🔔 New Order Received #${order.id.slice(
-        -8
+        -8,
       )} - €${order.total.toFixed(2)}`;
 
       const emailHTML = this.generateVendorNotificationHTML(order);
@@ -312,13 +315,13 @@ class EmailService {
         </td>
         <td style="padding: 12px 8px; text-align: center;">${item.quantity}</td>
         <td style="padding: 12px 8px; text-align: right;">€${item.price.toFixed(
-          2
+          2,
         )}</td>
         <td style="padding: 12px 8px; text-align: right; font-weight: bold;">€${(
           item.price * item.quantity
         ).toFixed(2)}</td>
       </tr>
-    `
+    `,
       )
       .join("");
 
@@ -326,17 +329,17 @@ class EmailService {
       order.status === "COMPLETED" || order.status === "PAID"
         ? "#28a745"
         : order.status === "PENDING"
-        ? "#ffc107"
-        : "#dc3545";
+          ? "#ffc107"
+          : "#dc3545";
 
     const statusEmoji =
       order.status === "COMPLETED"
         ? "✅"
         : order.status === "PAID"
-        ? "💳"
-        : order.status === "PENDING"
-        ? "⏳"
-        : "❌";
+          ? "💳"
+          : order.status === "PENDING"
+            ? "⏳"
+            : "❌";
 
     return `
       <!DOCTYPE html>
@@ -352,7 +355,7 @@ class EmailService {
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px;">🔔 New Order Received!</h1>
             <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">Order #${order.id.slice(
-              -8
+              -8,
             )}</p>
           </div>
 
@@ -380,7 +383,7 @@ class EmailService {
               <tr>
                 <td style="padding: 8px 0; color: #666;"><strong>Date:</strong></td>
                 <td style="padding: 8px 0; text-align: right;">${new Date(
-                  order.createdAt
+                  order.createdAt,
                 ).toLocaleString("en-US", {
                   year: "numeric",
                   month: "long",
@@ -409,8 +412,8 @@ class EmailService {
                 <td style="padding: 8px 0; color: #666;"><strong>Name:</strong></td>
                 <td style="padding: 8px 0; text-align: right;">
                   ${order.customerFirstName || ""} ${
-      order.customerLastName || ""
-    }
+                    order.customerLastName || ""
+                  }
                 </td>
               </tr>
               <tr>
@@ -464,7 +467,7 @@ class EmailService {
                 <tr style="background: #28a745; color: white; font-weight: bold; font-size: 16px;">
                   <td colspan="3" style="padding: 15px 8px; text-align: right;">TOTAL:</td>
                   <td style="padding: 15px 8px; text-align: right;">€${order.total.toFixed(
-                    2
+                    2,
                   )}</td>
                 </tr>
               </tbody>
@@ -516,7 +519,7 @@ class EmailService {
   // Metodo privato per generare HTML dell'ordine
   private generateOrderConfirmationHTML(
     order: OrderResponse,
-    downloadLinks: Array<{ productName: string; productId: string }> = []
+    downloadLinks: Array<{ productName: string; productId: string }> = [],
   ): string {
     const orderItemsHTML = order.orderItems
       .map(
@@ -527,13 +530,13 @@ class EmailService {
       }</td>
       <td style="padding: 12px 8px; text-align: center;">${item.quantity}</td>
       <td style="padding: 12px 8px; text-align: right;">€${item.price.toFixed(
-        2
+        2,
       )}</td>
       <td style="padding: 12px 8px; text-align: right;">€${(
         item.price * item.quantity
       ).toFixed(2)}</td>
     </tr>
-  `
+  `,
       )
       .join("");
 
@@ -618,7 +621,7 @@ class EmailService {
                 : ""
             }
             <p><strong>Date:</strong> ${new Date(
-              order.createdAt
+              order.createdAt,
             ).toLocaleString("en-US")}</p>
             <p><strong>Status:</strong> 
               <span class="status-badge ${
@@ -628,8 +631,8 @@ class EmailService {
                   order.status === "PENDING"
                     ? "Pending payment"
                     : order.status === "COMPLETED"
-                    ? "Completed"
-                    : order.status
+                      ? "Completed"
+                      : order.status
                 }
               </span>
             </p>
@@ -650,7 +653,7 @@ class EmailService {
               <tr class="total-row">
                 <td colspan="3" style="padding: 15px 8px; text-align: right;"><strong>TOTAL:</strong></td>
                 <td style="padding: 15px 8px; text-align: right;"><strong>€${order.total.toFixed(
-                  2
+                  2,
                 )}</strong></td>
               </tr>
             </tbody>

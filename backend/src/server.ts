@@ -59,6 +59,7 @@ console.log("DATABASE_URL at runtime:", process.env.DATABASE_URL);
 
 // CREO APP EXPRESS
 const app = express();
+app.set("trust proxy", 1);
 app.set("etag", false);
 const PORT = process.env.PORT || 3001;
 
