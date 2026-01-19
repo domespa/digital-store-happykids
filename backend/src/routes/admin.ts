@@ -390,10 +390,22 @@ router.get("/users/sessions", async (req, res) => {
 router.get("/users/history", async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 50;
-    const locationTracking = getLocationTracking();
-    const liveLocations = locationTracking?.getOnlineUserLocations() || [];
+
+    let liveLocations: any[] = [];
+    try {
+      const locationTracking = getLocationTracking();
+      if (
+        locationTracking &&
+        typeof locationTracking.getOnlineUserLocations === "function"
+      ) {
+        liveLocations = locationTracking.getOnlineUserLocations() || [];
+      }
+    } catch (locErr) {
+      console.warn("⚠️ Could not get live locations:", locErr);
+    }
 
     console.log(`📊 Live locations: ${liveLocations.length}`);
+
     const onlineSessionIds = new Set(
       liveLocations.map((loc: any) => loc.socketId).filter(Boolean),
     );
