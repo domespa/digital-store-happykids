@@ -17,7 +17,7 @@ router.post(
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET as string
+        process.env.STRIPE_WEBHOOK_SECRET as string,
       );
     } catch (err: unknown) {
       console.error("Webhook signature verification failed:", err);
@@ -91,7 +91,10 @@ router.post(
             };
 
             //  EMAIL AL CLIENTE
-            await emailService.sendOrderStatusUpdate(orderResponse, "PENDING");
+            await emailService.sendOrderStatusUpdate(
+              orderResponse,
+              "COMPLETED",
+            );
             console.log(`Payment success email sent for order: ${order.id}`);
 
             //  EMAIL AL VENDITORE
@@ -100,7 +103,7 @@ router.post(
           }
 
           console.log(
-            `Payment succeeded for PaymentIntent: ${paymentIntent.id}`
+            `Payment succeeded for PaymentIntent: ${paymentIntent.id}`,
           );
           break;
         }
@@ -129,7 +132,7 @@ router.post(
     }
 
     res.status(200).send("Webhook processed successfully");
-  }
+  },
 );
 
 export default router;
