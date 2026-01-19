@@ -529,12 +529,12 @@ export const createOrder = catchAsync(async (req: Request, res: Response) => {
   const orderResponse = formatOrderResponse(order, isAdmin);
 
   // INVIA EMAIL CONFERMA
-  // try {
-  //   await emailService.sendOrderConfirmation(orderResponse);
-  //   console.log(`Order confirmation email sent for order: ${order.id}`);
-  // } catch (emailError) {
-  //   console.error("Failed to send order confirmation email:", emailError);
-  // }
+  try {
+    await emailService.sendOrderConfirmation(orderResponse);
+    console.log(`Order confirmation email sent for order: ${order.id}`);
+  } catch (emailError) {
+    console.error("Failed to send order confirmation email:", emailError);
+  }
 
   res.status(201).json({
     success: true,
