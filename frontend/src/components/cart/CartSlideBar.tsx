@@ -325,6 +325,11 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   };
 
   const addWorkbooksBundle = () => {
+    const workbooksInCart = getWorkbooksInCart();
+    workbooksInCart.forEach((item) => {
+      removeItem(item.id);
+    });
+
     const convertedPrice = convertWorkbookPrice(WORKBOOKS_PRICE_EUR);
 
     addItem({
@@ -336,6 +341,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
       image: workbooks[0].image,
       description: "Complete bundle: 295 pages of educational activities",
     });
+    setIsWorkbooksExpanded(false);
   };
 
   // Check se user ha tutti e 5 workbook individuali nel cart
@@ -367,6 +373,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
       image: workbooks[0].image,
       description: "Complete bundle: 295 pages of educational activities",
     });
+    setIsWorkbooksExpanded(false);
   };
 
   const calculateTotal = (): number => {
