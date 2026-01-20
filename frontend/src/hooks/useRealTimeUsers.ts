@@ -14,13 +14,22 @@ interface UserTrackingMessage {
     | "user_disconnected"
     | "user_activity"
     | "session_ended";
-  user?: OnlineUser;
   sessionId?: string;
+  location?: {
+    country?: string;
+    city?: string;
+    region?: string;
+    countryCode?: string;
+    timezone?: string;
+  } | null;
+  connectedAt?: string;
+  disconnectedAt?: string;
+  disconnectReason?: string;
   page?: string;
   timestamp?: string;
+  action?: string;
   endTime?: string;
 }
-
 type AnyWebSocketMessage = WebSocketMessage | UserTrackingMessage;
 
 export function useRealTimeUsers() {
@@ -118,20 +127,44 @@ export function useRealTimeUsers() {
           if ("type" in data) {
             switch (data.type) {
               case "user_connected":
-                if (data.user) {
+                if (data.sessionId) {
                   setOnlineUsers((prev: OnlineUser[]) => {
+                    const newUser: OnlineUser = {
+                      sessionId: data.sessionId!,
+                      location: data.location
+                        ? {
+                            country: data.location.country || "Unknown",
+                            city: data.location.city || "Unknown",
+                            region: data.location.region,
+                            countryCode: data.location.countryCode,
+                            timezone: data.location.timezone,
+                          }
+                        : null,
+                      connectedAt: data.connectedAt || new Date().toISOString(),
+                      lastActivity:
+                        data.connectedAt || new Date().toISOString(),
+                      currentPage: "homepage",
+                      userAgent: null,
+                      ipAddress: null,
+                      isAuthenticated: false,
+                    };
+
+                    // Rimuovi eventuali duplicati
                     const filtered = prev.filter(
-                      (u) => u.sessionId !== data.user?.sessionId,
+                      (u) => u.sessionId !== data.sessionId,
                     );
-                    const newUser = data.user as OnlineUser;
-                    console.log("➕ User connected:", newUser.sessionId);
+
+                    console.log(
+                      "➕ User connected:",
+                      newUser.sessionId,
+                      newUser.location,
+                    );
                     const updated = [...filtered, newUser];
                     console.log(`📊 Total users after add: ${updated.length}`);
                     return updated;
                   });
                 }
                 break;
-
               case "user_disconnected":
                 if (data.sessionId) {
                   console.log("➖ User disconnected:", data.sessionId);
@@ -140,11 +173,14 @@ export function useRealTimeUsers() {
                       (u) => u.sessionId !== data.sessionId,
                     );
                     console.log(`📊 Remaining users: ${remaining.length}`);
+                    console.log(
+                      `📊 Disconnected reason:`,
+                      data.disconnectReason || "unknown",
+                    );
                     return remaining;
                   });
                 }
                 break;
-
               case "user_activity":
                 if (data.sessionId) {
                   console.log("🔄 User activity:", data.sessionId, data.page);

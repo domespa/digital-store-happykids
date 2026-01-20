@@ -102,7 +102,7 @@ class WebSocketService {
 
         const decoded = jwt.verify(
           token,
-          process.env.JWT_SECRET!
+          process.env.JWT_SECRET!,
         ) as JwtDecoded;
 
         const user = await prisma.user.findUnique({
@@ -132,7 +132,7 @@ class WebSocketService {
       } catch (error) {
         logger.error(
           "WebSocket authentication failed:",
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         );
         next(new Error("Authentication failed"));
       }
@@ -178,7 +178,7 @@ class WebSocketService {
         authenticatedSocket.on("mark_read", async (notificationId: string) => {
           await this.markNotificationRead(
             authenticatedSocket.userId,
-            notificationId
+            notificationId,
           );
         });
 
@@ -191,7 +191,7 @@ class WebSocketService {
           async (callback: (response: { count: number }) => void) => {
             const count = await this.getUnreadCount(authenticatedSocket.userId);
             callback({ count });
-          }
+          },
         );
 
         // HEARTBEAT/PING HANDLING
@@ -209,13 +209,13 @@ class WebSocketService {
         authenticatedSocket.on("error", (error: Error) => {
           logger.error(
             `Socket error for user ${authenticatedSocket.userId}:`,
-            error
+            error,
           );
         });
       } catch (error) {
         logger.error(
           "Connection setup failed:",
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         );
         authenticatedSocket.disconnect(true);
       }
@@ -248,7 +248,7 @@ class WebSocketService {
       });
     } catch (error) {
       logger.warn(
-        "WebSocketConnection table not found, skipping database save"
+        "WebSocketConnection table not found, skipping database save",
       );
     }
 
@@ -275,7 +275,7 @@ class WebSocketService {
 
   private async handleSubscription(
     socket: AuthenticatedSocket,
-    channels: string[]
+    channels: string[],
   ): Promise<void> {
     const validChannels = [
       "orders",
@@ -286,7 +286,7 @@ class WebSocketService {
       "admin",
     ];
     const subscribedChannels = channels.filter((ch) =>
-      validChannels.includes(ch)
+      validChannels.includes(ch),
     );
 
     for (const channel of subscribedChannels) {
@@ -316,7 +316,7 @@ class WebSocketService {
 
   private async handleUnsubscription(
     socket: AuthenticatedSocket,
-    channels: string[]
+    channels: string[],
   ): Promise<void> {
     for (const channel of channels) {
       socket.leave(channel);
@@ -331,7 +331,7 @@ class WebSocketService {
       if (connection?.subscribedChannels) {
         const currentChannels = connection.subscribedChannels as string[];
         const remainingChannels = currentChannels.filter(
-          (ch) => !channels.includes(ch)
+          (ch) => !channels.includes(ch),
         );
 
         await prisma.webSocketConnection.update({
@@ -346,7 +346,7 @@ class WebSocketService {
 
   private async handleDisconnection(
     socket: AuthenticatedSocket,
-    reason: string
+    reason: string,
   ): Promise<void> {
     const { userId } = socket;
 
@@ -380,7 +380,7 @@ class WebSocketService {
   // INVIA NOTIFICA A UTENTE SPECIFICO
   async sendNotificationToUser(
     userId: string,
-    notification: NotificationPayload
+    notification: NotificationPayload,
   ): Promise<boolean> {
     try {
       // CONTROLLA PREFERENZE UTENTE
@@ -429,7 +429,7 @@ class WebSocketService {
     } catch (error) {
       logger.error(
         `Failed to send notification to user ${userId}:`,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
       return false;
     }
@@ -439,7 +439,7 @@ class WebSocketService {
   async sendNotificationToChannel(
     channel: string,
     notification: NotificationPayload,
-    excludeUser?: string
+    excludeUser?: string,
   ): Promise<boolean> {
     try {
       const socket = excludeUser
@@ -453,7 +453,7 @@ class WebSocketService {
     } catch (error) {
       logger.error(
         `Failed to send notification to channel ${channel}:`,
-        error instanceof Error ? error.message : String(error)
+        error instanceof Error ? error.message : String(error),
       );
       return false;
     }
@@ -461,14 +461,29 @@ class WebSocketService {
 
   // INVIA NOTIFICA AGLI ADMIN
   async sendNotificationToAdmins(
-    notification: NotificationPayload
+    notification: NotificationPayload,
   ): Promise<boolean> {
     return this.sendNotificationToChannel("admin", notification);
   }
 
+  // Broadcast generico agli admin
+  broadcastToAdmins(event: string, data: any): void {
+    try {
+      this.io.to("admin").emit(event, {
+        type: event,
+        ...data,
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log(`📡 Broadcasted ${event} to admin room`);
+    } catch (error) {
+      console.error(`❌ Failed to broadcast ${event} to admins:`, error);
+    }
+  }
+
   // BROADCAST NOTIFICA DI SISTEMA
   async broadcastSystemNotification(
-    notification: NotificationPayload
+    notification: NotificationPayload,
   ): Promise<void> {
     this.io.emit("system_notification", notification);
     logger.info("System notification broadcasted");
@@ -480,7 +495,7 @@ class WebSocketService {
 
   private async markNotificationRead(
     userId: string,
-    notificationId: string
+    notificationId: string,
   ): Promise<void> {
     try {
       await prisma.notification.updateMany({
@@ -559,7 +574,7 @@ class WebSocketService {
     try {
       const now = new Date();
       const userTime = new Date(
-        now.toLocaleString("en-US", { timeZone: quietHours.timezone })
+        now.toLocaleString("en-US", { timeZone: quietHours.timezone }),
       );
       const currentHour = userTime.getHours();
       const currentMinute = userTime.getMinutes();
@@ -639,20 +654,23 @@ class WebSocketService {
   }
 
   private setupCleanupTasks(): void {
-    setInterval(async () => {
-      try {
-        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    setInterval(
+      async () => {
+        try {
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-        await prisma.webSocketConnection.deleteMany({
-          where: {
-            isActive: false,
-            disconnectedAt: {
-              lt: oneDayAgo,
+          await prisma.webSocketConnection.deleteMany({
+            where: {
+              isActive: false,
+              disconnectedAt: {
+                lt: oneDayAgo,
+              },
             },
-          },
-        });
-      } catch (error) {}
-    }, 60 * 60 * 1000); // EVERY HOUR
+          });
+        } catch (error) {}
+      },
+      60 * 60 * 1000,
+    ); // EVERY HOUR
   }
 
   // ===========================================

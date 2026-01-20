@@ -66,24 +66,24 @@ export interface UpdateOrderStatusRequest {
 }
 
 export interface OnlineUser {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+  id?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
   sessionId: string;
-  ipAddress: string;
-  userAgent: string;
+  ipAddress: string | null;
+  userAgent: string | null;
   location: {
     country: string;
     city: string;
-    region: string;
-    countryCode: string;
-    timezone: string;
-  };
-  currentPage: string;
+    region?: string;
+    countryCode?: string;
+    timezone?: string;
+  } | null;
+  currentPage?: string;
   connectedAt: string;
   lastActivity: string;
-  isAuthenticated: boolean;
+  isAuthenticated?: boolean;
 }
 
 export interface UserSession {
