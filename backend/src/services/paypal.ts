@@ -146,7 +146,7 @@ export class PayPalService {
 
     try {
       const auth = Buffer.from(
-        `${this.clientId}:${this.clientSecret}`
+        `${this.clientId}:${this.clientSecret}`,
       ).toString("base64");
 
       const response: AxiosResponse<PayPalTokenResponse> = await axios.post(
@@ -157,7 +157,7 @@ export class PayPalService {
             Authorization: `Basic ${auth}`,
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        }
+        },
       );
 
       this.accessToken = response.data.access_token;
@@ -249,7 +249,7 @@ export class PayPalService {
       const response: AxiosResponse<PayPalOrderResponse> = await axios.post(
         `${this.baseURL}/v2/checkout/orders`,
         orderRequest,
-        { headers }
+        { headers },
       );
 
       console.log(`PayPal order created: ${response.data.id}`);
@@ -259,8 +259,8 @@ export class PayPalService {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
           `PayPal API Error: ${error.response.status} - ${JSON.stringify(
-            error.response.data
-          )}`
+            error.response.data,
+          )}`,
         );
       }
       throw error;
@@ -275,7 +275,7 @@ export class PayPalService {
       const response: AxiosResponse<PayPalCaptureResponse> = await axios.post(
         `${this.baseURL}/v2/checkout/orders/${orderId}/capture`,
         {},
-        { headers }
+        { headers },
       );
 
       console.log(`PayPal order captured: ${orderId}`);
@@ -285,8 +285,8 @@ export class PayPalService {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
           `PayPal Capture Error: ${error.response.status} - ${JSON.stringify(
-            error.response.data
-          )}`
+            error.response.data,
+          )}`,
         );
       }
       throw error;
@@ -300,7 +300,7 @@ export class PayPalService {
 
       const response: AxiosResponse<PayPalOrderResponse> = await axios.get(
         `${this.baseURL}/v2/checkout/orders/${orderId}`,
-        { headers }
+        { headers },
       );
 
       return response.data;
@@ -309,8 +309,8 @@ export class PayPalService {
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
           `PayPal Get Order Error: ${error.response.status} - ${JSON.stringify(
-            error.response.data
-          )}`
+            error.response.data,
+          )}`,
         );
       }
       throw error;
@@ -361,7 +361,7 @@ export class PayPalService {
   // OTTIENI LINK APPROVAZIONE DA RESPONSE
   getApprovalUrl(orderResponse: PayPalOrderResponse): string | null {
     const approvalLink = orderResponse.links.find(
-      (link) => link.rel === "approve"
+      (link) => link.rel === "approve",
     );
     return approvalLink?.href || null;
   }
