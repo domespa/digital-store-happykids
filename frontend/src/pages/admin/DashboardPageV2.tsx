@@ -307,7 +307,9 @@ export default function DashboardPageV2() {
               <p className="text-center text-gray-500 mt-10">No visitors yet</p>
             ) : (
               combinedUsersSorted.map((entry) => {
-                const visitorNumber = entry.visitorNumber || entry.id;
+                const visitorNumber = entry.visitorNumber
+                  ? entry.visitorNumber
+                  : "ADMIN";
 
                 return (
                   <div
