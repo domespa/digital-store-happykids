@@ -3,7 +3,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useCheckout } from "../../hooks/useCheckout";
 import StripePaymentForm from "../StripePaymentForm";
 import type { CheckoutForm } from "../../types/checkout";
-import { trackBeginCheckout, trackAddPaymentInfo } from "../../utils/analytics";
+import {
+  trackBeginCheckout,
+  trackAddPaymentInfo,
+  trackPurchase,
+} from "../../utils/analytics";
 import WorkbookPreviewModal from "../landing/WorkbookPreviewModal";
 
 interface CartSlideBar {
@@ -134,6 +138,36 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
 
     handlePayPalReturn();
   }, []);
+
+  // Track Purchase quando l'ordine è completato
+  useEffect(() => {
+    if (checkoutStep === "success" && successData) {
+      const transactionId =
+        successData.orderId || successData.id || crypto.randomUUID();
+      const orderValue =
+        successData.finalAmount || successData.total || calculateTotal();
+      const currency = successData.finalCurrency || getDisplayCurrency();
+
+      // items per tracking
+      const items =
+        successData.orderItems?.map((item) => ({
+          item_id: item.productId,
+          item_name: item.product?.name || "Product",
+          price: item.price,
+          quantity: item.quantity,
+        })) ||
+        cart.items.map((item) => ({
+          item_id: item.productId,
+          item_name: item.name,
+          price: item.displayPrice,
+          quantity: item.quantity,
+        }));
+
+      trackPurchase(transactionId, items, orderValue, 0, 0, currency);
+
+      console.log("📊 Purchase tracked:", transactionId, orderValue, currency);
+    }
+  }, [checkoutStep, successData]);
 
   const formatPrice = (amount: number): string => {
     const currency = getDisplayCurrency();
