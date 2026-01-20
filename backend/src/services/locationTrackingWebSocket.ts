@@ -114,6 +114,8 @@ class LocationTrackingWebSocket {
             socketId: socket.id,
           };
 
+          // ✅ CHECK se è già stato salvato (evita duplicati)
+          const alreadyExists = this.userLocations.has(socket.id);
           this.userLocations.set(socket.id, storedData);
 
           try {
@@ -136,16 +138,27 @@ class LocationTrackingWebSocket {
             });
             console.log(`✅ Visit upserted for ${socket.id}`);
 
-            // ✅ BROADCAST IMMEDIATO AGLI ADMIN
-            this.broadcastToAdmins("user_connected", {
-              sessionId: socket.id,
-              location: {
-                country: storedData.country,
-                city: storedData.city,
-                region: storedData.region,
-              },
-              connectedAt: storedData.timestamp.toISOString(),
-            });
+            if (!alreadyExists) {
+              const totalVisits = await prisma.pageView.count();
+
+              this.broadcastToAdmins("user_connected", {
+                sessionId: socket.id,
+                visitorNumber: totalVisits,
+                location: {
+                  country: storedData.country,
+                  city: storedData.city,
+                  region: storedData.region,
+                },
+                connectedAt: storedData.timestamp.toISOString(),
+              });
+              console.log(
+                `📡 Broadcasted new user #${totalVisits} (${socket.id}) to admins`,
+              );
+            } else {
+              console.log(
+                `⏭️ Skipped broadcast - user ${socket.id} already exists`,
+              );
+            }
           } catch (dbError) {
             console.error("❌ Failed to save visit to database:", dbError);
           }
