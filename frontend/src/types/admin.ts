@@ -71,6 +71,7 @@ export interface OnlineUser {
   firstName?: string;
   lastName?: string;
   sessionId: string;
+  visitorNumber?: number;
   ipAddress: string | null;
   userAgent: string | null;
   location: {
@@ -234,6 +235,7 @@ export interface UserTrackingMessage {
     | "session_ended";
   user?: OnlineUser;
   sessionId?: string;
+  visitorNumber?: number;
   page?: string;
   timestamp?: string;
   endTime?: string;

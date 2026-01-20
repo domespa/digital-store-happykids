@@ -154,7 +154,7 @@ export default function DashboardPageV2() {
   const combinedUsers = [
     ...uniqueOnlineUsers.map((u) => ({
       id: u.sessionId,
-      visitorNumber: undefined,
+      visitorNumber: u.visitorNumber,
       city: u.location?.city ?? "Unknown",
       country: u.location?.country ?? "Unknown",
       timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
