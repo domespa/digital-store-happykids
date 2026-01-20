@@ -128,7 +128,20 @@ export function useRealTimeUsers() {
             switch (data.type) {
               case "user_connected":
                 if (data.sessionId) {
+                  console.log("🔵 Processing user_connected:", data.sessionId);
+
                   setOnlineUsers((prev: OnlineUser[]) => {
+                    console.log("📊 Previous users count:", prev.length);
+
+                    // Check se già esiste
+                    if (prev.some((u) => u.sessionId === data.sessionId)) {
+                      console.log(
+                        "⏭️ User already exists, skipping:",
+                        data.sessionId,
+                      );
+                      return prev;
+                    }
+
                     const newUser: OnlineUser = {
                       sessionId: data.sessionId!,
                       location: data.location
@@ -149,34 +162,54 @@ export function useRealTimeUsers() {
                       isAuthenticated: false,
                     };
 
-                    // Rimuovi eventuali duplicati
-                    const filtered = prev.filter(
-                      (u) => u.sessionId !== data.sessionId,
-                    );
-
                     console.log(
-                      "➕ User connected:",
+                      "➕ Adding new user:",
                       newUser.sessionId,
                       newUser.location,
                     );
-                    const updated = [...filtered, newUser];
-                    console.log(`📊 Total users after add: ${updated.length}`);
+
+                    const updated = [...prev, newUser];
+
+                    console.log(`📊 New users count: ${updated.length}`);
+                    console.log(`🔄 Triggering re-render with new array`);
+
                     return updated;
                   });
                 }
                 break;
+
               case "user_disconnected":
                 if (data.sessionId) {
-                  console.log("➖ User disconnected:", data.sessionId);
+                  console.log(
+                    "🔴 Processing user_disconnected:",
+                    data.sessionId,
+                  );
+
                   setOnlineUsers((prev: OnlineUser[]) => {
+                    console.log("📊 Previous users count:", prev.length);
+
+                    // Check se esiste
+                    if (!prev.some((u) => u.sessionId === data.sessionId)) {
+                      console.log(
+                        "⏭️ User not found, skipping:",
+                        data.sessionId,
+                      );
+                      return prev;
+                    }
+
+                    console.log("➖ Removing user:", data.sessionId);
+                    console.log(
+                      `📊 Disconnect reason:`,
+                      data.disconnectReason || "unknown",
+                    );
+
                     const remaining = prev.filter(
                       (u) => u.sessionId !== data.sessionId,
                     );
-                    console.log(`📊 Remaining users: ${remaining.length}`);
-                    console.log(
-                      `📊 Disconnected reason:`,
-                      data.disconnectReason || "unknown",
-                    );
+
+                    console.log(`📊 New users count: ${remaining.length}`);
+                    console.log(`🔄 Triggering re-render with new array`);
+
                     return remaining;
                   });
                 }
