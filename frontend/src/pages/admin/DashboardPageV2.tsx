@@ -439,24 +439,24 @@ export default function DashboardPageV2() {
           icon="⏳"
           color="yellow"
         />
-        <StatCard
+        {/* <StatCard
           title="Conversion"
           value={`${dashboard.summary.conversionRate?.toFixed(1) || 0}%`}
           icon="📊"
           color="purple"
-        />
+        /> */}
         <StatCard
           title="Avg Order"
           value={formatPrice(dashboard.summary.averageOrderValue)}
           icon="💳"
           color="pink"
         />
-        <StatCard
+        {/* <StatCard
           title="Online"
           value={uniqueOnlineUsers.length}
           icon="👥"
           color="cyan"
-        />
+        /> */}
       </div>
 
       {/* CHARTS */}
