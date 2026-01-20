@@ -169,8 +169,10 @@ export function useRealTimeUsers() {
                   console.log("👥 User count update:", count);
                   setOnlineUsers((prev) => {
                     if (Math.abs(prev.length - count) > 0) {
-                      console.log("⚠️ Count mismatch, refreshing data...");
-                      refreshData();
+                      console.log("⚠️ Count mismatch, triggering refresh...");
+                      setTimeout(() => {
+                        refreshData();
+                      }, 0);
                     }
                     return prev;
                   });
@@ -290,7 +292,7 @@ export function useRealTimeUsers() {
         wsRef.current = null;
       }
     };
-  }, [refreshData, handleReconnect]);
+  }, []);
 
   return {
     onlineUsers,
