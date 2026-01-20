@@ -15,6 +15,7 @@ interface UserTrackingMessage {
     | "user_activity"
     | "session_ended";
   sessionId?: string;
+  visitorNumber?: number;
   location?: {
     country?: string;
     city?: string;
@@ -144,6 +145,7 @@ export function useRealTimeUsers() {
 
                     const newUser: OnlineUser = {
                       sessionId: data.sessionId!,
+                      visitorNumber: data.visitorNumber,
                       location: data.location
                         ? {
                             country: data.location.country || "Unknown",
