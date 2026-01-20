@@ -225,7 +225,7 @@ export default function DashboardPageV2() {
     globeEl.current.pointOfView({ altitude }, 1000);
 
     const controls = globeEl.current.controls();
-    controls.autoRotate = true;
+    controls.autoRotate = false;
     controls.autoRotateSpeed = 0.5;
     controls.enableZoom = false;
     controls.enablePan = false;
@@ -249,7 +249,7 @@ export default function DashboardPageV2() {
 
   // ========== RENDER ==========
   return (
-    <div className="space-y-6 bg-stone-50 dark:bg-slate-900 min-h-screen p-6">
+    <div className="space-y-6 bg-stone-50 dark:bg-slate-900 min-h-screen">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
