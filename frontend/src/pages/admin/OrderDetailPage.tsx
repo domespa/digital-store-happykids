@@ -171,7 +171,7 @@ export default function OrderDetailPage() {
 
   const totalItems = order.orderItems.reduce(
     (sum, item) => sum + item.quantity,
-    0
+    0,
   );
 
   return (
@@ -187,11 +187,13 @@ export default function OrderDetailPage() {
             >
               ← Back to Orders
             </Button>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Order #{order.id.slice(-8)}
             </h1>
           </div>
-          <p className="text-gray-600">Created {formatDate(order.createdAt)}</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Created {formatDate(order.createdAt)}
+          </p>
         </div>
         <div className="flex gap-2">
           <Badge variant={getStatusBadgeVariant(order.status)}>
@@ -207,36 +209,38 @@ export default function OrderDetailPage() {
         {/* SEZIONE DI SINISTRA */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Customer Information
             </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-500">Name:</span>
-                <span className="text-sm text-gray-900">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Name:
+                </span>
+                <span className="text-sm text-gray-900 dark:text-gray-100">
                   {order.customerFirstName} {order.customerLastName}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-500">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Email:
                 </span>
-                <span className="text-sm text-gray-900">
+                <span className="text-sm text-gray-900 dark:text-gray-100">
                   {order.customerEmail}
                 </span>
               </div>
               {order.user && (
                 <>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-500">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                       Account:
                     </span>
-                    <span className="text-sm text-gray-900">
+                    <span className="text-sm text-gray-900 dark:text-gray-100">
                       Registered User
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-500">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                       User ID:
                     </span>
                     <span className="text-sm text-gray-500">
@@ -247,7 +251,7 @@ export default function OrderDetailPage() {
               )}
               {!order.user && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-500">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Account:
                   </span>
                   <Badge variant="default">Guest Order</Badge>
@@ -258,41 +262,41 @@ export default function OrderDetailPage() {
 
           {/* Order Items */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 dark:text-gray-100">
               Order Items ({totalItems} item{totalItems !== 1 ? "s" : ""})
             </h3>
             <div className="space-y-4">
               {order.orderItems.map((item) => (
                 <div
                   key={item.id}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border border-gray-200 dark:border-slate-200 rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
+                      <h4 className="font-medium text-gray-900 dark:text-gray-200">
                         {item.product?.name || "Product Not Found"}
                       </h4>
                       {item.product?.description && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {item.product.description}
                         </p>
                       )}
                       <div className="flex items-center gap-4 mt-2">
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
                           Product ID: {item.productId.slice(-8)}
                         </span>
                         {item.product?.fileName && (
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             File: {item.product.fileName}
                           </span>
                         )}
                       </div>
                     </div>
                     <div className="text-right ml-4">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-gray-200">
                         {formatPrice(item.price)} × {item.quantity}
                       </div>
-                      <div className="text-lg font-semibold text-gray-900">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-400">
                         {formatPrice(item.price * item.quantity)}
                       </div>
                     </div>
@@ -304,10 +308,10 @@ export default function OrderDetailPage() {
             {/* Order Total */}
             <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="flex justify-between items-center">
-                <span className="text-lg font-semibold text-gray-900">
+                <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   Order Total:
                 </span>
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {formatPrice(order.total)}
                 </span>
               </div>
@@ -318,22 +322,22 @@ export default function OrderDetailPage() {
         {/* SEZIONE DESTRA */}
         <div className="space-y-6">
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 dark:text-gray-100">
               Payment Information
             </h3>
             <div className="space-y-3">
               <div>
-                <span className="text-sm font-medium text-gray-500 block">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-300 block">
                   Total Amount:
                 </span>
-                <div className="text-xl font-bold text-gray-900">
+                <div className="text-xl font-bold text-gray-900 dark:text-gray-200">
                   {formatPrice(order.total)}
                 </div>
               </div>
 
               {order.paymentProvider && (
                 <div>
-                  <span className="text-sm font-medium text-gray-500 block">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-200 block">
                     Payment Method:
                   </span>
                   <div className="flex items-center gap-2 mt-1">
@@ -343,7 +347,7 @@ export default function OrderDetailPage() {
               )}
 
               <div>
-                <span className="text-sm font-medium text-gray-500 block">
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-200 block">
                   Payment Status:
                 </span>
                 <div className="mt-1">
@@ -360,26 +364,26 @@ export default function OrderDetailPage() {
           {/* DOWN */}
           {order.status === "COMPLETED" || order.status === "PAID" ? (
             <Card>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 dark:text-gray-100">
                 📊 Download Status
               </h3>
               <div className="space-y-4">
                 {/* Download Counter */}
                 <div>
-                  <span className="text-sm font-medium text-gray-500 block mb-2">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-200 block mb-2">
                     Downloads:
                   </span>
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 bg-gray-200 rounded-full h-2.5">
+                    <div className="flex-1 bg-gray-200 rounded-full h-2.5 dark:text-gray-200">
                       <div
                         className={`h-2.5 rounded-full ${
                           (order.downloadCount || 0) >=
                           (order.downloadLimit || 4)
                             ? "bg-red-500"
                             : (order.downloadCount || 0) >=
-                              (order.downloadLimit || 4) * 0.75
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
+                                (order.downloadLimit || 4) * 0.75
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
                         }`}
                         style={{
                           width: `${
@@ -394,7 +398,7 @@ export default function OrderDetailPage() {
                       {order.downloadCount || 0}/{order.downloadLimit || 4}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-gray-600 mt-1 dark:text-gray-200">
                     {(order.downloadLimit || 4) - (order.downloadCount || 0)}{" "}
                     downloads remaining
                   </p>
@@ -402,7 +406,7 @@ export default function OrderDetailPage() {
 
                 {/* Expiration */}
                 <div>
-                  <span className="text-sm font-medium text-gray-500 block mb-1">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400 block mb-1">
                     Link Expiration:
                   </span>
                   {(() => {
@@ -410,7 +414,7 @@ export default function OrderDetailPage() {
                     expirationDate.setDate(expirationDate.getDate() + 30);
                     const daysRemaining = Math.ceil(
                       (expirationDate.getTime() - Date.now()) /
-                        (1000 * 60 * 60 * 24)
+                        (1000 * 60 * 60 * 24),
                     );
                     const isExpired = daysRemaining <= 0;
 
@@ -445,7 +449,7 @@ export default function OrderDetailPage() {
                     onClick={async () => {
                       if (
                         !confirm(
-                          `Send download email to ${order.customerEmail}?`
+                          `Send download email to ${order.customerEmail}?`,
                         )
                       ) {
                         return;
