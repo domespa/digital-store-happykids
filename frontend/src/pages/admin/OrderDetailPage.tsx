@@ -472,7 +472,7 @@ export default function OrderDetailPage() {
           ) : null}
 
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900  dark:text-gray-100 mb-4">
               Update Order Status
             </h3>
             {error && (
@@ -544,17 +544,17 @@ export default function OrderDetailPage() {
           </Card>
 
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900  dark:text-gray-100 mb-4">
               Order Timeline
             </h3>
             <div className="space-y-4">
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-3 flex-shrink-0"></div>
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-gray-900  dark:text-gray-200">
                     Order Created
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-400">
                     {formatDate(order.createdAt)}
                   </div>
                 </div>
@@ -564,7 +564,7 @@ export default function OrderDetailPage() {
                 <div className="flex items-center">
                   <div className="w-3 h-3 bg-green-500 rounded-full mr-3 flex-shrink-0"></div>
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-900">
+                    <div className="text-sm font-medium text-gray-900  dark:text-gray-200">
                       Last Updated
                     </div>
                     <div className="text-xs text-gray-500">
@@ -592,7 +592,7 @@ export default function OrderDetailPage() {
 
           {/* AZIONI */}
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4  dark:text-gray-200">
               Quick Actions
             </h3>
             <div className="space-y-2">
