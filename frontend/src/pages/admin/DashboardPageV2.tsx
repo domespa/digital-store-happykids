@@ -150,6 +150,10 @@ export default function DashboardPageV2() {
     return acc;
   }, []);
 
+  const realOnlineUsers = uniqueOnlineUsers.filter(
+    (user) => user.visitorNumber !== null && user.visitorNumber !== undefined,
+  );
+
   // ========== COMBINED USERS ==========
   const combinedUsers = [
     ...uniqueOnlineUsers.map((u) => ({
@@ -279,7 +283,7 @@ export default function DashboardPageV2() {
             <span>🌍</span>
             <span>Live User Locations</span>
             <span className="ml-auto text-sm font-normal text-gray-500">
-              {uniqueOnlineUsers.length} online
+              {realOnlineUsers.length} online
             </span>
           </h3>
           <div className="relative h-[300px] md:h-[500px] bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center">
@@ -305,7 +309,7 @@ export default function DashboardPageV2() {
             <span>👥</span>
             <span>User History</span>
             <span className="ml-auto text-sm font-normal text-gray-500">
-              {uniqueOnlineUsers.length} online / {combinedUsersSorted.length}{" "}
+              {realOnlineUsers.length} online / {combinedUsersSorted.length}{" "}
               total
             </span>
           </h3>
