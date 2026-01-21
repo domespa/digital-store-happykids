@@ -172,6 +172,10 @@ export default function DashboardPageV2() {
     })),
   ];
 
+  const combinedUsersWithoutAdmin = combinedUsers.filter(
+    (user) => user.visitorNumber !== null && user.visitorNumber !== undefined,
+  );
+
   // ========== DEDUPLICAZIONE SOLO PER SESSION ID ==========
   const deduplicateBySessionId = (
     users: typeof combinedUsers,
@@ -189,7 +193,7 @@ export default function DashboardPageV2() {
 
   // ========== ORDINAMENTO FINALE ==========
   const combinedUsersSorted = deduplicateBySessionId(
-    [...combinedUsers].sort((a, b) => {
+    [...combinedUsersWithoutAdmin].sort((a, b) => {
       if (a.isOnline && !b.isOnline) return -1;
       if (!a.isOnline && b.isOnline) return 1;
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
@@ -198,9 +202,15 @@ export default function DashboardPageV2() {
 
   // ========== GLOBE DATA ==========
   const globePoints = uniqueOnlineUsers
+    .filter(
+      (user) =>
+        user.visitorNumber !== null &&
+        user.visitorNumber !== undefined &&
+        user.location?.city,
+    )
     .filter((user) => {
-      const cityKey = user.location?.city?.replace(/\s+/g, "");
-      return cityKey && CITY_COORDINATES[cityKey];
+      const cityKey = user.location!.city!.replace(/\s+/g, "");
+      return CITY_COORDINATES[cityKey];
     })
     .map((user) => {
       const cityKey = user.location!.city!.replace(/\s+/g, "");
@@ -307,9 +317,7 @@ export default function DashboardPageV2() {
               <p className="text-center text-gray-500 mt-10">No visitors yet</p>
             ) : (
               combinedUsersSorted.map((entry) => {
-                const visitorNumber = entry.visitorNumber
-                  ? entry.visitorNumber
-                  : "ADMIN";
+                const visitorNumber = entry.visitorNumber;
 
                 return (
                   <div
