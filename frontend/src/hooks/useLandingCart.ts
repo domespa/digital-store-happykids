@@ -84,13 +84,12 @@ export const useLandingCart = () => {
   // ========================
   useEffect(() => {
     const convertPrices = async () => {
-      // ⏳ ASPETTA che TUTTI i dati siano pronti
       if (!backendProduct || !user?.currency) {
         console.log("⏳ Waiting for data...", {
           hasProduct: !!backendProduct,
           hasCurrency: !!user?.currency,
         });
-        return; // ← NON impostare nessun prezzo!
+        return;
       }
 
       const productPrice = backendProduct.price;
@@ -112,6 +111,12 @@ export const useLandingCart = () => {
         });
         return;
       }
+
+      console.log("🔄 Conversion triggered:", {
+        hasProduct: !!backendProduct,
+        productId: backendProduct?.id,
+        currency: user?.currency,
+      });
 
       // ✅ Conversione necessaria
       setIsConverting(true);
