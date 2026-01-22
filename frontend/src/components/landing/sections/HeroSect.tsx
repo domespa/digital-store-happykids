@@ -191,7 +191,9 @@ export default function HeroSect() {
             </div>
             {/* Price & Value */}
             <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl p-6 space-y-4 border-2 border-blue-200 shadow-lg">
-              {landingCart.isLoading || landingCart.isConverting ? (
+              {landingCart.isLoading ||
+              landingCart.isConverting ||
+              landingCart.mainPrice === 0 ? (
                 // SKELETON LOADING
                 <div className="space-y-4 animate-pulse">
                   <div className="flex items-baseline gap-3 flex-wrap justify-center">

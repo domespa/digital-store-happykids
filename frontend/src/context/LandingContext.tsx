@@ -18,7 +18,7 @@ interface ExtendedLandingContextType extends LandingContextType {
 }
 
 const LandingContext = createContext<ExtendedLandingContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const useLandingContext = () => {
@@ -41,7 +41,7 @@ export const LandingProvider = ({
   const landingData = useLanding(config);
 
   const [backendProduct, setBackendProduct] = useState<BackendProduct | null>(
-    null
+    null,
   );
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
 

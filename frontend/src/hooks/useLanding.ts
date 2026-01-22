@@ -57,8 +57,8 @@ const detectLocationFromTimezone = () => {
       city: tz.includes("Sydney")
         ? "Sydney"
         : tz.includes("Melbourne")
-        ? "Melbourne"
-        : "Brisbane",
+          ? "Melbourne"
+          : "Brisbane",
       region: "Australia",
       timezone: tz,
     };
@@ -77,8 +77,8 @@ const detectLocationFromTimezone = () => {
       city: tz.includes("Toronto")
         ? "Toronto"
         : tz.includes("Vancouver")
-        ? "Vancouver"
-        : "Montreal",
+          ? "Vancouver"
+          : "Montreal",
       region: "Canada",
       timezone: tz,
     };
@@ -181,14 +181,25 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
     const detectUser = async () => {
       const cachedCurrency = localStorage.getItem("userCurrency");
       const cachedCountry = localStorage.getItem("userCountry");
+      const cachedTimestamp = localStorage.getItem("userLocationTimestamp");
 
-      if (cachedCurrency && cachedCountry) {
+      const isCacheValid =
+        cachedTimestamp &&
+        Date.now() - parseInt(cachedTimestamp) < 6 * 60 * 60 * 1000;
+
+      if (cachedCurrency && cachedCountry && isCacheValid) {
         console.log("✅ Using cached location:", cachedCountry, cachedCurrency);
         setUser({
           country: cachedCountry,
           currency: cachedCurrency,
         });
         setIsLoading(false);
+      } else if (cachedCurrency && cachedCountry) {
+        console.log("🔄 Cache expired, will refresh...");
+        setUser({
+          country: cachedCountry,
+          currency: cachedCurrency,
+        });
       }
 
       try {
@@ -225,6 +236,7 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
           const detectedCurrency = getCurrencyByCountry(data.country_code);
           localStorage.setItem("userCountry", data.country_name);
           localStorage.setItem("userCurrency", detectedCurrency);
+          localStorage.setItem("userLocationTimestamp", Date.now().toString());
 
           const detectedUser: LandingUser = {
             country: data.country_name,
@@ -251,12 +263,13 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
       } catch (error) {
         console.log(
           "🌍 API geolocalizzazione non disponibile, uso fallback timezone:",
-          error
+          error,
         );
 
         const detectedFromTimezone = detectLocationFromTimezone();
         localStorage.setItem("userCountry", detectedFromTimezone.country);
         localStorage.setItem("userCurrency", detectedFromTimezone.currency);
+        localStorage.setItem("userLocationTimestamp", Date.now().toString());
 
         const fallbackUser: LandingUser = {
           country: detectedFromTimezone.country,
@@ -277,7 +290,7 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
 
         console.log(
           "📍 Invio dati fallback timezone al WebSocket:",
-          fallbackLocationData
+          fallbackLocationData,
         );
 
         locationWebSocketService.connect();

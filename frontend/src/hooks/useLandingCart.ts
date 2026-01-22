@@ -84,22 +84,13 @@ export const useLandingCart = () => {
   // ========================
   useEffect(() => {
     const convertPrices = async () => {
+      // ⏳ ASPETTA che TUTTI i dati siano pronti
       if (!backendProduct || !user?.currency) {
-        // Fallback a config se backend non disponibile
-        if (config) {
-          const mainPrice = config.pricing.mainPrice ?? 47;
-          const originalPrice = config.pricing.originalPrice ?? 197;
-          const currency = config.pricing.currency ?? "USD";
-
-          setConvertedPrices({
-            mainPrice,
-            originalPrice,
-            currency,
-            formattedMainPrice: formatPriceSync(mainPrice, currency),
-            formattedOriginalPrice: formatPriceSync(originalPrice, currency),
-          });
-        }
-        return;
+        console.log("⏳ Waiting for data...", {
+          hasProduct: !!backendProduct,
+          hasCurrency: !!user?.currency,
+        });
+        return; // ← NON impostare nessun prezzo!
       }
 
       const productPrice = backendProduct.price;
@@ -122,6 +113,7 @@ export const useLandingCart = () => {
         return;
       }
 
+      // ✅ Conversione necessaria
       setIsConverting(true);
 
       try {
@@ -150,7 +142,6 @@ export const useLandingCart = () => {
         if (mainConv && compareConv) {
           const convertedMain =
             mainConv.convertedAmount ?? mainConv.data?.convertedAmount;
-
           const convertedCompare =
             compareConv.convertedAmount ?? compareConv.data?.convertedAmount;
 
@@ -191,7 +182,7 @@ export const useLandingCart = () => {
       } catch (error) {
         console.error("Price conversion failed", error);
 
-        // Fallback completo
+        // In caso di errore, usa il prezzo originale
         setConvertedPrices({
           mainPrice: productPrice,
           originalPrice: productCompareAt,
@@ -208,7 +199,7 @@ export const useLandingCart = () => {
     };
 
     convertPrices();
-  }, [backendProduct, user?.currency, config, formatPriceSync]);
+  }, [backendProduct, user?.currency, formatPriceSync]);
 
   // ========================
   //     SINCRO VALUTA CART
