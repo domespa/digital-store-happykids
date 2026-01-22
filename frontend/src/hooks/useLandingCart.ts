@@ -83,6 +83,13 @@ export const useLandingCart = () => {
   //   AUTO-CONVERT PRICES
   // ========================
   useEffect(() => {
+    console.log(
+      "🔄 useEffect triggered - backendProduct:",
+      backendProduct?.id,
+      "currency:",
+      user?.currency,
+    );
+
     const convertPrices = async () => {
       if (!backendProduct || !user?.currency) {
         console.log("⏳ Waiting for data...", {
