@@ -6,27 +6,32 @@ import { optionalAuth } from "../middleware/auth";
 const router = Router();
 
 // MIDDLEWARE PER TROVARE CURRENCY
+// router.use((req, res, next) => {
+//   let currency = req.query.currency as string;
+
+//   if (!currency) {
+//     const acceptLanguage = req.headers["accept-language"];
+//     const country = req.headers["cf-ipcountry"] as string;
+
+//     if (country) {
+//       currency = CurrencyService.detectCurrencyFromCountry(country);
+//     } else if (acceptLanguage) {
+//       const locale = acceptLanguage.split(",")[0];
+//       const countryCode = locale.split("-")[1];
+//       if (countryCode) {
+//         currency = CurrencyService.detectCurrencyFromCountry(
+//           countryCode.toUpperCase()
+//         );
+//       }
+//     }
+//   }
+
+//   req.currency = currency || "EUR";
+//   next();
+// });
+
 router.use((req, res, next) => {
-  let currency = req.query.currency as string;
-
-  if (!currency) {
-    const acceptLanguage = req.headers["accept-language"];
-    const country = req.headers["cf-ipcountry"] as string;
-
-    if (country) {
-      currency = CurrencyService.detectCurrencyFromCountry(country);
-    } else if (acceptLanguage) {
-      const locale = acceptLanguage.split(",")[0];
-      const countryCode = locale.split("-")[1];
-      if (countryCode) {
-        currency = CurrencyService.detectCurrencyFromCountry(
-          countryCode.toUpperCase()
-        );
-      }
-    }
-  }
-
-  req.currency = currency || "EUR";
+  req.currency = "EUR";
   next();
 });
 
