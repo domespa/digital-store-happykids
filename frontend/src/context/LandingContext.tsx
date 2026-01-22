@@ -65,6 +65,7 @@ export const LandingProvider = ({
 
         const data = await resp.json();
         console.log("Prodotto trovato", data.product?.name);
+        console.log("🎯 Setting backendProduct:", data.product);
 
         setBackendProduct(data.product);
       } catch (error) {
