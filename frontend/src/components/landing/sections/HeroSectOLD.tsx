@@ -5,8 +5,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowDown,
   faArrowRight,
-  faStar,
-  faStarHalfStroke,
   faDownload,
 } from "@fortawesome/free-solid-svg-icons";
 
