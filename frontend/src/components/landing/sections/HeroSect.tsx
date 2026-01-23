@@ -1,18 +1,9 @@
 import { useLandingContext } from "../../../context/LandingContext";
-import { useLandingCart } from "../../../hooks/useLandingCart";
-import FormattedPrice from "./FormattedPrice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faArrowDown,
-  faArrowRight,
-  faStar,
-  faStarHalfStroke,
-  faDownload,
-} from "@fortawesome/free-solid-svg-icons";
+import { faArrowDown } from "@fortawesome/free-solid-svg-icons";
 
-export default function HeroSect() {
+export default function HeroSectV4() {
   const { config, isLoading } = useLandingContext();
-  const landingCart = useLandingCart();
 
   if (isLoading) {
     return (
@@ -37,274 +28,220 @@ export default function HeroSect() {
   }
 
   return (
-    <section className="relative min-h-screen flex items-center py-10 lg:py-10 overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+    <section className="relative min-h-screen flex flex-col justify-center py-8 sm:py-12 lg:py-16 overflow-hidden bg-gradient-to-br from-gray-200 via-slate-100 to-gray-100">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-mesh opacity-30"></div>
+      <div className="absolute inset-0 bg-gradient-mesh opacity-10"></div>
 
-      <div className="container mx-auto px-6 sm:px-6 lg:px-8 relative z-10 max-w-7xl">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* ========================================
-              LEFT: IMAGE 
-          ======================================== */}
-          <div className="relative max-w-md mx-auto lg:max-w-lg">
-            <div className="relative group">
-              {/* Image Card */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-blue-600">
-                <img
-                  src={config.hero.image}
-                  alt="Screen Detox Protocol"
-                  className="w-full h-[500px] sm:h-[600px] lg:h-[700px] object-cover"
-                  loading="eager"
-                />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 max-w-7xl">
+        {/* ========================================
+            TOP: IMAGE (left) + TEXT (right)
+        ======================================== */}
+        <div className="grid lg:grid-cols-2 gap-6 lg:gap-10 items-center mb-10 lg:mb-12">
+          {/* LEFT: IMAGE */}
+          <div className="relative max-w-md mx-auto lg:max-w-full">
+            <div className="relative rounded-xl overflow-hidden shadow-xl">
+              <img
+                src="/1.jpg"
+                alt="Child lost in screen addiction"
+                className="w-full h-auto object-cover"
+                loading="eager"
+              />
 
-                {/* Gradient Overlay Scuro */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
 
-                {/* Quote - Testo Bianco Brillante */}
-                <div className="absolute bottom-6 left-6 right-6">
-                  <div className="bg-black/60 backdrop-blur-lg rounded-xl p-4 shadow-2xl border border-white/30">
-                    <p className="text-base font-bold text-white leading-relaxed mb-2">
-                      "I just want my child back. The real one, not the zombie
-                      staring at a screen."
-                    </p>
-                    <p className="text-sm text-white/90 italic font-medium">
-                      Every parent who's used this guide
-                    </p>
-                  </div>
-                </div>
-
-                {/* Badge Pages - Scuro */}
-                <div className="absolute top-6 right-6 bg-blue-600 text-white backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border-2 border-white">
-                  <p className="text-sm font-black">117 Pages</p>
+              {/* Quote Overlay */}
+              <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4">
+                <div className="bg-black/70 backdrop-blur-md rounded-lg p-2.5 sm:p-3 shadow-xl border border-white/20">
+                  <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                    "I just want my child back. The real one."
+                  </p>
+                  <p className="text-xs text-white/90 italic font-medium mt-0.5">
+                    Every parent fighting this
+                  </p>
                 </div>
               </div>
-            </div>
-
-            {/* Floating Badge */}
-            <div className="absolute -bottom-4 -right-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl px-6 py-4 shadow-2xl border-2 border-white">
-              <p className="text-lg font-black">2,000+ Parents</p>
-              <p className="text-sm font-bold">Survived & Thrived</p>
             </div>
           </div>
-          {/* ========================================
-              RIGHT: CONTENT
-          ======================================== */}
-          <div className="space-y-6 animate-slide-up">
-            {/* Main Headline */}
-            <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-4xl font-black leading-tight text-gray-900">
-                Your Child Is Disappearing Into a Screen. Get Your Child Back.
-              </h1>
 
-              {/* Subheadline */}
-              <p className="text-xl sm:text-2xl text-gray-700 leading-relaxed font-medium">
-                {config.hero.subtitle}
+          {/* RIGHT: HEADLINE + PAIN BOX */}
+          <div className="space-y-4 lg:space-y-5">
+            {/* Main Headline */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight text-gray-900">
+              "I Just Want My Child Back"
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-base sm:text-lg lg:text-xl text-gray-700 leading-relaxed font-medium">
+              The Step-by-Step Protocol That Breaks Screen Addiction
+              <span className="block mt-1 text-gray-900 font-bold">
+                Without Losing Your Sanity (Or Their Love)
+              </span>
+            </p>
+
+            {/* Pain Recognition Box */}
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 sm:p-5">
+              <p className="font-bold text-gray-900 text-base sm:text-lg mb-3">
+                Does this sound painfully familiar?
+              </p>
+              <div className="space-y-2.5 text-sm sm:text-base">
+                <div className="flex items-start gap-2">
+                  <span className="text-red-600 font-black mt-0.5 text-base flex-shrink-0">
+                    ✗
+                  </span>
+                  <p className="text-gray-800 font-medium">
+                    90-minute tantrums when you take the tablet away
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-red-600 font-black mt-0.5 text-base flex-shrink-0">
+                    ✗
+                  </span>
+                  <p className="text-gray-800 font-medium">
+                    Glazed eyes, zombie mode, won't respond when you call
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-red-600 font-black mt-0.5 text-base flex-shrink-0">
+                    ✗
+                  </span>
+                  <p className="text-gray-800 font-medium">
+                    Can't play alone, constantly "I'm bored" without screens
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-red-600 font-black mt-0.5 text-base flex-shrink-0">
+                    ✗
+                  </span>
+                  <p className="text-gray-800 font-medium">
+                    Every limit you set fails. Every timer ends in a meltdown.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================
+            BOTTOM: FULL WIDTH - CARDS + CTA
+        ======================================== */}
+        <div className="space-y-6 lg:space-y-8">
+          {/* Trust Cards + CTA Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto">
+            {/* Trust Badge 1 */}
+            <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
+              <span className="text-3xl block mb-1.5">🧠</span>
+              <p className="font-bold text-gray-900 text-sm mb-0.5">
+                Research-Backed
+              </p>
+              <p className="text-xs text-gray-700 font-medium">
+                Behavioral psychology
               </p>
             </div>
-            {/* Social Proof - Colori Scuri */}
-            <div className="flex flex-wrap items-center gap-6">
-              {/* Avatars - Testo Nero su Sfondo Chiaro */}
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-2">
-                  {["J", "M", "S", "D", "A"].map((letter, i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white shadow-lg flex items-center justify-center text-white font-black text-base"
-                    >
-                      {letter}
-                    </div>
-                  ))}
-                </div>
-                <div className="text-left">
-                  <p className="font-bold text-gray-900 text-lg">
-                    2,000+ parents
-                  </p>
-                  <p className="text-sm text-gray-700 font-medium">
-                    got their kids back
-                  </p>
-                </div>
-              </div>
 
-              {/* Stars */}
-              <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md border border-gray-200">
-                <div className="flex items-center gap-0.5">
-                  {[...Array(4)].map((_, i) => (
-                    <span key={i} className="text-yellow-500 text-xl">
-                      <FontAwesomeIcon icon={faStar} />
-                    </span>
-                  ))}
-                  <span className="relative inline-block text-xl">
-                    <span className="text-yellow-500">
-                      <FontAwesomeIcon icon={faStarHalfStroke} />
-                    </span>
-                    <span
-                      className="absolute top-0 left-0 text-yellow-500 overflow-hidden inline-block"
-                      style={{ width: "80%" }}
-                    ></span>
-                  </span>
-                </div>
-                <span className="font-bold text-gray-900 text-lg">4.8/5</span>
-              </div>
+            {/* Trust Badge 2 */}
+            <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
+              <span className="text-3xl block mb-1.5">⚡</span>
+              <p className="font-bold text-gray-900 text-sm mb-0.5">
+                Battle-Tested
+              </p>
+              <p className="text-xs text-gray-700 font-medium">
+                Real-world proven
+              </p>
             </div>
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <button
-                data-cta="hero-main"
-                onClick={landingCart.addMainProductToCart}
-                disabled={landingCart.isLoading}
-                className="btn-primary group w-full sm:w-auto text-xl py-5 px-10"
-              >
-                <span className="relative flex items-center justify-center gap-3">
-                  {landingCart.isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{config.hero.ctaText}</span>
-                      <span className="text-2xl group-hover:translate-x-1 transition-transform">
-                        <FontAwesomeIcon icon={faArrowRight} />
-                      </span>
-                    </>
-                  )}
-                </span>
-              </button>
 
+            {/* Trust Badge 3 */}
+            <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
+              <span className="text-3xl block mb-1.5">✅</span>
+              <p className="font-bold text-gray-900 text-sm mb-0.5">
+                Complete System
+              </p>
+              <p className="text-xs text-gray-700 font-medium">
+                Zero guesswork
+              </p>
+            </div>
+
+            {/* CTA Card */}
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-3 py-4 rounded-lg shadow-lg text-center flex flex-col justify-center cursor-pointer hover:scale-105 transition-transform">
               <button
                 onClick={() => {
-                  const previewSection =
-                    document.getElementById("what-you-get");
-                  if (previewSection) {
-                    previewSection.scrollIntoView({ behavior: "smooth" });
+                  const problemsSection = document.getElementById("problems");
+                  if (problemsSection) {
+                    problemsSection.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
-                className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold text-lg px-8 py-5 rounded-xl transition-all w-full sm:w-auto shadow-md hover:shadow-lg"
+                className="w-full text-white font-bold text-base"
               >
-                <span className="flex items-center justify-center gap-2">
-                  <span>See What's Inside</span>
+                <span className="flex flex-col items-center gap-1.5">
+                  <span>See How It Works</span>
                   <span className="text-xl">
                     <FontAwesomeIcon icon={faArrowDown} />
                   </span>
                 </span>
               </button>
             </div>
-            {/* Price & Value */}
-            <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-2xl p-6 space-y-4 border-2 border-blue-200 shadow-lg">
-              {landingCart.isLoading ||
-              landingCart.isConverting ||
-              landingCart.mainPrice === 0 ? (
-                // SKELETON LOADING
-                <div className="space-y-4 animate-pulse">
-                  <div className="flex items-baseline gap-3 flex-wrap justify-center">
-                    <div className="h-10 w-32 bg-gray-300 rounded"></div>
-                    <div className="h-8 w-24 bg-gray-200 rounded"></div>
-                    <div className="h-8 w-20 bg-green-200 rounded-full"></div>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
-                    <div className="h-6 w-32 bg-gray-200 rounded"></div>
-                    <div className="h-6 w-32 bg-gray-200 rounded"></div>
-                  </div>
-                </div>
-              ) : (
-                // PREZZI REALI
-                <>
-                  <div className="flex items-baseline gap-3 flex-wrap justify-center">
-                    {/* PREZZO PRINCIPALE - Grande con codice piccolo */}
-                    <FormattedPrice
-                      value={landingCart.formattedMainPrice}
-                      className="text-4xl font-bold text-gray-900"
-                      currencyClassName="text-xl font-normal opacity-60 ml-1"
-                    />
-
-                    {/* PREZZO ORIGINALE BARRATO - Medio con codice piccolo */}
-                    <span className="text-2xl text-gray-600 line-through font-medium">
-                      {landingCart.formattedOriginalPrice.split(" ")[0]}
-                    </span>
-
-                    <span className="inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-full text-base font-bold shadow-lg">
-                      Save{" "}
-                      {Math.round(
-                        ((landingCart.originalPrice - landingCart.mainPrice) /
-                          landingCart.originalPrice) *
-                          100,
-                      )}
-                      %
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-base">
-                    {[
-                      {
-                        icon: <FontAwesomeIcon icon={faDownload} />,
-                        text: "Instant download",
-                        color: "text-blue-500",
-                      },
-                      {
-                        icon: "♾️",
-                        text: "Lifetime access",
-                        color: "text-blue-500",
-                      },
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-2 text-gray-900 font-bold"
-                      >
-                        <span className="text-xl">{item.icon}</span>
-                        <span>{item.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-            {/* Trust Badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-              {config.trustBar.stats.map((stat, i) => (
-                <div key={i} className="card-modern p-4 text-center">
-                  <div className="text-3xl mb-2">{stat.icon}</div>
-                  <div className="font-black text-2xl text-blue-600 mb-1">
-                    {stat.number}
-                  </div>
-                  <div className="text-xs text-gray-700 font-bold">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
-        </div>
-        {/* Trust Statement */}
-        <div className="mt-16 max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl p-8 border-2 border-gray-200 shadow-lg">
-            <div className="space-y-6">
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="text-5xl">💪</div>
-                <p className="text-sm font-black text-blue-600 uppercase tracking-wider">
-                  From a Parent Who's Been There
-                </p>
+
+          {/* Trust Line */}
+          <p className="text-xs sm:text-sm text-gray-600 text-center font-medium max-w-6xl mx-auto">
+            💪 Join parents who are taking back control
+          </p>
+
+          {/* Stats Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-5xl mx-auto">
+            {config.trustBar.stats.map((stat, i) => (
+              <div
+                key={i}
+                className="text-center bg-white rounded-lg p-3 shadow-sm border border-gray-100"
+              >
+                <div className="text-2xl mb-1">{stat.icon}</div>
+                <div className="font-black text-base sm:text-lg text-blue-600 mb-0.5">
+                  {stat.number}
+                </div>
+                <div className="text-xs text-gray-700 font-bold">
+                  {stat.label}
+                </div>
               </div>
+            ))}
+          </div>
 
-              <p className="text-lg text-gray-800 leading-relaxed text-center font-medium">
-                I watched my 7-year-old turn into a stranger. Glassy eyes.
-                Tantrums. No interest in anything real. I tried limits, rewards,
-                negotiations...
-                <span className="font-black text-gray-900">nothing worked</span>
-                .
-              </p>
+          {/* Trust Statement */}
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-white rounded-xl p-5 sm:p-6 border-2 border-gray-200 shadow-md">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-center justify-center gap-2.5">
+                  <div className="text-2xl sm:text-3xl">💪</div>
+                  <p className="text-xs font-black text-blue-600 uppercase tracking-wider">
+                    From a Parent Who's Been There
+                  </p>
+                </div>
 
-              <p className="text-lg text-gray-800 leading-relaxed text-center font-medium">
-                So I stopped guessing and built a protocol that actually worked.
-                <p className="font-black text-gray-900 text-2xl">
-                  30 days later, I had my son back.
+                <p className="text-sm sm:text-base text-gray-800 leading-relaxed text-center font-medium">
+                  I watched my child turn into a stranger. Glassy eyes.
+                  Tantrums. No interest in anything real. I tried limits,
+                  rewards, negotiations...
+                  <span className="font-black text-gray-900">
+                    {" "}
+                    nothing worked
+                  </span>
+                  .
                 </p>
-              </p>
 
-              <div className="pt-6 border-t-2 border-gray-200">
-                <p className="text-base text-gray-700 italic text-center font-medium">
-                  This guide is everything I learned the hard way, so you don't
-                  have to.
+                <p className="text-sm sm:text-base text-gray-800 leading-relaxed text-center font-medium">
+                  So I stopped guessing and built a protocol that actually
+                  worked.
                 </p>
+
+                <p className="font-black text-gray-900 text-lg sm:text-xl text-center">
+                  30 days later, I had my child back.
+                </p>
+
+                <div className="pt-3 border-t-2 border-gray-200">
+                  <p className="text-xs sm:text-sm text-gray-700 italic text-center font-medium">
+                    This guide is everything I learned the hard way, so you
+                    don't have to.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

@@ -10,7 +10,7 @@ export const screenDetoxConfig: LandingConfig = {
       "The proven 30-day protocol that helps desperate parents break their child's screen addiction without endless battles, guilt, or losing their mind.",
     image: "/cover.png",
     ctaText: "Get Your Child Back",
-    subtext: "117-page guide • Instant download • Tested by 2,000+ parents",
+    subtext: "117-page guide • Instant download • Research-backed protocol",
   },
 
   trustBar: {
@@ -18,25 +18,25 @@ export const screenDetoxConfig: LandingConfig = {
       { number: "30", label: "Day Protocol", icon: "📅" },
       { number: "117", label: "Pages", icon: "📖" },
       { number: "50+", label: "Tools & Scripts", icon: "🛠️" },
-      { number: "2,000+", label: "Parents Helped", icon: "👨‍👩‍👧‍👦" },
+      { number: "100%", label: "Actionable", icon: "💪" },
     ],
     trustedBy:
-      "Trusted by 2,000+ parents who survived the screen detox and got their kids back",
+      "Built by a parent who lived through the chaos and figured out what actually works",
   },
 
   urgency: {
-    enabled: true,
+    enabled: false, // DISABLED - no fake urgency
     endDate: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
-    message: "⚠️ Limited Time: Introductory Launch Price",
-    urgencyText: "Price increases in:",
-    showStock: true,
-    stockRemaining: 47,
+    message: "",
+    urgencyText: "",
+    showStock: false, // DISABLED - no fake stock
+    stockRemaining: 0,
   },
 
   problems: {
     title: "Does This Sound Terrifyingly Familiar?",
     subtitle:
-      "You’re not a bad parent. Your child isn’t “bad. But screens are hijacking their brain, and every day you wait makes this harder to fix.",
+      "You're not a bad parent. Your child isn't bad. But screens are hijacking their brain, and every day you wait makes this harder to fix.",
     emotionalHook:
       "Your child is already glued to screens. You know it. They know it. But you have no idea how to stop it without chaos taking over your living room.",
     problems: [
@@ -47,7 +47,7 @@ export const screenDetoxConfig: LandingConfig = {
         description:
           "Your vibrant, curious child turns into a glassy-eyed stranger the moment a screen is on.",
         painPoints: [
-          "They don’t respond when you call their name",
+          "They don't respond when you call their name",
           "They zone out for hours if you let them",
           "They forget how to play or focus",
           "They resist all attempts to engage",
@@ -58,12 +58,12 @@ export const screenDetoxConfig: LandingConfig = {
         icon: "⚔️",
         title: "The Endless Battles",
         description:
-          "Every single day, the begging, the bargaining, the screaming. You’re exhausted.",
+          "Every single day, the begging, the bargaining, the screaming. You're exhausted.",
         painPoints: [
           "90-minute meltdowns when you take the tablet away",
           "Negotiations that would make a hostage negotiator quit",
           "You give in just to get 30 minutes of peace",
-          "You hate yourself for it, but you’re too tired to fight",
+          "You hate yourself for it, but you're too tired to fight",
         ],
       },
       {
@@ -75,8 +75,8 @@ export const screenDetoxConfig: LandingConfig = {
         painPoints: [
           "They found workarounds to every restriction",
           "The tantrums got worse, not better",
-          "Your partner thinks you’re too strict, or not strict enough",
-          "You’re out of ideas and starting to lose hope",
+          "Your partner thinks you're too strict, or not strict enough",
+          "You're out of ideas and starting to lose hope",
         ],
       },
       {
@@ -84,11 +84,11 @@ export const screenDetoxConfig: LandingConfig = {
         icon: "💔",
         title: "The Crushing Guilt",
         description:
-          "You know, deep down, this isn’t entirely your fault. You were just trying to survive.",
+          "You know, deep down, this isn't entirely your fault. You were just trying to survive.",
         painPoints: [
           "You gave them a tablet too early, just to get a break",
           "It felt normal because every other kid has screens",
-          "Now they can’t play alone without a device",
+          "Now they can't play alone without a device",
           "You're watching them lose their childhood in real-time",
         ],
       },
@@ -97,12 +97,12 @@ export const screenDetoxConfig: LandingConfig = {
         icon: "😨",
         title: "The Terrifying Future",
         description:
-          "You’re scared of what could happen if this keeps up. The habits are already forming, and every day makes it harder to fix",
+          "You're scared of what could happen if this keeps up. The habits are already forming, and every day makes it harder to fix",
         painPoints: [
           "They hide devices or sneak screen time",
           "Their social skills are suffering—they struggle to play with real kids",
-          "You worry they’ll never develop focus, patience, or real-world skills",
-          "This isn’t getting better on its own—it’s getting worse",
+          "You worry they'll never develop focus, patience, or real-world skills",
+          "This isn't getting better on its own—it's getting worse",
         ],
       },
     ],
@@ -120,9 +120,9 @@ export const screenDetoxConfig: LandingConfig = {
         description:
           "Understand why everything you tried failed - and why this method actually works.",
         highlights: [
-          "Why your child's brain is literally hijacked (this isn’t about willpower)",
-          "The brutal truth: Every 'expert' method assumes conditions you don’t have",
-          "Why waiting won’t help - the addiction compounds every day",
+          "Why your child's brain is literally hijacked (this isn't about willpower)",
+          "The brutal truth: Every 'expert' method assumes conditions you don't have",
+          "Why waiting won't help - the addiction compounds every day",
         ],
       },
       {
@@ -141,11 +141,11 @@ export const screenDetoxConfig: LandingConfig = {
         number: 3,
         title: "Days 4-14: The Turning Point",
         description:
-          "This is when you’ll start seeing the first signs of your real child coming back.",
+          "This is when you'll start seeing the first signs of your real child coming back.",
         highlights: [
           "Day 7: the breakthrough moment most parents experience",
-          "How to handle “I’m bored” without giving in (15 proven responses)",
-          "Rebuilding play skills: they’ve forgotten how to entertain themselves",
+          "How to handle 'I'm bored' without giving in (15 proven responses)",
+          "Rebuilding play skills: they've forgotten how to entertain themselves",
         ],
       },
       {
@@ -153,7 +153,7 @@ export const screenDetoxConfig: LandingConfig = {
         title: "Days 15-30: Building the New Normal",
         description: "Make the changes stick - without constant supervision.",
         highlights: [
-          "Create new routines that don’t rely on screens",
+          "Create new routines that don't rely on screens",
           "Handle birthday parties, visits to other homes, and school devices",
           "The Reintroduction Protocol: if you bring screens back, do it safely",
         ],
@@ -176,7 +176,7 @@ export const screenDetoxConfig: LandingConfig = {
   features: {
     title: "Why This Works When Everything Else Failed",
     subtitle:
-      "This isn't theory. This is battle-tested by 2,000+ desperate parents.",
+      "Built by a parent in the trenches. Backed by behavioral psychology. Zero fluff.",
     features: [
       {
         id: "realistic",
@@ -256,69 +256,75 @@ export const screenDetoxConfig: LandingConfig = {
   },
 
   testimonials: {
-    title: "Real Parents Who Survived (And So Can You)",
+    title: "Does This Sound Painfully Familiar?",
     subtitle:
-      "These aren't fake reviews. These are exhausted parents who made it through hell and came out the other side.",
+      "You're not alone. Every parent fighting screen addiction faces these exact battles.",
     testimonials: [
       {
-        id: "jessica",
-        name: "Jessica M.",
-        title: "Mother of 2",
-        location: "Portland, OR",
+        id: "battle-1",
+        name: "",
+        title: "",
+        location: "",
         content:
-          "Day 2 almost broke me. My child screamed for 90 minutes straight. By Day 7? They built a fort, played with siblings, and didn’t ask for the tablet once. I cried. This works.",
-        rating: 5,
-        before: "3+ hours of daily screen time, constant battles",
-        after: "Maybe 30 minutes/week on family movie night",
+          "90-minute meltdowns when the tablet gets taken away. You've tried everything: timers, rewards, negotiations. Nothing works.",
+        rating: 0,
+        before: "",
+        after: "",
       },
       {
-        id: "marcus",
-        name: "Marcus T.",
-        title: "Single Dad",
-        location: "Austin, TX",
+        id: "battle-2",
+        name: "",
+        title: "",
+        location: "",
         content:
-          "I was terrified to do this alone—no co-parent backup. The 'Solo Parent' section gave me confidence. On Day 21, my child is completely different. They TALK to me now.",
-        rating: 5,
-        before: "Child was non-verbal at dinner, eyes glazed",
-        after: "Shares about school, asks to go outside and play",
+          "Your child can't play independently anymore. 'I'm bored' becomes a constant refrain. They've forgotten how to entertain themselves.",
+        rating: 0,
+        before: "",
+        after: "",
       },
       {
-        id: "sarah",
-        name: "Sarah K.",
-        title: "Mother of 3",
-        location: "Seattle, WA",
+        id: "battle-3",
+        name: "",
+        title: "",
+        location: "",
         content:
-          "My husband thought I was crazy. He caved on Day 3 and gave our child the tablet 'just this once.' I used the Co-Parent Alignment worksheet and we got back on track. By Day 14, he’s a believer.",
-        rating: 5,
-        before: "Frequent fights about screen time",
-        after: "United front, kids play together again",
+          "Every parenting 'expert' says 'just set boundaries.' Yeah, thanks. That totally works when your child is screaming and you haven't slept in days.",
+        rating: 0,
+        before: "",
+        after: "",
       },
       {
-        id: "david",
-        name: "David L.",
-        title: "Father of 1",
-        location: "Chicago, IL",
+        id: "battle-4",
+        name: "",
+        title: "",
+        location: "",
         content:
-          "The 'Quick Reference Guide' saved my life. Printed it and stuck it on the fridge. When my child had a meltdown at 6 PM, I didn't panic—I just followed the script. It worked.",
-        rating: 5,
+          "You feel guilty. You gave them screens because you needed a break. Now you're watching them lose their childhood in real-time.",
+        rating: 0,
+        before: "",
+        after: "",
       },
       {
-        id: "amanda",
-        name: "Amanda R.",
-        title: "Mother of 4",
-        location: "Denver, CO",
+        id: "battle-5",
+        name: "",
+        title: "",
+        location: "",
         content:
-          "If it works for four kids, it’ll work for you. The first 72 hours were absolute chaos. By Week 2, my house was loud again—with LAUGHTER, not YouTube videos.",
-        rating: 5,
+          "Your partner thinks you're overreacting. Or they undermine your limits. You're fighting this battle alone.",
+        rating: 0,
+        before: "",
+        after: "",
       },
       {
-        id: "mike",
-        name: "Mike S.",
-        title: "Stepdad",
-        location: "Phoenix, AZ",
+        id: "battle-6",
+        name: "",
+        title: "",
+        location: "",
         content:
-          "I'm not even the bio dad and I was terrified of conflict. The guide gave me the words to explain WHY to my stepchild. They didn’t love it, but they respected it. That’s huge.",
-        rating: 5,
+          "You tried parental controls. They found workarounds. You tried screen time limits. The tantrums got worse. You're out of ideas.",
+        rating: 0,
+        before: "",
+        after: "",
       },
     ],
   },
@@ -352,14 +358,14 @@ export const screenDetoxConfig: LandingConfig = {
         id: "sabotage",
         question: "What if my partner or grandparents undermine me?",
         answer:
-          "Consistency is key. The guide includes Co-Parent Alignment worksheets to get everyone on board before Day 1. If someone cedes too early, it can reset progress, so plan carefully or choose a period when your child is primarily with you.",
+          "Consistency is key. The guide includes Co-Parent Alignment worksheets to get everyone on board before Day 1. If someone gives in too early, it can reset progress, so plan carefully or choose a period when your child is primarily with you.",
         category: "product",
       },
       {
         id: "relapse",
         question: "What if I mess up? What if they get screen time on Day 4?",
         answer:
-          "Slip-ups happen. The guide includes a 'Comeback Protocol'—you don’t restart, you course-correct within 2 hours. Most parents slip at least once and still succeed.",
+          "Slip-ups happen. The guide includes a 'Comeback Protocol'—you don't restart, you course-correct within 2 hours. Most parents slip at least once and still succeed.",
         category: "product",
       },
       {
@@ -371,9 +377,9 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "guarantee",
-        question: "What if this doesn’t work for my child?",
+        question: "What if this doesn't work for my child?",
         answer:
-          "You are fully protected with a 30-day money-back guarantee. Follow the protocol and if it doesn’t work—or if you decide it’s not for you—we refund every penny. No questions asked. Your only risk is staying stuck where you are now.",
+          "You are fully protected with a 30-day money-back guarantee. Follow the protocol and if it doesn't work—or if you decide it's not for you—we refund every penny. No questions asked. Your only risk is staying stuck where you are now.",
         category: "product",
       },
       {
@@ -385,6 +391,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
     ],
   },
+
   pricing: {
     title: "The Complete 30-Day Screen Detox Protocol",
     subtitle:
@@ -400,7 +407,6 @@ export const screenDetoxConfig: LandingConfig = {
       { item: "Word-for-Word Crisis Scripts", value: "$17" },
       { item: "Troubleshooting for 15 Scenarios", value: "$29" },
       { item: "3 Real Parent Success Stories", value: "Priceless" },
-      // { item: "30-Day Money-Back Guarantee", value: "Risk-Free" },
     ],
     included: [
       "Instant digital download (PDF format)",
@@ -422,9 +428,9 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         icon: "✅",
-        title: "Battle-Tested",
+        title: "Complete System",
         description:
-          "Used by 2,000+ parents who made it through hell and survived",
+          "Battle-tested protocol with everything you need to succeed",
       },
     ],
     guarantees: [
@@ -433,10 +439,9 @@ export const screenDetoxConfig: LandingConfig = {
       "No questions asked, no hassle—just email us",
     ],
     urgency: {
-      enabled: true,
-      message:
-        "⚠️ Introductory price ends soon—price increases to $97 in 72 hours",
-      countdown: true,
+      enabled: false, // DISABLED - no fake urgency
+      message: "",
+      countdown: false,
     },
   },
 
@@ -447,12 +452,10 @@ export const screenDetoxConfig: LandingConfig = {
     ctaText: "Get The Complete Protocol Now",
     guaranteeText:
       "Try it risk-free for 30 days. If you follow the protocol and it doesn't work, we'll refund every penny. No questions asked.",
-    urgencyMessage:
-      "⏰ Introductory pricing ends in 72 hours—price increases to $97",
+    urgencyMessage: "",
     stats: [
-      "2,000+ parents helped",
-      "4.8/5 average rating",
-      // "30-day guarantee",
+      "Complete 30-day system",
+      "Research-backed protocol",
       "Instant download",
     ],
   },
@@ -460,8 +463,8 @@ export const screenDetoxConfig: LandingConfig = {
   stickyBar: {
     enabled: true,
     text: "Get Your Child Back",
-    ctaText: "Start Protocol Now - $47",
-    showTimer: true,
+    ctaText: "Start Protocol Now - $27",
+    showTimer: false, // DISABLED - no fake countdown
   },
 
   settings: {
@@ -477,7 +480,7 @@ export const screenDetoxConfig: LandingConfig = {
       success: "#10b981",
       error: "#ef4444",
     },
-    showCountdown: true,
+    showCountdown: false, // DISABLED - no fake countdown
     countdownEnd: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
     currency: "USD",
   },

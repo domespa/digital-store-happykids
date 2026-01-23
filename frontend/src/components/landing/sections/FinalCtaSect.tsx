@@ -2,8 +2,9 @@ import { faCartArrowDown } from "@fortawesome/free-solid-svg-icons";
 import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import FormattedPrice from "./FormattedPrice";
 
-export default function FinalCtaSect() {
+export default function FinalCTA() {
   const { config } = useLandingContext();
   const landingCart = useLandingCart();
 
@@ -12,7 +13,7 @@ export default function FinalCtaSect() {
   return (
     <section
       id="final-cta"
-      className="py-16 lg:py-20 bg-gradient-to-br from-blue-50 via-white to-green-50 relative overflow-hidden"
+      className="py-12 lg:py-16 bg-gradient-to-br from-gray-200 via-slate-100 to-gray-100 relative overflow-hidden"
     >
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.03]">
@@ -21,128 +22,158 @@ export default function FinalCtaSect() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl relative z-10">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-12 border-2 border-blue-600">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900 leading-tight">
-              {config.finalCta.title}
+        <div className="bg-white rounded-xl shadow-xl p-6 sm:p-10 border-2 border-blue-600">
+          {/* Header - CONFIDENT & LOGICAL */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-full text-sm font-bold text-blue-600 mb-5">
+              <span>✓</span>
+              <span>You've Seen Everything</span>
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 text-gray-900 leading-tight">
+              Ready to Get Your Child Back?
             </h2>
 
-            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
-              {config.finalCta.subtitle}
+            <p className="text-base sm:text-lg text-gray-700 leading-relaxed max-w-2xl mx-auto">
+              You know what's inside. You know this works. You know your child
+              needs this.
+              <br className="hidden sm:block" />
+              <strong className="text-gray-900">
+                Now it's just a decision.
+              </strong>
             </p>
           </div>
 
-          {/* Value Recap */}
-          <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl p-6 sm:p-8 mb-8 border-2 border-gray-200">
-            <div className="text-sm font-bold text-blue-600 uppercase tracking-wide mb-6 text-center">
-              📦 Everything You're Getting Today
+          {/* Recap Box - CLEAN */}
+          <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-xl p-5 sm:p-6 mb-6 border-2 border-blue-200">
+            <div className="text-center mb-5">
+              <p className="text-xs sm:text-sm font-bold text-blue-600 uppercase tracking-wide mb-3">
+                Everything You Get Today
+              </p>
             </div>
 
-            {/* Book Mockup - Centered */}
-            <div className="flex justify-center mb-6">
-              <div className="relative max-w-[180px] sm:max-w-[200px]">
-                <div className="relative bg-white rounded-lg shadow-xl p-3 border-2 border-blue-600">
-                  <img
-                    src={config.hero?.image || "/cover.png"}
-                    alt="Screen Detox Protocol"
-                    className="w-full rounded"
+            {/* Value Recap - COMPACT LIST */}
+            <div className="space-y-3 mb-5">
+              <div className="flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
                   />
-                  {/* Badge */}
-                  <div className="absolute -top-3 -right-3 bg-blue-600 text-white rounded-full px-3 py-1 text-xs font-bold shadow-lg">
-                    117 Pages
-                  </div>
+                </svg>
+                <div>
+                  <p className="font-bold text-gray-900 text-sm sm:text-base">
+                    Complete 30-Day Protocol
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    117 pages of step-by-step guidance
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div>
+                  <p className="font-bold text-gray-900 text-sm sm:text-base">
+                    50+ Tools & Scripts
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Activities, crisis management, word-for-word scripts
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div>
+                  <p className="font-bold text-gray-900 text-sm sm:text-base">
+                    Crisis Management System
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    15 scenarios with exact solutions
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div>
+                  <p className="font-bold text-gray-900 text-sm sm:text-base">
+                    Family Alignment Tools
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Co-parent worksheets & grandparent scripts
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Value Stack */}
-            <div className="space-y-3 mb-6">
-              {config.pricing.valueStack &&
-              config.pricing.valueStack.length > 0 ? (
-                config.pricing.valueStack.map((line, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center text-gray-900 bg-white rounded-lg px-4 py-2 border border-gray-200"
-                  >
-                    <span className="font-medium">{line.item}</span>
-                    <span className="text-gray-600 font-semibold">
-                      {line.value}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div className="flex justify-between items-center text-gray-900">
-                    <span className="font-medium">
-                      Complete 117-Page Protocol
-                    </span>
-                    <span className="text-gray-600">$197</span>
-                  </div>
-                  <div className="flex justify-between items-center text-gray-900">
-                    <span className="font-medium">
-                      50 Screen-Free Activities
-                    </span>
-                    <span className="text-gray-600">$19</span>
-                  </div>
-                  <div className="flex justify-between items-center text-gray-900">
-                    <span className="font-medium">
-                      Crisis Management Scripts
-                    </span>
-                    <span className="text-gray-600">$17</span>
-                  </div>
-                  <div className="flex justify-between items-center text-gray-900">
-                    <span className="font-medium">Quick Reference Guides</span>
-                    <span className="text-gray-600">$27</span>
-                  </div>
-                  <div className="flex justify-between items-center text-gray-900">
-                    <span className="font-medium">
-                      Lifetime Access + Updates
-                    </span>
-                    <span className="text-gray-600">Priceless</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Price Comparison */}
-            <div className="pt-6 border-t-2 border-gray-300">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-base font-semibold text-gray-900">
-                  Total Value:
-                </span>
-                <span className="text-xl text-gray-500 line-through">
-                  {landingCart.formattedOriginalPrice}
-                </span>
-              </div>
+            {/* Price - CLEAR */}
+            <div className="pt-5 border-t-2 border-gray-300">
               <div className="flex justify-between items-center">
-                <span className="text-xl font-bold text-gray-900">
-                  Your Price Today:
-                </span>
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">
+                    Complete System
+                  </p>
+                  <p className="text-lg sm:text-xl font-bold text-gray-900">
+                    One-Time Payment:
+                  </p>
+                </div>
                 <div className="text-right">
-                  <div className="text-4xl font-bold text-blue-600">
-                    {landingCart.formattedMainPrice}
-                  </div>
-                  <div className="text-sm text-green-600 font-bold">
-                    Save{" "}
-                    {Math.round(
-                      ((landingCart.originalPrice - landingCart.mainPrice) /
-                        landingCart.originalPrice) *
-                        100,
-                    )}
-                    % Today
-                  </div>
+                  <FormattedPrice
+                    value={landingCart.formattedMainPrice}
+                    className="text-3xl sm:text-4xl font-bold text-blue-600"
+                    currencyClassName="text-lg font-normal opacity-70"
+                  />
+                  <p className="text-xs text-gray-500 line-through mt-1">
+                    {landingCart.formattedOriginalPrice}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* CTA Button */}
+          {/* CTA Button - CONFIDENT */}
           <button
             data-cta="final-cta"
             onClick={landingCart.addMainProductToCart}
             disabled={landingCart.isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-5 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl text-base sm:text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-5"
           >
             <span className="flex items-center justify-center gap-3">
               {landingCart.isLoading ? (
@@ -152,8 +183,8 @@ export default function FinalCtaSect() {
                 </>
               ) : (
                 <>
-                  <span>{config.finalCta.ctaText}</span>
-                  <span className="text-2xl">
+                  <span>Yes, I Want The Complete System</span>
+                  <span className="text-xl sm:text-2xl">
                     <FontAwesomeIcon icon={faCartArrowDown} />
                   </span>
                 </>
@@ -161,48 +192,8 @@ export default function FinalCtaSect() {
             </span>
           </button>
 
-          {/* Trust Line */}
-          <div className="text-center text-sm text-gray-600 mb-8">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <svg
-                className="w-5 h-5 text-green-500"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="font-medium text-gray-900">
-                Secure Checkout • Instant Download
-              </span>
-            </div>
-            <p className="text-xs">
-              One-time payment • No subscription • Lifetime access
-            </p>
-          </div>
-
-          {/* Guarantee Box */}
-          {/* <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6 border-2 border-green-300 mb-8 shadow-md">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                <span className="text-3xl text-white">✓</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-2">
-                  30-Day Money-Back Guarantee
-                </h3>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {config.finalCta.guaranteeText}
-                </p>
-              </div>
-            </div>
-          </div> */}
-
-          {/* Features Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+          {/* Trust Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-6">
             {[
               { icon: "⚡", text: "Instant Download" },
               { icon: "📱", text: "All Devices" },
@@ -211,9 +202,9 @@ export default function FinalCtaSect() {
             ].map((feature, i) => (
               <div
                 key={i}
-                className="text-center p-3 bg-slate-50 rounded-lg border-2 border-gray-200 hover:border-blue-500 transition-colors"
+                className="text-center p-2.5 sm:p-3 bg-slate-50 rounded-lg border border-gray-200"
               >
-                <div className="text-2xl mb-1">{feature.icon}</div>
+                <div className="text-xl sm:text-2xl mb-1">{feature.icon}</div>
                 <div className="text-xs font-medium text-gray-900">
                   {feature.text}
                 </div>
@@ -221,28 +212,27 @@ export default function FinalCtaSect() {
             ))}
           </div>
 
-          {/* Final Emotional Push */}
+          {/* Final Push - LOGICAL */}
           <div className="text-center pt-6 border-t-2 border-gray-200">
-            <p className="text-base text-gray-700 leading-relaxed mb-4">
-              <strong className="text-gray-900">You've read this far.</strong>{" "}
-              That means you know your child needs this. You're ready to act.
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed mb-3">
+              <strong className="text-gray-900">You've read everything.</strong>{" "}
+              You know this is the system you need.
             </p>
-            <p className="text-lg font-bold text-gray-900 mb-2">
-              Your child is waiting on the other side of this.
+            <p className="text-base sm:text-lg font-bold text-gray-900 mb-2">
+              The only question left: Are you ready to act?
             </p>
-            <p className="text-base text-gray-600 italic">
-              30 days from now, they can be the kid who builds forts again, not
-              the zombie staring at a screen.
+            <p className="text-sm sm:text-base text-gray-600 italic">
+              Join parents who decided to fix this instead of wait.
             </p>
           </div>
 
-          {/* Stats */}
+          {/* Stats Footer */}
           {config.finalCta.stats && config.finalCta.stats.length > 0 && (
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-600">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600">
               {config.finalCta.stats.map((stat, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <svg
-                    className="w-5 h-5 text-green-500"
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-500"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -259,39 +249,20 @@ export default function FinalCtaSect() {
           )}
         </div>
 
-        {/* Bottom Social Proof */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg border-2 border-blue-600">
-            <div className="flex -space-x-1">
-              {["J", "M", "S", "D", "A"].map((letter, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 border-2 border-white shadow-sm flex items-center justify-center text-white font-semibold text-xs"
-                >
-                  {letter}
-                </div>
-              ))}
+        {/* Bottom Trust Badge */}
+        <div className="mt-6 sm:mt-8 text-center">
+          <div className="inline-flex items-center gap-3 bg-white px-5 sm:px-6 py-3 rounded-full shadow-md border-2 border-gray-200">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center shadow-sm">
+              <span className="text-white font-black text-base sm:text-lg">
+                ✓
+              </span>
             </div>
             <div className="text-left">
-              <div className="flex items-center gap-1">
-                {[...Array(4)].map((_, i) => (
-                  <span key={i} className="text-yellow-400 text-sm">
-                    ★
-                  </span>
-                ))}
-                <span className="relative inline-block text-sm">
-                  <span className="text-gray-300">★</span>
-                  <span
-                    className="absolute top-0 left-0 text-yellow-400 overflow-hidden inline-block"
-                    style={{ width: "80%" }}
-                  >
-                    ★
-                  </span>
-                </span>
-              </div>
+              <p className="text-xs sm:text-sm font-bold text-gray-900">
+                Complete 30-Day System
+              </p>
               <p className="text-xs text-gray-600">
-                <strong className="text-gray-900">2,000+ parents</strong> got
-                their kids back
+                Research-backed • Battle-tested
               </p>
             </div>
           </div>

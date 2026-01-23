@@ -1,23 +1,21 @@
 import { LandingProvider } from "../../context/LandingContext";
 import type { LandingPageProps } from "../../types/landing";
-import HeroSect from "./sections/HeroSect";
-// import SocialProofBar from "./sections/SocialProofBar";
+import HeroSectV4 from "./sections/HeroSect";
 import PainPointSection from "./sections/PainPointSection";
-// import BeforeAfterTransformation from "./sections/Beforeaftertransformation";
+import EmotionalCTA from "./sections/EmotionalCtaSect";
 import WhatYouGetSect from "./sections/WhatYouGetSect";
-import TestimonialSect from "./sections/TestimonialSect";
+import ParentStrugglesSection from "./sections/TestimonialSect";
 import FaqSect from "./sections/FaqSect";
-import FinalCtaSect from "./sections/FinalCtaSect";
+import FinalCTA from "./sections/FinalCtaSect";
 import StickyCtaBar from "./sections/StickyCtaBar";
 import Footer from "./sections/Footer";
+import ActivityIndicator from "./conversion/SocialProofNotification";
 import CartSlideBar from "../cart/CartSlideBar";
 import CartIcon from "../cart/CartIcon";
+import CookieBanner from "../CookieBanner";
 import { useEffect } from "react";
 import { useLandingContext } from "../../context/LandingContext";
 import { useCart } from "../../hooks/useCart";
-import CookieBanner from "../CookieBanner";
-// import ExitIntentPopup from "./conversion/ExitIntentPopup";
-import SocialProofNotification from "./conversion/SocialProofNotification";
 
 const LandingPageContent = () => {
   const { user, isLoading } = useLandingContext();
@@ -33,7 +31,7 @@ const LandingPageContent = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#52796F] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -42,35 +40,33 @@ const LandingPageContent = () => {
 
   return (
     <div className="landing-page">
-      {/* 1. HERO - Above the fold */}
-      <HeroSect />
+      {/* 1. HERO - Hook emotivo */}
+      <HeroSectV4 />
 
-      {/* 2. SOCIAL PROOF BAR - Optional, add if you have media mentions */}
-      {/* <SocialProofBar /> */}
-
-      {/* 3. PAIN POINT - Empathy & validation */}
+      {/* 2. PAIN POINTS - Agitazione problema */}
       <PainPointSection />
 
-      {/* 4. BEFORE/AFTER - Visual transformation */}
-      {/* <BeforeAfterTransformation /> */}
+      {/* 3. EMOTIONAL CTA - Prima call to action (urgente) */}
+      <EmotionalCTA />
 
-      {/* 5. WHAT YOU GET - Product details */}
+      {/* 4. WHAT YOU GET - Contenuto prodotto */}
       <WhatYouGetSect />
 
-      {/* 6. TESTIMONIALS - Social proof deep dive */}
-      <TestimonialSect />
+      {/* 5. PARENT STRUGGLES - Pain recognition (NO fake testimonials) */}
+      <ParentStrugglesSection />
 
-      {/* 7. FAQ - Handle objections */}
+      {/* 6. FAQ - Gestione obiezioni */}
       <FaqSect />
 
-      {/* 8. FINAL CTA - Closing argument */}
-      <FinalCtaSect />
+      {/* 7. FINAL CTA - Chiusura logica */}
+      <FinalCTA />
 
-      {/* Always visible */}
-      <StickyCtaBar />
+      {/* 8. FOOTER */}
       <Footer />
-      {/* <ExitIntentPopup /> */}
-      <SocialProofNotification />
+
+      {/* ALWAYS VISIBLE ELEMENTS */}
+      <StickyCtaBar />
+      <ActivityIndicator />
     </div>
   );
 };

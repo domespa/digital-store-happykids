@@ -1,182 +1,118 @@
 import { useState, useEffect } from "react";
 
-export default function SocialProofNotification() {
+export default function ActivityIndicator() {
   const [isVisible, setIsVisible] = useState(false);
-  const [currentNotification, setCurrentNotification] = useState<{
-    name: string;
-    location: string;
-    action: string;
-    timeAgo: string;
-  } | null>(null);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [currentActivity, setCurrentActivity] = useState<string | null>(null);
 
-  // Expanded list of cities from different countries
-  const locations = [
-    // USA
-    "New York, NY",
-    "Los Angeles, CA",
-    "Chicago, IL",
-    "Houston, TX",
-    "Phoenix, AZ",
-    "Philadelphia, PA",
-    "San Antonio, TX",
-    "San Diego, CA",
-    "Dallas, TX",
-    "Austin, TX",
-    "Seattle, WA",
-    "Denver, CO",
-    "Boston, MA",
-    "Portland, OR",
-    "Nashville, TN",
-    "Atlanta, GA",
-    "Miami, FL",
-    "Las Vegas, NV",
+  // Check if user dismissed permanently
+  useEffect(() => {
+    const dismissed = localStorage.getItem("activity_indicator_dismissed");
+    if (dismissed === "true") {
+      setIsDismissed(true);
+    }
+  }, []);
 
-    // Canada
-    "Toronto, ON",
-    "Vancouver, BC",
-    "Montreal, QC",
-    "Calgary, AB",
-    "Ottawa, ON",
-    "Edmonton, AB",
-
-    // UK
-    "London, UK",
-    "Manchester, UK",
-    "Edinburgh, UK",
-    "Birmingham, UK",
-    "Glasgow, UK",
-    "Leeds, UK",
-    "Liverpool, UK",
-    "Bristol, UK",
-
-    // Australia
-    "Sydney, Australia",
-    "Melbourne, Australia",
-    "Brisbane, Australia",
-    "Perth, Australia",
-    "Adelaide, Australia",
+  // SUPER GENERIC activities - NO specific claims, NO purchases, NO locations, NO timestamps
+  const activities = [
+    "Someone is exploring the protocol",
+    "Someone is reading the guide details",
+    "Someone is reviewing Day 1-3 section",
+    "Someone is checking the guarantee",
+    "Someone is viewing parent tools",
+    "Someone is reading the FAQ",
+    "Someone is exploring the crisis scripts",
+    "Someone is reviewing the 30-day system",
+    "Someone is checking family alignment tools",
+    "Someone is reading about screen-free activities",
+    "Someone is viewing the chapter breakdown",
+    "Someone is exploring the bonus materials",
+    "Someone is reading about Hell Week",
+    "Someone is checking co-parent worksheets",
+    "Someone is reviewing troubleshooting scenarios",
+    "Someone is exploring quick reference guides",
   ];
 
-  // Diverse names (women-focused for Mother audience)
-  const names = [
-    "Sarah",
-    "Emily",
-    "Jessica",
-    "Amanda",
-    "Rachel",
-    "Jennifer",
-    "Michelle",
-    "Lauren",
-    "Ashley",
-    "Megan",
-    "Stephanie",
-    "Nicole",
-    "Danielle",
-    "Rebecca",
-    "Samantha",
-    "Katherine",
-    "Elizabeth",
-    "Christina",
-    "Maria",
-    "Lisa",
-    "Amy",
-    "Emma",
-    "Olivia",
-    "Sophia",
-    "Isabella",
-    "Charlotte",
-    "Amelia",
-    "Harper",
-    "Evelyn",
-    "Abigail",
-    "Ella",
-    "Scarlett",
-    "Grace",
-    "Chloe",
-    "Victoria",
-    "Riley",
-    "Aria",
-    "Lily",
-    "Aubrey",
-    "Zoey",
-    "Nora",
-    "Hannah",
-    "Madison",
-    "Layla",
-    "Zoe",
-    "Penelope",
-    "Lillian",
-    "Addison",
-  ];
-
-  const actions = [
-    "just purchased the guide",
-    "downloaded the 30-days-protocol",
-    "joined the program",
-    "started their transformation",
-    "got instant access",
-  ];
-
-  const timeFrames = [
-    "2 minutes ago",
-    "5 minutes ago",
-    "8 minutes ago",
-    "12 minutes ago",
-    "15 minutes ago",
-    "18 minutes ago",
-    "23 minutes ago",
-    "28 minutes ago",
-    "35 minutes ago",
-    "42 minutes ago",
-    "1 hour ago",
-    "2 hours ago",
-  ];
-
-  const getRandomItem = <T,>(array: T[]): T => {
-    return array[Math.floor(Math.random() * array.length)];
+  const getRandomActivity = (): string => {
+    return activities[Math.floor(Math.random() * activities.length)];
   };
 
-  const generateNotification = () => {
-    return {
-      name: getRandomItem(names),
-      location: getRandomItem(locations),
-      action: getRandomItem(actions),
-      timeAgo: getRandomItem(timeFrames),
-    };
+  // True random interval - never same pattern
+  const getRandomInterval = (minMs: number, maxMs: number): number => {
+    return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
   };
 
   useEffect(() => {
-    // Initial delay: 10-15 secondi (era 5-10)
-    const initialDelay = Math.random() * 5000 + 10000; // 10-15 sec
+    if (isDismissed) return;
+
+    let timeouts: NodeJS.Timeout[] = [];
+
+    // Initial delay: 20-45 seconds (let user settle in)
+    const initialDelay = getRandomInterval(20000, 45000);
 
     const initialTimer = setTimeout(() => {
-      setCurrentNotification(generateNotification());
+      setCurrentActivity(getRandomActivity());
       setIsVisible(true);
 
-      // Mostra per 6 secondi (era 5)
-      setTimeout(() => {
+      // Show for 5-7 seconds
+      const showDuration = getRandomInterval(5000, 7000);
+      const hideTimer = setTimeout(() => {
         setIsVisible(false);
-      }, 6000);
+      }, showDuration);
+
+      timeouts.push(hideTimer);
     }, initialDelay);
 
-    // Recurring: ogni 30-45 secondi (era 15-25)
-    const recurringInterval = setInterval(() => {
-      setCurrentNotification(generateNotification());
-      setIsVisible(true);
+    timeouts.push(initialTimer);
 
-      // Mostra per 6 secondi
-      setTimeout(() => {
-        setIsVisible(false);
-      }, 6000);
-    }, Math.random() * 15000 + 30000); // 30-45 sec
+    // Recurring notifications with EXTREME randomization
+    const scheduleNext = () => {
+      // Random interval: 4-12 minutes (VERY RARE)
+      const nextInterval = getRandomInterval(240000, 720000); // 4-12 min
+
+      const timer = setTimeout(() => {
+        // Only 60% chance to show (extra randomness)
+        if (Math.random() > 0.4) {
+          setCurrentActivity(getRandomActivity());
+          setIsVisible(true);
+
+          // Random show duration
+          const showDuration = getRandomInterval(5000, 7000);
+          const hideTimer = setTimeout(() => {
+            setIsVisible(false);
+          }, showDuration);
+
+          timeouts.push(hideTimer);
+        }
+
+        // Schedule next recursively
+        scheduleNext();
+      }, nextInterval);
+
+      timeouts.push(timer);
+    };
+
+    // Start recurring after initial notification
+    setTimeout(() => {
+      scheduleNext();
+    }, initialDelay + 10000);
 
     return () => {
-      clearTimeout(initialTimer);
-      clearInterval(recurringInterval);
+      timeouts.forEach((timeout) => clearTimeout(timeout));
     };
-  }, []);
+  }, [isDismissed]);
 
-  if (!currentNotification) return null;
+  const handleClose = () => {
+    setIsVisible(false);
+  };
+
+  const handleDismissForever = () => {
+    setIsVisible(false);
+    setIsDismissed(true);
+    localStorage.setItem("activity_indicator_dismissed", "true");
+  };
+
+  if (isDismissed || !currentActivity) return null;
 
   return (
     <div
@@ -186,34 +122,24 @@ export default function SocialProofNotification() {
           : "translate-y-4 opacity-0 pointer-events-none"
       }`}
     >
-      <div className="bg-white rounded-xl shadow-2xl border border-[#CAD2C5] p-4 max-w-sm">
+      <div className="bg-white rounded-lg shadow-xl border-2 border-gray-200 p-4 max-w-[280px] sm:max-w-xs">
         <div className="flex items-start gap-3">
-          {/* Avatar */}
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#84A98C] to-[#52796F] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            {currentNotification.name.charAt(0)}
+          {/* Activity Indicator - Pulsing Dot */}
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
           </div>
 
-          {/* Content */}
+          {/* Content - VAGUE & GENERIC */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-[#1A1A1A] font-medium mb-1">
-              <span className="font-semibold">{currentNotification.name}</span>{" "}
-              <span className="text-[#4A4A4A]">from</span>{" "}
-              <span className="font-semibold">
-                {currentNotification.location}
-              </span>
-            </p>
-            <p className="text-xs text-[#4A4A4A] mb-1">
-              {currentNotification.action}
-            </p>
-            <p className="text-xs text-[#52796F] font-medium">
-              🕐 {currentNotification.timeAgo}
+            <p className="text-sm text-gray-800 font-medium leading-snug">
+              {currentActivity}
             </p>
           </div>
 
-          {/* Close button */}
+          {/* Close X */}
           <button
-            onClick={() => setIsVisible(false)}
-            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0 -mt-0.5"
             aria-label="Close notification"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -226,20 +152,14 @@ export default function SocialProofNotification() {
           </button>
         </div>
 
-        {/* Trust badge */}
-        <div className="mt-3 pt-3 border-t border-[#CAD2C5] flex items-center gap-2">
-          <svg
-            className="w-4 h-4 text-green-500"
-            fill="currentColor"
-            viewBox="0 0 20 20"
+        {/* Dismiss Forever Link */}
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <button
+            onClick={handleDismissForever}
+            className="text-xs text-gray-500 hover:text-gray-700 hover:underline transition-colors"
           >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span className="text-xs text-[#4A4A4A]">Verified purchase</span>
+            Don't show again
+          </button>
         </div>
       </div>
     </div>

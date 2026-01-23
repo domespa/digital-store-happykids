@@ -1,55 +1,47 @@
 import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import FormattedPrice from "./FormattedPrice";
 
 export default function StickyCtaBar() {
   const landingContext = useLandingContext();
   const landingCart = useLandingCart();
   const { config } = landingContext;
   const [isVisible, setIsVisible] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Mostra solo dopo 800px
-      if (currentScrollY < 800) {
-        setIsVisible(false);
-        return;
-      }
+      // DEBUG
+      console.log("📊 Scroll Y:", currentScrollY);
 
-      // Nasconde durante scroll attivo
-      setIsScrolling(true);
-      setIsVisible(false);
-
-      // Clear timeout precedente
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-
-      // Mostra dopo 1.5 secondi di inattività scroll
-      scrollTimeoutRef.current = setTimeout(() => {
-        setIsScrolling(false);
+      // Lower threshold for easier testing: 300px instead of 800px
+      if (currentScrollY > 300) {
+        console.log("✅ Sticky bar should SHOW");
         setIsVisible(true);
-      }, 1500);
-
-      setLastScrollY(currentScrollY);
+      } else {
+        console.log("❌ Sticky bar should HIDE");
+        setIsVisible(false);
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
 
+    // Check initial scroll position
+    handleScroll();
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
     };
-  }, [lastScrollY]);
+  }, []);
 
-  if (!config || !config.stickyBar?.enabled) return null;
+  if (!config || !config.stickyBar?.enabled) {
+    console.log("⚠️ StickyBar: Config disabled or missing");
+    return null;
+  }
+
+  console.log("🎯 StickyBar render - isVisible:", isVisible);
 
   const savingsPercent = Math.round(
     ((landingCart.originalPrice - landingCart.mainPrice) /
@@ -60,41 +52,53 @@ export default function StickyCtaBar() {
   return (
     <div
       id="sticky-cta-bar"
-      className={`fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-200 z-[40] transition-all duration-300 ${
-        isVisible && !isScrolling ? "translate-y-0" : "translate-y-full"
+      className={`fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-t-2 border-gray-200 z-[40] transition-all duration-300 ${
+        isVisible ? "translate-y-0" : "translate-y-full"
       }`}
     >
-      <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-teal-500 to-cyan-500"></div>
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
 
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="hidden sm:flex w-10 h-10 bg-teal-100 rounded-lg items-center justify-center flex-shrink-0">
-              <span className="text-lg">🚀</span>
+      <div className="container mx-auto px-4 py-4 sm:py-5">
+        <div className="flex items-center justify-between gap-3 sm:gap-4">
+          {/* Left: Info */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+            {/* Icon */}
+            <div className="hidden sm:flex w-12 h-12 bg-blue-50 rounded-lg items-center justify-center flex-shrink-0 border border-blue-200">
+              <span className="text-2xl">📖</span>
             </div>
 
-            <div className="min-w-0">
-              <p className="font-semibold text-gray-900 text-sm truncate">
+            {/* Text */}
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-gray-900 text-base sm:text-lg truncate">
                 {config.stickyBar.text}
               </p>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="font-bold text-teal-600">
-                  {landingCart.formattedMainPrice}
-                </span>
-                <span className="text-gray-400 line-through hidden sm:inline">
+              <div className="flex items-center gap-2 text-sm">
+                {/* Price with FormattedPrice component */}
+                <FormattedPrice
+                  value={landingCart.formattedMainPrice}
+                  className="font-bold text-blue-600 text-base"
+                  currencyClassName="text-sm opacity-80"
+                />
+
+                {/* Original Price - strikethrough */}
+                <span className="text-gray-400 line-through hidden sm:inline text-sm">
                   {landingCart.formattedOriginalPrice}
                 </span>
-                <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
-                  {savingsPercent}% OFF
+
+                {/* Savings Badge */}
+                <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-semibold text-xs">
+                  Save {savingsPercent}%
                 </span>
               </div>
             </div>
           </div>
 
+          {/* Right: CTA Button */}
           <button
             onClick={landingCart.addMainProductToCart}
             disabled={landingCart.isLoading}
-            className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex-shrink-0"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex-shrink-0"
           >
             <span className="flex items-center gap-2">
               {landingCart.isLoading ? (
@@ -104,10 +108,8 @@ export default function StickyCtaBar() {
                 </>
               ) : (
                 <>
-                  <span className="hidden sm:inline">
-                    {config.stickyBar.ctaText}
-                  </span>
-                  <span className="sm:hidden">Add to Cart</span>
+                  <span className="hidden sm:inline">Get Protocol</span>
+                  <span className="sm:hidden">Buy Now</span>
                   <svg
                     className="w-4 h-4"
                     fill="none"
