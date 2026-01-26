@@ -400,7 +400,7 @@ export const screenDetoxConfig: LandingConfig = {
     originalPrice: 117,
     currency: "USD",
     valueStack: [
-      { item: "Complete 117-Page Protocol", value: "$197" },
+      { item: "Complete 117-Page Protocol", value: "$54" },
       { item: "50 Screen-Free Activities Guide", value: "$19" },
       { item: "Quick Reference Sheets (printable)", value: "$27" },
       { item: "Co-Parent Alignment Tools", value: "$17" },

@@ -7,7 +7,7 @@ import WhatYouGetSect from "./sections/WhatYouGetSect";
 import ParentStrugglesSection from "./sections/TestimonialSect";
 import FaqSect from "./sections/FaqSect";
 import FinalCTA from "./sections/FinalCtaSect";
-import StickyCtaBar from "./sections/StickyCtaBar";
+// import StickyCtaBar from "./sections/StickyCtaBar";
 import Footer from "./sections/Footer";
 import ActivityIndicator from "./conversion/SocialProofNotification";
 import CartSlideBar from "../cart/CartSlideBar";
@@ -65,7 +65,7 @@ const LandingPageContent = () => {
       <Footer />
 
       {/* ALWAYS VISIBLE ELEMENTS */}
-      <StickyCtaBar />
+      {/* <StickyCtaBar /> */}
       <ActivityIndicator />
     </div>
   );

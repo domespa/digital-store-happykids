@@ -28,7 +28,7 @@ export default function HeroSectV4() {
   }
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-center py-8 sm:py-12 lg:py-16 overflow-hidden bg-gradient-to-br from-gray-200 via-slate-100 to-gray-100">
+    <section className="relative min-h-screen flex flex-col justify-center py-8 sm:py-12 lg:py-16 overflow-hidden bg-[#122334]">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-mesh opacity-10"></div>
 
@@ -67,14 +67,14 @@ export default function HeroSectV4() {
           {/* RIGHT: HEADLINE + PAIN BOX */}
           <div className="space-y-4 lg:space-y-5">
             {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight text-gray-900">
+            <h1 className="text-3xl sm:text-4xl lg:text-4xl font-black leading-tight text-gray-50">
               "I Just Want My Child Back"
             </h1>
 
             {/* Subheadline */}
-            <p className="text-base sm:text-lg lg:text-xl text-gray-700 leading-relaxed font-medium">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-200 leading-relaxed font-medium">
               The Step-by-Step Protocol That Breaks Screen Addiction
-              <span className="block mt-1 text-gray-900 font-bold">
+              <span className="block mt-1 text-gray-300 font-bold">
                 Without Losing Your Sanity (Or Their Love)
               </span>
             </p>
@@ -119,6 +119,43 @@ export default function HeroSectV4() {
                 </div>
               </div>
             </div>
+            {/* Trust Cards + CTA Grid */}
+            <div className="flex justify-center">
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-6xl mx-auto m-auto">
+                {/* Trust Badge 1 */}
+                <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
+                  <span className="text-3xl block mb-1.5">🧠</span>
+                  <p className="font-bold text-gray-900 text-sm mb-0.5">
+                    Research-Backed
+                  </p>
+                  <p className="text-xs text-gray-700 font-medium">
+                    Behavioral psychology
+                  </p>
+                </div>
+
+                {/* Trust Badge 2 */}
+                <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
+                  <span className="text-3xl block mb-1.5">⚡</span>
+                  <p className="font-bold text-gray-900 text-sm mb-0.5">
+                    Battle-Tested
+                  </p>
+                  <p className="text-xs text-gray-700 font-medium">
+                    Real-world proven
+                  </p>
+                </div>
+
+                {/* Trust Badge 3 */}
+                <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
+                  <span className="text-3xl block mb-1.5">✅</span>
+                  <p className="font-bold text-gray-900 text-sm mb-0.5">
+                    Complete System
+                  </p>
+                  <p className="text-xs text-gray-700 font-medium">
+                    Zero guesswork
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -126,99 +163,21 @@ export default function HeroSectV4() {
             BOTTOM: FULL WIDTH - CARDS + CTA
         ======================================== */}
         <div className="space-y-6 lg:space-y-8">
-          {/* Trust Cards + CTA Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto">
-            {/* Trust Badge 1 */}
-            <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
-              <span className="text-3xl block mb-1.5">🧠</span>
-              <p className="font-bold text-gray-900 text-sm mb-0.5">
-                Research-Backed
-              </p>
-              <p className="text-xs text-gray-700 font-medium">
-                Behavioral psychology
-              </p>
-            </div>
-
-            {/* Trust Badge 2 */}
-            <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
-              <span className="text-3xl block mb-1.5">⚡</span>
-              <p className="font-bold text-gray-900 text-sm mb-0.5">
-                Battle-Tested
-              </p>
-              <p className="text-xs text-gray-700 font-medium">
-                Real-world proven
-              </p>
-            </div>
-
-            {/* Trust Badge 3 */}
-            <div className="bg-white px-3 py-4 rounded-lg shadow-md border border-gray-200 text-center">
-              <span className="text-3xl block mb-1.5">✅</span>
-              <p className="font-bold text-gray-900 text-sm mb-0.5">
-                Complete System
-              </p>
-              <p className="text-xs text-gray-700 font-medium">
-                Zero guesswork
-              </p>
-            </div>
-
-            {/* CTA Card */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-3 py-4 rounded-lg shadow-lg text-center flex flex-col justify-center cursor-pointer hover:scale-105 transition-transform">
-              <button
-                onClick={() => {
-                  const problemsSection = document.getElementById("problems");
-                  if (problemsSection) {
-                    problemsSection.scrollIntoView({ behavior: "smooth" });
-                  }
-                }}
-                className="w-full text-white font-bold text-base"
-              >
-                <span className="flex flex-col items-center gap-1.5">
-                  <span>See How It Works</span>
-                  <span className="text-xl">
-                    <FontAwesomeIcon icon={faArrowDown} />
-                  </span>
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Trust Line */}
-          <p className="text-xs sm:text-sm text-gray-600 text-center font-medium max-w-6xl mx-auto">
-            💪 Join parents who are taking back control
-          </p>
-
-          {/* Stats Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-5xl mx-auto">
-            {config.trustBar.stats.map((stat, i) => (
-              <div
-                key={i}
-                className="text-center bg-white rounded-lg p-3 shadow-sm border border-gray-100"
-              >
-                <div className="text-2xl mb-1">{stat.icon}</div>
-                <div className="font-black text-base sm:text-lg text-blue-600 mb-0.5">
-                  {stat.number}
-                </div>
-                <div className="text-xs text-gray-700 font-bold">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-
           {/* Trust Statement */}
           <div className="max-w-3xl mx-auto">
-            <div className="bg-white rounded-xl p-5 sm:p-6 border-2 border-gray-200 shadow-md">
+            <div className="bg-amber-500 rounded-xl p-5 sm:p-6 border-2 border-gray-200 shadow-md">
               <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-center gap-2.5">
-                  <div className="text-2xl sm:text-3xl">💪</div>
-                  <p className="text-xs font-black text-blue-600 uppercase tracking-wider">
+                  <div className="text-4xl sm:text-3xl">⚠️</div>
+                  <p className="text-xs font-black text-red-800 uppercase tracking-wider">
                     From a Parent Who's Been There
                   </p>
+                  <div className="text-4xl sm:text-3xl">⚠️</div>
                 </div>
 
                 <p className="text-sm sm:text-base text-gray-800 leading-relaxed text-center font-medium">
-                  I watched my child turn into a stranger. Glassy eyes.
-                  Tantrums. No interest in anything real. I tried limits,
+                  I watched my child turn into a stranger. <b>Glassy eyes</b>.{" "}
+                  <b>Tantrums</b>. No interest in anything real. I tried limits,
                   rewards, negotiations...
                   <span className="font-black text-gray-900">
                     {" "}
@@ -236,7 +195,7 @@ export default function HeroSectV4() {
                   30 days later, I had my child back.
                 </p>
 
-                <div className="pt-3 border-t-2 border-gray-200">
+                <div className="pt-3 border-t-2 border-black">
                   <p className="text-xs sm:text-sm text-gray-700 italic text-center font-medium">
                     This guide is everything I learned the hard way, so you
                     don't have to.
@@ -244,6 +203,24 @@ export default function HeroSectV4() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Stats Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-5xl mx-auto">
+            {config.trustBar.stats.map((stat, i) => (
+              <div
+                key={i}
+                className="text-center bg-white rounded-lg p-3 shadow-sm border border-gray-100"
+              >
+                <div className="text-2xl mb-1">{stat.icon}</div>
+                <div className="font-black text-base sm:text-lg text-blue-600 mb-0.5">
+                  {stat.number}
+                </div>
+                <div className="text-xs text-gray-700 font-bold">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

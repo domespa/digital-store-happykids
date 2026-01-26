@@ -48,7 +48,7 @@ export default function WhatYouGetSect() {
             {contentPreview.subtitle}
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base text-gray-700">
+          {/* <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base text-gray-700">
             <div className="flex items-center gap-2">
               <span className="font-bold text-xl sm:text-2xl text-blue-600">
                 {contentPreview.totalPages}
@@ -64,7 +64,7 @@ export default function WhatYouGetSect() {
             </div>
             <span className="text-gray-400">•</span>
             <span className="font-semibold">30-Day System</span>
-          </div>
+          </div> */}
         </div>
 
         {/* Chapter Breakdown - Compact */}
