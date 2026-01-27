@@ -7,7 +7,6 @@ import Globe from "react-globe.gl";
 import { useEffect, useRef, useState } from "react";
 import { useUserHistory } from "../../hooks/useUserHistory";
 import type { OnlineUser } from "../../types/admin";
-import { useLandingAnalyticsSessions } from "../../hooks/useLandingAnalyticsSessions";
 import { landingAnalytics } from "../../services/adminApi";
 import { SessionDetailModal } from "../../components/admin/SessionDetailModal";
 
