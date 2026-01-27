@@ -233,7 +233,7 @@ export const screenDetoxConfig: LandingConfig = {
         title: "Quick Reference Guide",
         description:
           "One-page cheat sheet for your fridge. When you're in survival mode at 3 PM on Day 2, you won't flip through 117 pages. You'll grab this.",
-        value: 27,
+        value: 17,
         icon: "file-text",
       },
       {
@@ -241,7 +241,7 @@ export const screenDetoxConfig: LandingConfig = {
         title: "50 Screen-Free Activities",
         description:
           "What to actually DO with your child when they say 'I'm bored' for the 47th time today. Categorized by age, energy level, and 'how desperate you are.'",
-        value: 19,
+        value: 13,
         icon: "palette",
       },
       {
@@ -249,7 +249,7 @@ export const screenDetoxConfig: LandingConfig = {
         title: "Word-for-Word Scripts",
         description:
           "Exactly what to say when: they beg, they cry, they threaten, they manipulate. Copy-paste responses so you don't have to think.",
-        value: 17,
+        value: 11,
         icon: "message-square",
       },
     ],
@@ -400,12 +400,12 @@ export const screenDetoxConfig: LandingConfig = {
     originalPrice: 117,
     currency: "USD",
     valueStack: [
-      { item: "Complete 117-Page Protocol", value: "$54" },
-      { item: "50 Screen-Free Activities Guide", value: "$19" },
-      { item: "Quick Reference Sheets (printable)", value: "$27" },
-      { item: "Co-Parent Alignment Tools", value: "$17" },
-      { item: "Word-for-Word Crisis Scripts", value: "$17" },
-      { item: "Troubleshooting for 15 Scenarios", value: "$29" },
+      { item: "Complete 117-Page Protocol", value: "$27" },
+      { item: "50 Screen-Free Activities Guide", value: "$11" },
+      { item: "Quick Reference Sheets (printable)", value: "$13" },
+      { item: "Co-Parent Alignment Tools", value: "$12" },
+      { item: "Word-for-Word Crisis Scripts", value: "$11" },
+      { item: "Troubleshooting for 15 Scenarios", value: "$14" },
       { item: "3 Real Parent Success Stories", value: "Priceless" },
     ],
     included: [

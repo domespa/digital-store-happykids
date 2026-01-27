@@ -9,7 +9,7 @@ import FaqSect from "./sections/FaqSect";
 import FinalCTA from "./sections/FinalCtaSect";
 // import StickyCtaBar from "./sections/StickyCtaBar";
 import Footer from "./sections/Footer";
-import ActivityIndicator from "./conversion/SocialProofNotification";
+// import ActivityIndicator from "./conversion/SocialProofNotification";
 import CartSlideBar from "../cart/CartSlideBar";
 import CartIcon from "../cart/CartIcon";
 import CookieBanner from "../CookieBanner";
@@ -64,9 +64,8 @@ const LandingPageContent = () => {
       {/* 8. FOOTER */}
       <Footer />
 
-      {/* ALWAYS VISIBLE ELEMENTS */}
       {/* <StickyCtaBar /> */}
-      <ActivityIndicator />
+      {/* <ActivityIndicator /> */}
     </div>
   );
 };
