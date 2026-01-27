@@ -15,21 +15,21 @@ export const screenDetoxConfig: LandingConfig = {
 
   trustBar: {
     stats: [
-      { number: "30", label: "Day Protocol", icon: "📅" },
-      { number: "117", label: "Pages", icon: "📖" },
-      { number: "50+", label: "Tools & Scripts", icon: "🛠️" },
-      { number: "100%", label: "Actionable", icon: "💪" },
+      { number: "30", label: "Day Protocol", icon: "calendar" },
+      { number: "117", label: "Pages", icon: "book-open" },
+      { number: "50+", label: "Tools & Scripts", icon: "wrench" },
+      { number: "100%", label: "Actionable", icon: "target" },
     ],
     trustedBy:
       "Built by a parent who lived through the chaos and figured out what actually works",
   },
 
   urgency: {
-    enabled: false, // DISABLED - no fake urgency
+    enabled: false,
     endDate: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
     message: "",
     urgencyText: "",
-    showStock: false, // DISABLED - no fake stock
+    showStock: false,
     stockRemaining: 0,
   },
 
@@ -42,7 +42,7 @@ export const screenDetoxConfig: LandingConfig = {
     problems: [
       {
         id: "zombie-mode",
-        icon: "🧟",
+        icon: "eye-off",
         title: "The Zombie Mode",
         description:
           "Your vibrant, curious child turns into a glassy-eyed stranger the moment a screen is on.",
@@ -55,7 +55,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "the-battles",
-        icon: "⚔️",
+        icon: "swords",
         title: "The Endless Battles",
         description:
           "Every single day, the begging, the bargaining, the screaming. You're exhausted.",
@@ -68,7 +68,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "everything-failed",
-        icon: "❌",
+        icon: "x-circle",
         title: "Everything You Tried Failed",
         description:
           "Screen time limits. Parental controls. Reward charts. None of it worked.",
@@ -81,7 +81,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "the-guilt",
-        icon: "💔",
+        icon: "heart-crack",
         title: "The Crushing Guilt",
         description:
           "You know, deep down, this isn't entirely your fault. You were just trying to survive.",
@@ -94,7 +94,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "the-fear",
-        icon: "😨",
+        icon: "alert-triangle",
         title: "The Terrifying Future",
         description:
           "You're scared of what could happen if this keeps up. The habits are already forming, and every day makes it harder to fix",
@@ -180,7 +180,7 @@ export const screenDetoxConfig: LandingConfig = {
     features: [
       {
         id: "realistic",
-        icon: "💪",
+        icon: "shield-check",
         title: "Brutally Realistic",
         description:
           "No toxic positivity. No 'just set boundaries!' advice. This is written for parents in the trenches.",
@@ -192,7 +192,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "step-by-step",
-        icon: "📋",
+        icon: "list-checks",
         title: "Day-by-Day Roadmap",
         description:
           "You don't need to think. Just follow the protocol for your specific day.",
@@ -204,7 +204,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "troubleshooting",
-        icon: "🔥",
+        icon: "fire-extinguisher",
         title: "Crisis Management",
         description:
           "For when your child finds the hidden iPad on Day 3 at 11 PM. (It happens.)",
@@ -216,7 +216,7 @@ export const screenDetoxConfig: LandingConfig = {
       },
       {
         id: "family-tools",
-        icon: "👨‍👩‍👧‍👦",
+        icon: "users",
         title: "Family Alignment Tools",
         description:
           "Get everyone on the same page—or this will fail on Day 2.",
@@ -234,7 +234,7 @@ export const screenDetoxConfig: LandingConfig = {
         description:
           "One-page cheat sheet for your fridge. When you're in survival mode at 3 PM on Day 2, you won't flip through 117 pages. You'll grab this.",
         value: 27,
-        icon: "📄",
+        icon: "file-text",
       },
       {
         id: "activities",
@@ -242,7 +242,7 @@ export const screenDetoxConfig: LandingConfig = {
         description:
           "What to actually DO with your child when they say 'I'm bored' for the 47th time today. Categorized by age, energy level, and 'how desperate you are.'",
         value: 19,
-        icon: "🎨",
+        icon: "palette",
       },
       {
         id: "scripts",
@@ -250,7 +250,7 @@ export const screenDetoxConfig: LandingConfig = {
         description:
           "Exactly what to say when: they beg, they cry, they threaten, they manipulate. Copy-paste responses so you don't have to think.",
         value: 17,
-        icon: "💬",
+        icon: "message-square",
       },
     ],
   },
@@ -417,17 +417,17 @@ export const screenDetoxConfig: LandingConfig = {
     ],
     highlights: [
       {
-        icon: "⚡",
+        icon: "zap",
         title: "Instant Download",
         description: "Start TODAY—your child doesn't get worse while you wait",
       },
       {
-        icon: "🔒",
+        icon: "lock",
         title: "One-Time Payment",
         description: "No subscription. No upsells. Just the complete protocol.",
       },
       {
-        icon: "✅",
+        icon: "check-circle",
         title: "Complete System",
         description:
           "Battle-tested protocol with everything you need to succeed",
@@ -439,7 +439,7 @@ export const screenDetoxConfig: LandingConfig = {
       "No questions asked, no hassle—just email us",
     ],
     urgency: {
-      enabled: false, // DISABLED - no fake urgency
+      enabled: false,
       message: "",
       countdown: false,
     },
@@ -464,7 +464,7 @@ export const screenDetoxConfig: LandingConfig = {
     enabled: true,
     text: "Get Your Child Back",
     ctaText: "Start Protocol Now - $27",
-    showTimer: false, // DISABLED - no fake countdown
+    showTimer: false,
   },
 
   settings: {
@@ -480,7 +480,7 @@ export const screenDetoxConfig: LandingConfig = {
       success: "#10b981",
       error: "#ef4444",
     },
-    showCountdown: false, // DISABLED - no fake countdown
+    showCountdown: false,
     countdownEnd: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
     currency: "USD",
   },

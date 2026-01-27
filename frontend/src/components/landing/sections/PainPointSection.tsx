@@ -1,11 +1,25 @@
 import { useLandingContext } from "../../../context/LandingContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeartCrack } from "@fortawesome/free-solid-svg-icons";
+import {
+  EyeOff,
+  Swords,
+  XCircle,
+  HeartCrack,
+  AlertTriangle,
+} from "lucide-react";
 
 export default function PainPointSection() {
   const { config } = useLandingContext();
 
   if (!config) return null;
+
+  // Mapping delle icone
+  const iconMap: Record<string, React.ComponentType<any>> = {
+    "eye-off": EyeOff,
+    swords: Swords,
+    "x-circle": XCircle,
+    "heart-crack": HeartCrack,
+    "alert-triangle": AlertTriangle,
+  };
 
   return (
     <section className="py-12 lg:py-16 bg-gradient-to-br from-gray-200 via-slate-100 to-gray-100 relative overflow-hidden">
@@ -19,9 +33,7 @@ export default function PainPointSection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 lg:mb-12">
           <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-2 rounded-full text-base font-bold text-red-600 mb-5">
-            <span>
-              <FontAwesomeIcon icon={faHeartCrack} />
-            </span>
+            <HeartCrack className="w-5 h-5" />
             <span>The Reality Check</span>
           </div>
 
@@ -49,41 +61,52 @@ export default function PainPointSection() {
             </h3>
 
             <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
-              {config.problems.problems.map((problem) => (
-                <div
-                  key={problem.id}
-                  className="bg-white rounded-xl border-2 border-gray-200 hover:border-red-400 shadow-sm hover:shadow-md transition-all p-5 sm:p-6"
-                >
-                  {/* Problem Header */}
-                  <div className="flex items-start gap-3 sm:gap-4 mb-4">
-                    <span className="text-3xl sm:text-4xl flex-shrink-0">
-                      {problem.icon}
-                    </span>
-                    <div className="flex-1">
-                      <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 leading-tight">
-                        {problem.title}
-                      </h4>
-                      <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                        {problem.description}
-                      </p>
-                    </div>
-                  </div>
+              {config.problems.problems.map((problem) => {
+                const Icon = iconMap[problem.icon];
 
-                  {/* Pain Points List */}
-                  <div className="pl-10 sm:pl-12 space-y-2">
-                    {problem.painPoints.map((point, idx) => (
-                      <div key={idx} className="flex items-start gap-2.5">
-                        <span className="text-red-500 font-black mt-0.5 flex-shrink-0 text-base">
-                          ✗
-                        </span>
-                        <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">
-                          {point}
+                return (
+                  <div
+                    key={problem.id}
+                    className="group bg-white rounded-xl border-2 border-gray-200 hover:border-red-400 shadow-sm hover:shadow-md transition-all p-5 sm:p-6"
+                  >
+                    {/* Problem Header */}
+                    <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                      {/* Icon Circle con Lucide */}
+                      <div className="flex-shrink-0 w-14 h-14 bg-red-100 rounded-full flex items-center justify-center group-hover:bg-red-500 transition-colors">
+                        {Icon && (
+                          <Icon
+                            className="w-7 h-7 text-red-600 group-hover:text-white transition-colors"
+                            strokeWidth={2.5}
+                          />
+                        )}
+                      </div>
+
+                      <div className="flex-1">
+                        <h4 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 leading-tight">
+                          {problem.title}
+                        </h4>
+                        <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                          {problem.description}
                         </p>
                       </div>
-                    ))}
+                    </div>
+
+                    {/* Pain Points List */}
+                    <div className="pl-10 sm:pl-12 space-y-2">
+                      {problem.painPoints.map((point, idx) => (
+                        <div key={idx} className="flex items-start gap-2.5">
+                          <span className="text-red-500 font-black mt-0.5 flex-shrink-0 text-base">
+                            ✗
+                          </span>
+                          <p className="text-xs sm:text-sm text-gray-700 leading-relaxed font-medium">
+                            {point}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

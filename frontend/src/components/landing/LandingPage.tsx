@@ -1,6 +1,6 @@
 import { LandingProvider } from "../../context/LandingContext";
 import type { LandingPageProps } from "../../types/landing";
-import HeroSectV4 from "./sections/HeroSect";
+import HeroSect from "./sections/HeroSect";
 import PainPointSection from "./sections/PainPointSection";
 import EmotionalCTA from "./sections/EmotionalCtaSect";
 import WhatYouGetSect from "./sections/WhatYouGetSect";
@@ -41,7 +41,7 @@ const LandingPageContent = () => {
   return (
     <div className="landing-page">
       {/* 1. HERO - Hook emotivo */}
-      <HeroSectV4 />
+      <HeroSect />
 
       {/* 2. PAIN POINTS - Agitazione problema */}
       <PainPointSection />
