@@ -140,7 +140,6 @@ export default function DashboardPageV2() {
   const { onlineUsers } = useRealTimeUsers();
   const dashboard = useCompleteDashboard();
   const { history: userHistory, loading: historyLoading } = useUserHistory(20);
-  const landingSessions = useLandingAnalyticsSessions(20, 7);
   const [selectedSession, setSelectedSession] = useState<any>(null);
 
   // ========== GLOBE STATE ==========
