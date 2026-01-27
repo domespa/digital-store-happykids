@@ -123,7 +123,7 @@ export default function ParentStrugglesSection() {
           </p>
         </div>
 
-        {/* Struggles Grid - CON ANIMAZIONI */}
+        {/* Struggles Grid  */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-10 lg:mb-12">
           {struggles.map((struggle, index) => {
             const Icon = struggle.icon;
@@ -163,7 +163,7 @@ export default function ParentStrugglesSection() {
           })}
         </div>
 
-        {/* Recognition + Hope Box - MIGLIORATO */}
+        {/* Recognition + Hope Box */}
         <div className="max-w-3xl mx-auto">
           <div className="bg-gradient-to-r from-red-50 via-orange-50 to-green-50 rounded-xl p-6 sm:p-8 border-2 border-red-200 shadow-lg">
             <div className="text-center space-y-4">
@@ -201,7 +201,7 @@ export default function ParentStrugglesSection() {
           </div>
         </div>
 
-        {/* Bottom Stats - CON LUCIDE ICONS */}
+        {/* Bottom Stats */}
         <div className="mt-10 lg:mt-12 grid grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto">
           {stats.map((stat, index) => {
             const Icon = stat.Icon;
