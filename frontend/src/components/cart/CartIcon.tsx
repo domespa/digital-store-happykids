@@ -2,6 +2,7 @@ import { useCart } from "../../hooks/useCart";
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCartShopping } from "@fortawesome/free-solid-svg-icons";
+import { useLandingAnalytics } from "../../hooks/useLandingAnalytics";
 
 interface CartIcon {
   className?: string;
@@ -10,6 +11,7 @@ interface CartIcon {
 export default function CartIcon({ className = "" }: CartIcon) {
   const { cart, toggleCart, getItemsCount } = useCart();
   const [bottomPosition, setBottomPosition] = useState(20);
+  const { trackCtaClick } = useLandingAnalytics();
 
   useEffect(() => {
     const updatePosition = () => {
@@ -47,7 +49,10 @@ export default function CartIcon({ className = "" }: CartIcon) {
 
   return (
     <button
-      onClick={toggleCart}
+      onClick={() => {
+        trackCtaClick("cart_icon_open", { itemsCount });
+        toggleCart();
+      }}
       className={`fixed right-4 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 p-3 z-[35] ${className}`}
       style={{ bottom: `${bottomPosition}px` }}
       aria-label={`Carrello con ${itemsCount} elementi`}

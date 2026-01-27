@@ -799,6 +799,68 @@ export const adminAnalytics = {
   },
 };
 
+// LANDING ANALYTICS
+export const landingAnalytics = {
+  getSessions: async (
+    filters: {
+      limit?: number;
+      days?: number;
+    } = {},
+  ): Promise<{
+    success: boolean;
+    sessions: Array<{
+      id: string;
+      session_id: string;
+      visitor_id: string | null;
+      started_at: string;
+      ended_at: string | null;
+      duration: number | null;
+      page_views: number;
+      max_scroll_depth: number;
+      cta_clicks: number;
+      sections_viewed: string[];
+      converted: boolean;
+      conversion_type: string | null;
+      conversion_value: number | null;
+      device_type: string | null;
+      browser: string | null;
+      os: string | null;
+      country: string | null;
+      city: string | null;
+      utm_source: string | null;
+      utm_medium: string | null;
+      utm_campaign: string | null;
+    }>;
+  }> => {
+    const params = new URLSearchParams();
+    if (filters.limit) params.append("limit", filters.limit.toString());
+    if (filters.days) params.append("days", filters.days.toString());
+
+    const response = await adminApiInstance.get(
+      `/landing-analytics/sessions?${params.toString()}`,
+    );
+    return response.data;
+  },
+
+  getSessionEvents: async (
+    sessionId: string,
+  ): Promise<{
+    success: boolean;
+    events: Array<{
+      id: string;
+      event_type: string;
+      event_name: string | null;
+      event_data: any;
+      timestamp: string;
+    }>;
+  }> => {
+    const response = await adminApiInstance.get(
+      `/landing-analytics/sessions/${sessionId}/events`,
+    );
+    return response.data;
+  },
+};
+
 // ========================
 //   UTILITY FUNCTIONS
 // ========================
@@ -858,6 +920,7 @@ export const adminApi = {
     );
     return response.data;
   },
+  landingAnalytics,
 };
 
 export default adminApi;

@@ -1,11 +1,10 @@
-console.log("🔥 SERVER.TS STARTED - Before imports");
-
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 import { createServer } from "http";
 import { prisma } from "./utils/prisma";
+import landingAnalyticsRoutes from "./routes/landingAnalytics";
 
 // IMPORT SECURITY
 import {
@@ -247,6 +246,9 @@ app.use("/api/reviews", reviewRateLimit.globalLimit, reviewRoutes);
 
 // RICERCA (PUBBLICO + AUTENTICATO)
 app.use("/api/search", searchRoutes);
+
+// LANDINGANALITICS
+app.use("/api/landing-analytics", landingAnalyticsRoutes);
 
 //=====================================================
 // =============== NOTIFICHE (WEBSOCKET) ==============

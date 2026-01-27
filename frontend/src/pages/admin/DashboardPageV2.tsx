@@ -7,6 +7,9 @@ import Globe from "react-globe.gl";
 import { useEffect, useRef, useState } from "react";
 import { useUserHistory } from "../../hooks/useUserHistory";
 import type { OnlineUser } from "../../types/admin";
+import { useLandingAnalyticsSessions } from "../../hooks/useLandingAnalyticsSessions";
+import { landingAnalytics } from "../../services/adminApi";
+import { SessionDetailModal } from "../../components/admin/SessionDetailModal";
 
 // ============================================
 //   CONSTANTS
@@ -137,6 +140,8 @@ export default function DashboardPageV2() {
   const { onlineUsers } = useRealTimeUsers();
   const dashboard = useCompleteDashboard();
   const { history: userHistory, loading: historyLoading } = useUserHistory(20);
+  const landingSessions = useLandingAnalyticsSessions(20, 7);
+  const [selectedSession, setSelectedSession] = useState<any>(null);
 
   // ========== GLOBE STATE ==========
   const globeEl = useRef<any>(null);
@@ -326,7 +331,40 @@ export default function DashboardPageV2() {
                 return (
                   <div
                     key={entry.id}
-                    className="p-2 sm:p-3 bg-gray-50 dark:bg-slate-700 rounded-lg space-y-1.5"
+                    onClick={() => {
+                      landingAnalytics
+                        .getSessions({ limit: 100, days: 30 })
+                        .then((res) => {
+                          // Prima prova con visitor_id se esiste
+                          let session = res.sessions.find(
+                            (s) =>
+                              s.visitor_id && entry.id.includes(s.visitor_id),
+                          );
+
+                          // Se non trova, prova con timestamp
+                          if (!session) {
+                            const entryTime = new Date(
+                              entry.timestamp,
+                            ).getTime();
+                            session = res.sessions.find((s) => {
+                              const sessionTime = new Date(
+                                s.started_at,
+                              ).getTime();
+                              const diff = Math.abs(entryTime - sessionTime);
+                              return diff < 300000; // 5 minuti
+                            });
+                          }
+
+                          if (session) {
+                            setSelectedSession(session);
+                          } else {
+                            alert(
+                              "Nessuna sessione analytics trovata per questo visitatore",
+                            );
+                          }
+                        });
+                    }}
+                    className="p-2 sm:p-3 bg-gray-50 dark:bg-slate-700 rounded-lg space-y-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                   >
                     {/* Header: Visitatore + Location */}
                     <div className="flex items-center justify-between">
@@ -543,6 +581,15 @@ export default function DashboardPageV2() {
           </div>
         )}
       </Card>
+      {/* Modal */}
+      {selectedSession && (
+        <div className="relative z-[9999]">
+          <SessionDetailModal
+            session={selectedSession}
+            onClose={() => setSelectedSession(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
   trackPurchase,
 } from "../../utils/analytics";
 import WorkbookPreviewModal from "../landing/WorkbookPreviewModal";
+import { useLandingAnalytics } from "../../hooks/useLandingAnalytics";
 
 interface CartSlideBar {
   className?: string;
@@ -99,6 +100,8 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
     name: string;
     images: string[];
   } | null>(null);
+
+  const { trackCtaClick } = useLandingAnalytics();
 
   useEffect(() => {
     const handlePayPalReturn = async () => {
@@ -428,16 +431,38 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
 
     trackBeginCheckout(itemsToTrack, calculateTotal(), cart.displayCurrency);
 
+    trackCtaClick("checkout_button", {
+      total: calculateTotal(),
+      itemsCount: cart.items.length,
+    });
+
     clearError();
     setCheckoutStep("form");
   };
 
   const updateFormData = (field: keyof CheckoutForm, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
 
+    if (field === "customerEmail") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(value) && !formData.customerEmail.includes("@")) {
+        trackCtaClick("email_entered", { hasEmail: true });
+      }
+    }
+    if (field === "paymentProvider") {
+      trackCtaClick("payment_method_selected", { provider: value });
+    }
+    if (field === "acceptRefundPolicy" && value === "true") {
+      trackCtaClick("refund_policy_accepted", { accepted: true });
+    }
+  };
   const processCheckout = async () => {
     try {
+      trackCtaClick("continue_payment_button", {
+        paymentProvider: formData.paymentProvider,
+        total: calculateTotal(),
+      });
+
       const hasBundle = cart.items.some(
         (item) => item.productId === WORKBOOKS_BUNDLE_ID,
       );

@@ -3,16 +3,19 @@ import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import FormattedPrice from "./FormattedPrice";
+import { useLandingAnalytics } from "../../../hooks/useLandingAnalytics";
 
 export default function EmotionalCTA() {
   const { config } = useLandingContext();
   const landingCart = useLandingCart();
+  const { trackCtaClick } = useLandingAnalytics();
 
   if (!config) return null;
 
   return (
     <section
       id="emotional-cta"
+      data-section-name="emotional_cta"
       className="py-12 lg:py-16 bg-gradient-to-br from-gray-200 via-slate-100 to-gray-100 relative overflow-hidden"
     >
       {/* Background */}
@@ -132,7 +135,10 @@ export default function EmotionalCTA() {
           {/* CTA Button - URGENT */}
           <button
             data-cta="emotional-cta"
-            onClick={landingCart.addMainProductToCart}
+            onClick={() => {
+              trackCtaClick("emotional_cta", { location: "emotional_section" });
+              landingCart.addMainProductToCart();
+            }}
             disabled={landingCart.isLoading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl text-base sm:text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-5"
           >
