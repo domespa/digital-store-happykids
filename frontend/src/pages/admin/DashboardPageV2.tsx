@@ -266,22 +266,10 @@ export default function DashboardPageV2() {
 
   // ========== RENDER ==========
   return (
-    <div className="space-y-6 bg-stone-50 dark:bg-slate-900 min-h-screen">
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Dashboard
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Overview of your business performance
-          </p>
-        </div>
-      </div>
-
+    <div className="space-y-6 bg-gray-100 dark:bg-slate-900 min-h-screen">
       {/* GLOBE + USERS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
+        <Card className="p-4 shadow-2xl shadow-black/10">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
             <span>🌍</span>
             <span>Live User Locations</span>
@@ -307,7 +295,7 @@ export default function DashboardPageV2() {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 shadow-2xl shadow-black/10">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
             <span>👥</span>
             <span>User History</span>
@@ -362,7 +350,7 @@ export default function DashboardPageV2() {
                           }
                         });
                     }}
-                    className="p-2 sm:p-3 bg-gray-50 dark:bg-slate-700 rounded-lg space-y-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
+                    className="p-2 sm:p-3 border border-black/10 dark:bg-slate-700 rounded-lg space-y-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                   >
                     {/* Header: Visitatore + Location */}
                     <div className="flex items-center justify-between">
@@ -375,7 +363,7 @@ export default function DashboardPageV2() {
                           }`}
                         />
                         <p className="text-xs sm:text-sm font-medium truncate">
-                          <span className="text-gray-500 dark:text-gray-400">
+                          <span className=" dark:text-gray-400">
                             Visitatore nr {visitorNumber}
                           </span>
                           <span className="mx-1.5">•</span>
@@ -384,8 +372,8 @@ export default function DashboardPageV2() {
                               <span className="font-semibold">
                                 {entry.city}
                               </span>
-                              <span className="text-gray-400 mx-1">•</span>
-                              <span className="text-gray-600 dark:text-gray-400">
+                              <span className="mx-1">•</span>
+                              <span className=" dark:text-gray-400">
                                 {entry.country}
                               </span>
                             </>
@@ -468,7 +456,7 @@ export default function DashboardPageV2() {
       </div>
 
       {/* STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
         <StatCard
           title="Total Revenue"
           value={formatPrice(dashboard.summary.totalRevenue)}
@@ -516,7 +504,7 @@ export default function DashboardPageV2() {
       />
 
       {/* RECENT ORDERS */}
-      <Card className="p-6">
+      <Card className="p-6 shadow-2xl shadow-black/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <span>🔔</span>

@@ -28,7 +28,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     const savedTheme = localStorage.getItem("theme") as Theme;
     console.log(
       "🎬 ThemeProvider inizializzato con tema:",
-      savedTheme || "light"
+      savedTheme || "light",
     );
     return savedTheme || "light";
   });
@@ -36,28 +36,19 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // 3.2 USIAMO USEFFECT PER AGGIORNARE IL CODICE QUANDO THEME CAMBIA
   useEffect(() => {
     const root = window.document.documentElement;
-
-    console.log("🎨 Tema corrente:", theme);
-    console.log("📋 PRIMA:", root.className);
-
-    // CANCELLA TUTTO e aggiungi solo il tema
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-
-    console.log("📋 DOPO:", root.className);
+    root.className = theme;
 
     localStorage.setItem("theme", theme);
-    console.log("---");
+
+    console.log("✅ Tema:", theme);
+    console.log("✅ HTML:", root.className);
   }, [theme]);
 
   // 3.3 FUNZIONE PER CAMBIARE TEMA
   const toggleTheme = () => {
     console.log(
       "🔄 toggleTheme chiamata! Tema attuale PRIMA del toggle:",
-      theme
+      theme,
     );
 
     setTheme((prevTheme) => {

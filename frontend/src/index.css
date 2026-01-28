@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   html {
@@ -6,7 +8,9 @@
   }
 
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply antialiased;
+    @apply bg-white dark:bg-slate-900;
+    @apply text-gray-900 dark:text-gray-100;
   }
 }
 
@@ -87,6 +91,16 @@
   }
 }
 
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
 /* ========================================
    UTILITY CLASSES 
 ======================================== */
@@ -101,6 +115,10 @@
 
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   .animate-shimmer {
@@ -127,11 +145,8 @@
   }
 
   .bg-gradient-mesh {
-    background: radial-gradient(
-        at 20% 30%,
-        rgb(59 130 246 / 0.15) 0px,
-        transparent 50%
-      ),
+    background:
+      radial-gradient(at 20% 30%, rgb(59 130 246 / 0.15) 0px, transparent 50%),
       radial-gradient(at 80% 70%, rgb(16 185 129 / 0.15) 0px, transparent 50%),
       radial-gradient(at 40% 80%, rgb(245 158 11 / 0.1) 0px, transparent 50%);
   }
@@ -255,18 +270,4 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
-}
-
-@keyframes pulse-slow {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.9;
-  }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

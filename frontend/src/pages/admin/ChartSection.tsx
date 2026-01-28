@@ -21,7 +21,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 interface ChartDataPoint {
@@ -60,7 +60,7 @@ export function ChartsSection({
         const daysInMonth = new Date(
           now.getFullYear(),
           now.getMonth() + 1,
-          0
+          0,
         ).getDate();
         return Array.from({ length: daysInMonth }, (_, i) => `${i + 1}`);
 
@@ -371,7 +371,7 @@ export function ChartsSection({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Orders Chart Skeleton */}
         <Card>
-          <div className="h-[400px]">
+          <div className="h-[400px] shadow-2xl shadow-black/10">
             {/* Skeleton Header - esattamente come il vero header */}
             <div className="mb-4 flex items-center">
               <div className="w-6 h-6 bg-gray-300 dark:bg-gray-700 rounded mr-2 animate-pulse"></div>
@@ -389,7 +389,7 @@ export function ChartsSection({
 
         {/* Revenue Chart Skeleton */}
         <Card>
-          <div className="h-[400px]">
+          <div className="h-[400px] shadow-2xl shadow-black/10">
             {/* Skeleton Header */}
             <div className="mb-4 flex items-center">
               <div className="w-6 h-6 bg-gray-300 dark:bg-gray-700 rounded mr-2 animate-pulse"></div>
@@ -490,7 +490,7 @@ export function ChartsSection({
 //              HOOK API
 // =================================
 export function useChartsData(
-  period: "today" | "week" | "month" | "year" | "total"
+  period: "today" | "week" | "month" | "year" | "total",
 ) {
   const [data, setData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
@@ -513,7 +513,7 @@ export function useChartsData(
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (!response.ok) {

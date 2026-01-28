@@ -1,41 +1,27 @@
 import { useTheme } from "../../context/ThemeContext";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
-// 1 DEIFIAMO LE PROPS
-type ThemeToggleProps = {
-  className?: string;
-};
-
-export function ThemeToggle({ className = "" }: ThemeToggleProps) {
-  // PRENDIAMO L'HELPER
+export function ThemeToggle({ className = "" }: { className?: string }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <button
-      onClick={toggleTheme}
-      className={`
-        relative
-        transition-all 
-        duration-300
-        hover:scale-110
-        
-        ${theme === "light" ? " hover:bg-gray-50" : " hover:bg-slate-700"}
-        
-        ${className}
-      `}
-      aria-label={`Passa al tema ${theme === "light" ? "scuro" : "chiaro"}`}
-      title={`Passa al tema ${theme === "light" ? "scuro" : "chiaro"}`}
-    >
-      <span
-        className={`
-          text-lg
-          transition-transform 
-          duration-300
-          inline-block
-          ${theme === "light" ? "rotate-0" : "rotate-180"}
-        `}
+    <div className={`flex items-center gap-2 ${className}`}>
+      <SunIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+
+      <button
+        onClick={toggleTheme}
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+          theme === "dark" ? "bg-blue-600" : "bg-gray-300"
+        }`}
       >
-        {theme === "light" ? "🌙" : "☀️"}
-      </span>
-    </button>
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
+            theme === "dark" ? "translate-x-6" : "translate-x-1"
+          }`}
+        />
+      </button>
+
+      <MoonIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+    </div>
   );
 }
