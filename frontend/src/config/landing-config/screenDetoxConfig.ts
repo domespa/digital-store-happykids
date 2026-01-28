@@ -400,12 +400,12 @@ export const screenDetoxConfig: LandingConfig = {
     originalPrice: 117,
     currency: "USD",
     valueStack: [
-      { item: "Complete 117-Page Protocol", value: "$27" },
-      { item: "50 Screen-Free Activities Guide", value: "$11" },
-      { item: "Quick Reference Sheets (printable)", value: "$13" },
-      { item: "Co-Parent Alignment Tools", value: "$12" },
-      { item: "Word-for-Word Crisis Scripts", value: "$11" },
-      { item: "Troubleshooting for 15 Scenarios", value: "$14" },
+      { item: "Complete 117-Page Protocol", value: "$47" },
+      { item: "50 Screen-Free Activities Guide", value: "$18" },
+      { item: "Quick Reference Sheets (printable)", value: "$15" },
+      { item: "Co-Parent Alignment Tools", value: "$17" },
+      { item: "Word-for-Word Crisis Scripts", value: "$14" },
+      { item: "Troubleshooting for 15 Scenarios", value: "$19" },
       { item: "3 Real Parent Success Stories", value: "Priceless" },
     ],
     included: [
