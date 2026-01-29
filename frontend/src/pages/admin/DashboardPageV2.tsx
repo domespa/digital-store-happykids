@@ -200,11 +200,15 @@ export default function DashboardPageV2() {
 
   // ========== ORDINAMENTO FINALE ==========
   const combinedUsersSorted = deduplicateBySessionId(
-    [...combinedUsersWithoutAdmin].sort((a, b) => {
-      if (a.isOnline && !b.isOnline) return -1;
-      if (!a.isOnline && b.isOnline) return 1;
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    }),
+    [...combinedUsersWithoutAdmin]
+      .filter((user) => user.city !== "Catania")
+      .sort((a, b) => {
+        if (a.isOnline && !b.isOnline) return -1;
+        if (!a.isOnline && b.isOnline) return 1;
+        return (
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      }),
   );
 
   // ========== GLOBE DATA ==========
