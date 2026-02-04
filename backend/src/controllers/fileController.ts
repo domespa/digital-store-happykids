@@ -27,7 +27,7 @@ export class FileController {
       req.file.path,
       req.file.originalname,
       sanitizedFolder,
-      req.user?.id
+      req.user?.id,
     );
 
     res.json({
@@ -81,7 +81,7 @@ export class FileController {
       if (totalAfterUpload > 10) {
         throw new CustomError(
           `Maximum 10 images per product. Current: ${existingImagesCount}, trying to add: ${req.files.length}`,
-          400
+          400,
         );
       }
 
@@ -89,7 +89,7 @@ export class FileController {
       const createdImages = await uploadService.uploadProductGallery(
         req.files,
         productId,
-        req.user?.id
+        req.user?.id,
       );
 
       let productImages = await prisma.productImage.findMany({
@@ -119,7 +119,7 @@ export class FileController {
           totalImages: productImages.length,
         },
       });
-    }
+    },
   );
   // UPLOAD FILE DIGITALE
   // POST /api/files/upload/digital
@@ -142,7 +142,7 @@ export class FileController {
       req.file.path,
       req.file.originalname,
       sanitizedFolder,
-      req.user?.id
+      req.user?.id,
     );
 
     res.json({
@@ -152,152 +152,6 @@ export class FileController {
     });
   });
 
-  // DOWN PROTETTO
-  // GET /api/files/download/:fileId
-  static downloadFile = catchAsync(async (req: Request, res: Response) => {
-    const { fileId } = req.params;
-    const { userId, expires, signature } = req.query;
-
-    if (!userId || !expires || !signature) {
-      throw new CustomError("Invalid download parameters", 400);
-    }
-
-    if (
-      typeof userId !== "string" ||
-      typeof expires !== "string" ||
-      typeof signature !== "string"
-    ) {
-      throw new CustomError("Invalid parameter types", 400);
-    }
-
-    if (userId.length > 36 || signature.length !== 64) {
-      // SHA-256 = 64 chars
-      throw new CustomError("Invalid parameter format", 400);
-    }
-
-    const timestamp = parseInt(expires);
-    if (isNaN(timestamp) || timestamp < 0) {
-      throw new CustomError("Invalid expiration timestamp", 400);
-    }
-
-    const isValid = FileUploadService.verifyDownloadSignature(
-      fileId,
-      userId,
-      timestamp,
-      signature
-    );
-
-    if (!isValid) {
-      throw new CustomError("Invalid or expired download link", 403);
-    }
-
-    // Trova il file nel database
-    const product = await prisma.product.findFirst({
-      where: {
-        OR: [{ fileName: fileId }, { filePath: { contains: fileId } }],
-      },
-    });
-
-    if (!product) {
-      throw new CustomError("File not found", 404);
-    }
-
-    // HA ACQUISTATO?
-    const order = await prisma.order.findFirst({
-      where: {
-        userId: userId,
-        status: "COMPLETED",
-        paymentStatus: "SUCCEEDED",
-        orderItems: {
-          some: {
-            productId: product.id,
-          },
-        },
-      },
-    });
-
-    if (!order) {
-      throw new CustomError("Access denied - purchase required", 403);
-    }
-
-    // AGGIORNA DATI CONTANTOTE
-    await prisma.product.update({
-      where: { id: product.id },
-      data: { downloadCount: { increment: 1 } },
-    });
-
-    console.log(
-      `File downloaded: ${fileId} by user ${userId} from order ${
-        order.id
-      } at ${new Date().toISOString()}`
-    );
-
-    if (product.filePath) {
-      res.redirect(product.filePath);
-    } else {
-      throw new CustomError("File path not available", 500);
-    }
-  });
-
-  // GENERA LINK
-  // GET /api/files/download-link/:productId
-  static generateDownloadLink = catchAsync(
-    async (req: Request, res: Response) => {
-      const { productId } = req.params;
-
-      if (!req.user) {
-        throw new CustomError("Authentication required", 401);
-      }
-
-      if (!productId || !/^[a-zA-Z0-9-]+$/.test(productId)) {
-        throw new CustomError("Invalid product ID format", 400);
-      }
-
-      const product = await prisma.product.findUnique({
-        where: { id: productId },
-      });
-
-      if (!product || !product.fileName) {
-        throw new CustomError("Product or file not found", 404);
-      }
-
-      const order = await prisma.order.findFirst({
-        where: {
-          userId: req.user.id,
-          status: "COMPLETED",
-          paymentStatus: "SUCCEEDED",
-
-          createdAt: {
-            gte: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000),
-          },
-          orderItems: {
-            some: { productId },
-          },
-        },
-      });
-
-      if (!order) {
-        throw new CustomError("Purchase required to download this file", 403);
-      }
-
-      const downloadUrl = await FileUploadService.getSecureDownloadUrl(
-        product.fileName,
-        req.user.id,
-        order.id
-      );
-
-      res.json({
-        success: true,
-        data: {
-          downloadUrl,
-          productName: product.name,
-          fileName: product.fileName,
-          expiresIn: "15 minutes",
-          orderDate: order.createdAt,
-        },
-      });
-    }
-  );
   // ELIMINA IMMAGINE
   // DELETE /api/files/image/:imageId
   static deleteProductImage = catchAsync(
@@ -363,7 +217,7 @@ export class FileController {
           wasMainImage: image.isMain,
         },
       });
-    }
+    },
   );
 
   // IMMAGINI
@@ -449,7 +303,7 @@ export class FileController {
       if (!isValidFormat) {
         throw new CustomError(
           "Invalid format: each item must have imageId (string) and sequential sortOrder (number starting from 0)",
-          400
+          400,
         );
       }
 
@@ -474,7 +328,7 @@ export class FileController {
                 sortOrder,
                 ...(isMain !== undefined && { isMain }),
               },
-            })
+            }),
         );
 
         await Promise.all(updatePromises);
@@ -494,7 +348,7 @@ export class FileController {
           totalImages: updatedImages.length,
         },
       });
-    }
+    },
   );
   // ADMIN STATS SPAZIO
   // GET /api/files/stats
@@ -541,7 +395,7 @@ export class FileController {
         message: "Orphan files cleanup completed",
         timestamp: new Date().toISOString(),
       });
-    }
+    },
   );
 
   // IMPOSTA IMMAGINE PRINCIPALE PRODOTT
@@ -654,7 +508,7 @@ export class FileController {
         generatedAt: new Date().toISOString(),
         generatedBy: req.user.email,
       });
-    }
+    },
   );
 
   // UPLOAD EBOOK PER PRODOTTO
@@ -680,7 +534,7 @@ export class FileController {
       console.log(
         "💾 File size:",
         (req.file.size / 1024 / 1024).toFixed(2),
-        "MB"
+        "MB",
       );
       console.log("📁 Temp path:", req.file.path);
 
@@ -716,7 +570,7 @@ export class FileController {
       if (req.file.mimetype !== "application/pdf") {
         throw new CustomError(
           "Only PDF files are allowed. Uploaded: " + req.file.mimetype,
-          400
+          400,
         );
       }
 
@@ -729,7 +583,7 @@ export class FileController {
             1024 /
             1024
           ).toFixed(2)}MB`,
-          400
+          400,
         );
       }
 
@@ -742,7 +596,7 @@ export class FileController {
       // Upload su Cloudinary
       const uploadResult = await cloudinaryService.uploadFile(
         req.file.path,
-        baseFileName
+        baseFileName,
       );
 
       console.log("✅ Upload completed!");
@@ -791,6 +645,6 @@ export class FileController {
         uploadedAt: new Date().toISOString(),
         uploadedBy: req.user.email,
       });
-    }
+    },
   );
 }

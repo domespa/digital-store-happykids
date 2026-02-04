@@ -4,7 +4,6 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import { createServer } from "http";
 import { prisma } from "./utils/prisma";
-import landingAnalyticsRoutes from "./routes/landingAnalytics";
 
 // IMPORT SECURITY
 import {
@@ -36,13 +35,14 @@ import analyticsRoutes from "./routes/analytics";
 import { createNotificationRoutes } from "./routes/notification";
 import recommendationRoutes from "./routes/recommendation";
 import paymentRoutes from "./routes/payment";
+import publicRoutes from "./routes/public";
 
 // IMPORT SUPPORT SYSTEM
 import { setupSupportRoutes } from "./routes/support";
 import NotificationService from "./services/notificationService";
 import EmailService from "./services/emailService";
 import WebSocketService from "./services/websocketService";
-import LocationTrackingWebSocket from "./services/locationTrackingWebSocket";
+import UnifiedTrackingWebSocket from "./services/TrackingWebSocket";
 import { FileUploadService } from "./services/uploadService";
 
 // IMPORT CURRENCY
@@ -60,7 +60,7 @@ console.log("DATABASE_URL at runtime:", process.env.DATABASE_URL);
 const app = express();
 app.set("trust proxy", 1);
 app.set("etag", false);
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // CREATE HTTP SERVER PER WEBSOCKET
 const httpServer = createServer(app);
@@ -70,7 +70,7 @@ let emailService: EmailService;
 let uploadService: FileUploadService;
 let websocketService: WebSocketService;
 let notificationService: NotificationService;
-let locationTrackingService: LocationTrackingWebSocket;
+let trackingService: UnifiedTrackingWebSocket;
 
 try {
   console.log("🔧 Initializing services...");
@@ -81,28 +81,42 @@ try {
   uploadService = new FileUploadService();
   console.log("✅ UploadService initialized");
 
-  // ✅ STEP 1: Inizializza WebSocketService
+  // STEP 1: Inizializza WebSocketService
   websocketService = new WebSocketService(httpServer);
   console.log("✅ WebSocketService initialized");
 
-  // ✅ STEP 2: Assegna a globalThis
+  // STEP 2: Assegna a globalThis
   (globalThis as any).webSocketService = websocketService;
   console.log("✅ WebSocketService assigned to globalThis");
 
   notificationService = new NotificationService(websocketService, emailService);
   console.log("✅ NotificationService initialized");
 
-  // ✅ STEP 3: Passa websocketService direttamente a LocationTrackingWebSocket
-  locationTrackingService = new LocationTrackingWebSocket(
-    httpServer,
-    websocketService, // Passa il riferimento direttamente
-    "/location",
-  );
-  console.log("✅ LocationTrackingService initialized");
+  // STEP 3: Passa websocketService
+  trackingService = new UnifiedTrackingWebSocket(httpServer);
+  console.log("✅ UnifiedTrackingWebSocket initialized");
 
-  // ✅ STEP 4: Assegna anche locationTracking a globalThis
-  (globalThis as any).locationTrackingService = locationTrackingService;
-  console.log("✅ LocationTrackingService assigned to globalThis");
+  (globalThis as any).trackingService = trackingService;
+  console.log("✅ TrackingService assigned to globalThis");
+
+  (async () => {
+    try {
+      const result = await prisma.session.updateMany({
+        where: {
+          isOnline: true,
+          disconnectedAt: null,
+        },
+        data: {
+          isOnline: false,
+          disconnectedAt: new Date(),
+        },
+      });
+
+      console.log(`🧹 Cleaned up ${result.count} stale sessions on startup`);
+    } catch (error) {
+      console.error("❌ Error cleaning up sessions:", error);
+    }
+  })();
 } catch (error) {
   console.error("❌ FATAL: Service initialization failed:", error);
   process.exit(1);
@@ -116,7 +130,7 @@ declare global {
   namespace NodeJS {
     interface Global {
       webSocketService: WebSocketService;
-      locationTrackingService: LocationTrackingWebSocket;
+      trackingService: UnifiedTrackingWebSocket;
     }
   }
 }
@@ -247,9 +261,6 @@ app.use("/api/reviews", reviewRateLimit.globalLimit, reviewRoutes);
 // RICERCA (PUBBLICO + AUTENTICATO)
 app.use("/api/search", searchRoutes);
 
-// LANDINGANALITICS
-app.use("/api/landing-analytics", landingAnalyticsRoutes);
-
 //=====================================================
 // =============== NOTIFICHE (WEBSOCKET) ==============
 //=====================================================
@@ -305,6 +316,7 @@ app.use("/api/support", supportRoutes);
 
 // ADMIN GENERALE (RICHIEDE ADMIN AUTH)
 app.use("/api/admin", adminRoutes);
+app.use("/api/public", publicRoutes);
 
 // ANALYTICS (RICHIEDE ADMIN AUTH)
 app.use("/api/admin/analytics", analyticsRoutes);
@@ -589,9 +601,34 @@ process.on("SIGINT", async () => {
       console.log("✅ WebSocket service cleaned up");
     }
 
-    if (locationTrackingService) {
-      locationTrackingService.cleanup();
-      console.log("✅ Location tracking service cleaned up");
+    if (trackingService) {
+      await trackingService.cleanup();
+      console.log("✅ Tracking service cleaned up");
+    }
+
+    await prisma.$disconnect();
+    console.log("✅ Database disconnected");
+  } catch (error) {
+    console.error("❌ Error during shutdown:", error);
+  }
+
+  console.log("👋 Server stopped");
+  process.exit(0);
+});
+
+// GRACEFUL SHUTDOWN - SIGTERM
+process.on("SIGTERM", async () => {
+  console.log("\n🛑 SIGTERM received - shutting down...");
+
+  try {
+    if (websocketService) {
+      await websocketService.cleanup();
+      console.log("✅ WebSocket service cleaned up");
+    }
+
+    if (trackingService) {
+      await trackingService.cleanup();
+      console.log("✅ Tracking service cleaned up");
     }
 
     await prisma.$disconnect();

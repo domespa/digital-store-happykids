@@ -46,12 +46,10 @@ class RecommendationService {
   //              MAIN METHODS
   // ===========================================
 
-  // Raccomandazioni personalizzate per utente autenticato
-  // Hybrid approach: Collaborative + Content-based + Popularity
   async getUserRecommendations(
     userId: string,
     limit: number = DEFAULT_RECOMMENDATION_LIMIT,
-    excludeOwned: boolean = true
+    excludeOwned: boolean = true,
   ): Promise<RecommendationResult[]> {
     try {
       // Ottieni cronologia utente
@@ -68,18 +66,17 @@ class RecommendationService {
       // Collaborative Filtering (40% peso)
       const collaborativeRecs = await this.getCollaborativeRecommendations(
         userId,
-        userHistory
+        userHistory,
       );
 
       // Content-Based Filtering (40% peso)
-      const contentRecs = await this.getContentBasedRecommendations(
-        userHistory
-      );
+      const contentRecs =
+        await this.getContentBasedRecommendations(userHistory);
 
       // Trending Products (20% peso)
       const trendingRecs = await this.getTrendingProducts(
         undefined,
-        Math.ceil(limit * 0.3)
+        Math.ceil(limit * 0.3),
       );
 
       // Combina e pesa i risultati
@@ -94,7 +91,7 @@ class RecommendationService {
       if (excludeOwned) {
         const ownedProductIds = userHistory.purchases.map((p) => p.productId);
         filteredResults = hybridResults.filter(
-          (rec) => !ownedProductIds.includes(rec.product.id)
+          (rec) => !ownedProductIds.includes(rec.product.id),
         );
       }
 
@@ -113,7 +110,7 @@ class RecommendationService {
   // Content-based filtering ottimizzato
   async getSimilarProducts(
     productId: string,
-    limit: number = SIMILAR_PRODUCTS_LIMIT
+    limit: number = SIMILAR_PRODUCTS_LIMIT,
   ): Promise<RecommendationResult[]> {
     try {
       // Ottieni prodotto target
@@ -184,7 +181,7 @@ class RecommendationService {
       for (const product of validProducts) {
         const similarity = this.calculateProductSimilarity(
           targetProduct,
-          product
+          product,
         );
 
         if (similarity.score > SIMILARITY_THRESHOLD) {
@@ -218,7 +215,7 @@ class RecommendationService {
   async getTrendingProducts(
     categoryId?: string,
     limit: number = DEFAULT_RECOMMENDATION_LIMIT,
-    reason: string = "trending"
+    reason: string = "trending",
   ): Promise<RecommendationResult[]> {
     try {
       const thirtyDaysAgo = new Date();
@@ -261,7 +258,7 @@ class RecommendationService {
       const filteredProducts = products.filter(
         (product) =>
           hasValidCategory(product) &&
-          product._count.reviews >= MIN_REVIEWS_FOR_TRENDING
+          product._count.reviews >= MIN_REVIEWS_FOR_TRENDING,
       );
 
       // Calcola trending score per ogni prodotto
@@ -290,8 +287,8 @@ class RecommendationService {
             reason === "new_user"
               ? "Popular choice for new users"
               : reason === "fallback"
-              ? "Recommended product"
-              : "Trending now",
+                ? "Recommended product"
+                : "Trending now",
         });
       }
 
@@ -307,7 +304,7 @@ class RecommendationService {
   // Trova prodotti spesso acquistati insieme
   async getFrequentlyBoughtTogether(
     productId: string,
-    limit: number = 4
+    limit: number = 4,
   ): Promise<RecommendationResult[]> {
     try {
       // Trova ordini che contengono il prodotto target
@@ -344,7 +341,7 @@ class RecommendationService {
 
       for (const order of ordersWithProduct) {
         const otherProducts = order.orderItems.filter(
-          (item) => item.productId !== null && item.productId !== productId
+          (item) => item.productId !== null && item.productId !== productId,
         );
 
         for (const item of otherProducts) {
@@ -371,7 +368,7 @@ class RecommendationService {
             orderItem.product.reviews.length > 0
               ? orderItem.product.reviews.reduce(
                   (sum: number, r) => sum + r.rating,
-                  0
+                  0,
                 ) / orderItem.product.reviews.length
               : 0;
 
@@ -384,7 +381,7 @@ class RecommendationService {
             },
             score,
             reason: `Bought together ${frequency} times (${Math.round(
-              score * 100
+              score * 100,
             )}%)`,
           });
         }
@@ -449,7 +446,7 @@ class RecommendationService {
         acc[id] = (acc[id] || 0) + 1;
         return acc;
       },
-      {}
+      {},
     );
 
     const preferredCategories = Object.entries(categoryFrequency)
@@ -468,7 +465,7 @@ class RecommendationService {
   // Collaborative Filtering - trova utenti simili
   private async getCollaborativeRecommendations(
     userId: string,
-    userHistory: UserHistoryInternal
+    userHistory: UserHistoryInternal,
   ): Promise<RecommendationResult[]> {
     // Trova utenti con acquisti simili
     const userProductIds = userHistory.purchases.map((p) => p.productId);
@@ -514,10 +511,10 @@ class RecommendationService {
       const userProducts = user.orders.flatMap((o) =>
         o.orderItems
           .filter((item) => item.productId !== null)
-          .map((item) => item.productId as string)
+          .map((item) => item.productId as string),
       );
       const commonProducts = userProductIds.filter((pid) =>
-        userProducts.includes(pid)
+        userProducts.includes(pid),
       );
 
       if (commonProducts.length >= 2) {
@@ -596,7 +593,7 @@ class RecommendationService {
       // Peso basato su similarity degli utenti che l'hanno comprato
       for (const orderItem of product.orderItems) {
         const userSimilarity = topSimilarUsers.find(
-          (u) => u.userId === orderItem.order?.userId
+          (u) => u.userId === orderItem.order?.userId,
         );
         if (userSimilarity) {
           weightedScore += userSimilarity.score;
@@ -624,7 +621,7 @@ class RecommendationService {
 
   // Content-Based Filtering
   private async getContentBasedRecommendations(
-    userHistory: UserHistoryInternal
+    userHistory: UserHistoryInternal,
   ): Promise<RecommendationResult[]> {
     if (userHistory.categories.length === 0) {
       return [];
@@ -692,7 +689,7 @@ class RecommendationService {
   // Calcola similarity tra due prodotti
   private calculateProductSimilarity(
     product1: ProductWithRecommendationDetails,
-    product2: ProductWithRecommendationDetails
+    product2: ProductWithRecommendationDetails,
   ): ProductSimilarity {
     // Type guard per assicurarsi che entrambi i prodotti abbiano una categoria
     if (!product1.category || !product2.category) {
@@ -753,7 +750,7 @@ class RecommendationService {
   private calculateTrendingScore(
     product: ProductWithRecommendationDetails & {
       category: NonNullable<ProductWithRecommendationDetails["category"]>;
-    }
+    },
   ): number {
     // Vendite recenti (peso 50%)
     const recentSales = product._count.orderItems;
@@ -778,7 +775,7 @@ class RecommendationService {
 
   // Combina recommendations da diversi algoritmi
   private combineRecommendations(
-    weightedRecs: WeightedRecommendation[]
+    weightedRecs: WeightedRecommendation[],
   ): RecommendationResult[] {
     const productScores = new Map<
       string,
@@ -810,7 +807,7 @@ class RecommendationService {
 
   // Rimuovi duplicati mantenendo score più alto
   private removeDuplicates(
-    recommendations: RecommendationResult[]
+    recommendations: RecommendationResult[],
   ): RecommendationResult[] {
     const seen = new Set<string>();
     const unique: RecommendationResult[] = [];

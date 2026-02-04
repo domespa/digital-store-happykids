@@ -17,7 +17,7 @@ async function addIndividualWorkbooks() {
       pages: 47,
       ageRange: "3-5 years",
       fileName: "workbook-1-rainbow-colors.zip",
-      filePath: "r2:workbook-1-rainbow-colors.zip",
+      filePath: "",
     },
     {
       name: "Letters and Numbers in Play",
@@ -28,7 +28,7 @@ async function addIndividualWorkbooks() {
       pages: 60,
       ageRange: "3-5 years",
       fileName: "workbook-2-letters-numbers.zip",
-      filePath: "r2:workbook-2-letters-numbers.zip",
+      filePath: "",
     },
     {
       name: "My First Writing Adventure",
@@ -39,7 +39,7 @@ async function addIndividualWorkbooks() {
       pages: 59,
       ageRange: "3-5 years",
       fileName: "workbook-3-writing-adventure.zip",
-      filePath: "r2:workbook-3-writing-adventure.zip",
+      filePath: "",
     },
     {
       name: "The Big Book of Animals and Dinosaurs",
@@ -50,7 +50,7 @@ async function addIndividualWorkbooks() {
       pages: 64,
       ageRange: "3-5 years",
       fileName: "workbook-4-animals-dinosaurs.zip",
-      filePath: "r2:workbook-4-animals-dinosaurs.zip",
+      filePath: "",
     },
     {
       name: "World of Shapes",
@@ -61,7 +61,7 @@ async function addIndividualWorkbooks() {
       pages: 65,
       ageRange: "3-5 years",
       fileName: "workbook-5-shapes.zip",
-      filePath: "r2:workbook-5-shapes.zip",
+      filePath: "",
     },
   ];
 

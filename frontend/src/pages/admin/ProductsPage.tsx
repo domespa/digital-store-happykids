@@ -25,7 +25,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedPrices, setExpandedPrices] = useState<Record<string, boolean>>(
-    {}
+    {},
   );
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -62,7 +62,7 @@ export default function ProductsPage() {
       setError(
         error.response?.data?.message ||
           error.message ||
-          "Failed to load products"
+          "Failed to load products",
       );
     } finally {
       setLoading(false);
@@ -94,7 +94,7 @@ export default function ProductsPage() {
       setError(
         error.response?.data?.message ||
           error.message ||
-          "Failed to create product"
+          "Failed to create product",
       );
     } finally {
       setFormLoading(false);
@@ -128,7 +128,7 @@ export default function ProductsPage() {
       setError(
         error.response?.data?.message ||
           error.message ||
-          "Failed to update product"
+          "Failed to update product",
       );
     } finally {
       setFormLoading(false);
@@ -146,7 +146,7 @@ export default function ProductsPage() {
       setError(
         error.response?.data?.message ||
           error.message ||
-          "Failed to delete product"
+          "Failed to delete product",
       );
     }
   };
@@ -204,10 +204,10 @@ export default function ProductsPage() {
     });
   };
 
-  // Tassi di conversione (aggiorna con tassi reali se necessario)
+  // Tassi di conversione
   const conversionRates: Record<string, Record<string, number>> = {
-    EUR: { USD: 1.1, GBP: 0.85, AUD: 1.65, CAD: 1.48, EUR: 1 },
-    USD: { EUR: 0.91, GBP: 0.77, AUD: 1.5, CAD: 1.35, USD: 1 },
+    EUR: { USD: 1.18, GBP: 0.86, AUD: 1.68, CAD: 1.61, EUR: 1 },
+    USD: { EUR: 0.85, GBP: 0.73, AUD: 1.5, CAD: 1.36, USD: 1 },
     GBP: { EUR: 1.18, USD: 1.3, AUD: 1.95, CAD: 1.75, GBP: 1 },
     AUD: { EUR: 0.61, USD: 0.67, GBP: 0.51, CAD: 0.9, AUD: 1 },
     CAD: { EUR: 0.68, USD: 0.74, GBP: 0.57, AUD: 1.11, CAD: 1 },
@@ -227,7 +227,7 @@ export default function ProductsPage() {
   const convertPrice = (
     amount: number,
     fromCurrency: string,
-    toCurrency: string
+    toCurrency: string,
   ): number => {
     if (fromCurrency === toCurrency) return amount;
     const rate = conversionRates[fromCurrency]?.[toCurrency] || 1;
@@ -387,7 +387,7 @@ export default function ProductsPage() {
                     const converted = convertPrice(
                       parseFloat(formData.price),
                       "EUR",
-                      currency
+                      currency,
                     );
                     const info = currencyInfo[currency];
                     const isCurrentCurrency = currency === "EUR";
@@ -432,7 +432,7 @@ export default function ProductsPage() {
                           const converted = convertPrice(
                             parseFloat(formData.compareAtPrice),
                             "EUR",
-                            currency
+                            currency,
                           );
                           const info = currencyInfo[currency];
 
@@ -459,14 +459,14 @@ export default function ProductsPage() {
                           💰 Customers save:{" "}
                           {formatPrice(
                             parseFloat(formData.compareAtPrice) -
-                              parseFloat(formData.price)
+                              parseFloat(formData.price),
                           )}
                           (
                           {Math.round(
                             ((parseFloat(formData.compareAtPrice) -
                               parseFloat(formData.price)) /
                               parseFloat(formData.compareAtPrice)) *
-                              100
+                              100,
                           )}
                           % OFF)
                         </p>
@@ -475,6 +475,13 @@ export default function ProductsPage() {
                   )}
               </div>
             )}
+            <Input
+              label="Name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
 
             <Input
               label="Description"
@@ -510,8 +517,8 @@ export default function ProductsPage() {
                 {formLoading
                   ? "Saving..."
                   : editingProduct
-                  ? "Update Product"
-                  : "Create Product"}
+                    ? "Update Product"
+                    : "Create Product"}
               </Button>
               <Button
                 type="button"
@@ -613,7 +620,7 @@ export default function ProductsPage() {
                         {Math.round(
                           ((product.compareAtPrice - product.price) /
                             product.compareAtPrice) *
-                            100
+                            100,
                         )}
                         % OFF)
                       </span>
@@ -648,7 +655,7 @@ export default function ProductsPage() {
                       const converted = convertPrice(
                         product.price,
                         "EUR",
-                        currency
+                        currency,
                       );
                       const info = currencyInfo[currency];
                       const isCurrentCurrency = currency === "EUR";
@@ -691,7 +698,7 @@ export default function ProductsPage() {
                             const converted = convertPrice(
                               product.compareAtPrice!,
                               "EUR",
-                              currency
+                              currency,
                             );
                             const info = currencyInfo[currency];
 
@@ -1033,7 +1040,7 @@ function EbookUploadManager({
           file.size /
           1024 /
           1024
-        ).toFixed(2)}MB`
+        ).toFixed(2)}MB`,
       );
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
@@ -1052,7 +1059,7 @@ function EbookUploadManager({
       !confirm(
         `Upload ebook for "${product.name}"?\n\nFile: ${
           selectedFile.name
-        }\nSize: ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`
+        }\nSize: ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`,
       )
     ) {
       return;
@@ -1069,7 +1076,7 @@ function EbookUploadManager({
         selectedFile,
         (progressPercent) => {
           setProgress(progressPercent);
-        }
+        },
       );
 
       setSuccess(`✅ Upload successful!\n\nPublic ID: ${result.publicId}`);
@@ -1217,8 +1224,8 @@ function EbookUploadManager({
           {uploading
             ? `Uploading... ${progress}%`
             : product.filePath
-            ? "🔄 Replace Ebook"
-            : "📤 Upload Ebook"}
+              ? "🔄 Replace Ebook"
+              : "📤 Upload Ebook"}
         </Button>
 
         {/* INFO BOX */}

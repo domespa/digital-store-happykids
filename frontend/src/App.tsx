@@ -1,3 +1,7 @@
+console.log = () => {};
+console.debug = () => {};
+console.info = () => {};
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
@@ -12,8 +16,8 @@ import CookiePolicyPage from "./pages/CookiePolicyPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import RefundPolicyPage from "./pages/RefundPolicyPage";
-import locationWebSocketService from "./services/locationWebSocketService";
-import { useEffect } from "react";
+import { useVisitorTracking } from "./hooks/useVisitorTracking";
+import { usePageTracking } from "./hooks/usePageTracking";
 
 function CustomerApp() {
   return (
@@ -38,33 +42,15 @@ function CustomerApp() {
 }
 
 export default function App() {
-  useEffect(() => {
-    console.log("🗺️ Initializing location tracking...");
+  const { isConnected, visitorNumber, trackEvent } = useVisitorTracking({
+    autoConnect: true,
+    trackPageViews: true,
+  });
 
-    locationWebSocketService.connect();
+  usePageTracking(isConnected, trackEvent);
 
-    locationWebSocketService.setLocationData({
-      country: "Italy",
-      city: "Catania",
-      region: "Sicily",
-      countryCode: "IT",
-      timezone: "Europe/Rome",
-      detectionMethod: "ip",
-      precisionLevel: "city",
-    });
-
-    const pingInterval = setInterval(() => {
-      if (locationWebSocketService.isConnectedToTracking()) {
-        locationWebSocketService.ping();
-      }
-    }, 25000);
-
-    return () => {
-      console.log("🗺️ Cleaning up location tracking...");
-      clearInterval(pingInterval);
-      locationWebSocketService.disconnect();
-    };
-  }, []);
+  console.log("🔌 Tracking connected:", isConnected);
+  console.log("👤 Visitor number:", visitorNumber);
 
   return (
     <BrowserRouter>

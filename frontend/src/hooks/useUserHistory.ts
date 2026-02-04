@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { adminWebSocket } from "../services/adminApi";
+import { io, Socket } from "socket.io-client";
 
 interface UserHistoryEntry {
   id: string;
+  visitorId?: string;
   visitorNumber?: number;
   city: string;
   country: string;
@@ -16,7 +17,7 @@ export function useUserHistory(limit: number = 20) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalVisitors, setTotalVisitors] = useState(0);
-  const wsRef = useRef<any>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   const loadHistory = useCallback(async () => {
     try {
@@ -59,92 +60,99 @@ export function useUserHistory(limit: number = 20) {
     loadHistory();
   }, [loadHistory]);
 
+  // Real-time WebSocket updates
   useEffect(() => {
-    let mounted = true;
+    const socket = io(`${import.meta.env.VITE_API_URL}`, {
+      path: "/admin-tracking",
+      transports: ["websocket", "polling"],
+      auth: {
+        token: localStorage.getItem("adminToken"),
+      },
+    });
 
-    const setupWebSocket = () => {
-      try {
-        console.log("🔧 UserHistory: Setting up WebSocket listener...");
+    socketRef.current = socket;
 
-        wsRef.current = adminWebSocket.connect((data: any) => {
-          if (!mounted) return;
+    // CONNECTED
+    socket.on("user_connected", (data: any) => {
+      console.log("🟢 User connected (real-time):", data.visitorNumber);
 
-          if (data.type === "user_connected") {
-            console.log(`✅ NEW USER CONNECTED:`, data);
+      setHistory((prev) => {
+        const existingIndex = prev.findIndex(
+          (h) => h.visitorNumber === data.visitorNumber,
+        );
 
-            setHistory((prev) => {
-              const visitorNum = data.visitorNumber || totalVisitors + 1;
-
-              if (data.visitorNumber) {
-                setTotalVisitors(data.visitorNumber);
-              }
-
-              const newVisitor: UserHistoryEntry = {
-                id: data.sessionId,
-                visitorNumber: visitorNum,
-                city: data.location?.city || "Unknown",
-                country: data.location?.country || "Unknown",
-                timestamp: data.connectedAt || new Date().toISOString(),
-                disconnectedAt: null,
-                isOnline: true,
-              };
-
-              const updated = [newVisitor, ...prev];
-
-              return updated.slice(0, limit);
-            });
-
-            console.log(
-              `✅ Visitor #${data.visitorNumber || "N/A"} added to list (INSTANT, NO FETCH)`,
-            );
-          } else if (data.type === "user_disconnected") {
-            console.log(`✅ USER DISCONNECTED:`, data);
-
-            setHistory((prev) =>
-              prev.map((visitor) => {
-                if (visitor.id === data.sessionId) {
-                  console.log(
-                    `✅ Updating visitor ${data.sessionId} to offline`,
-                  );
-                  return {
-                    ...visitor,
-                    isOnline: false,
-                    disconnectedAt:
-                      data.disconnectedAt || new Date().toISOString(),
-                  };
-                }
-                return visitor;
-              }),
-            );
-
-            console.log(`✅ Visitor updated to offline (INSTANT, NO FETCH)`);
-          }
-        });
-
-        if (wsRef.current) {
-          console.log("✅ UserHistory: WebSocket connected");
+        if (existingIndex >= 0) {
+          // Update
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            id: data.sessionId,
+            isOnline: true,
+            disconnectedAt: null,
+            timestamp: data.connectedAt,
+            city: data.location?.city || updated[existingIndex].city,
+            country: data.location?.country || updated[existingIndex].country,
+          };
+          return updated;
+        } else {
+          // New visitor
+          return [
+            {
+              id: data.sessionId,
+              visitorId: data.visitorId,
+              visitorNumber: data.visitorNumber,
+              city: data.location?.city || "Unknown",
+              country: data.location?.country || "Unknown",
+              timestamp: data.connectedAt,
+              disconnectedAt: null,
+              isOnline: true,
+            },
+            ...prev,
+          ];
         }
-      } catch (error) {
-        console.error("❌ UserHistory: Failed to setup WebSocket:", error);
-      }
-    };
+      });
+    });
 
-    setupWebSocket();
+    // DISCONNECTED
+    socket.on("user_disconnected", (data: any) => {
+      console.log("🔴 User disconnected (real-time):", data.visitorNumber);
+
+      setHistory((prev) => {
+        const existingIndex = prev.findIndex(
+          (h) => h.visitorNumber === data.visitorNumber,
+        );
+
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            isOnline: false,
+            disconnectedAt: data.disconnectedAt,
+          };
+          return updated;
+        } else {
+          return [
+            {
+              id: data.sessionId,
+              visitorId: data.visitorId,
+              visitorNumber: data.visitorNumber,
+              city: "Unknown",
+              country: "Unknown",
+              timestamp: data.disconnectedAt,
+              disconnectedAt: data.disconnectedAt,
+              isOnline: false,
+            },
+            ...prev,
+          ];
+        }
+      });
+    });
 
     return () => {
-      mounted = false;
-      if (wsRef.current) {
-        console.log("🧹 UserHistory: Cleaning up WebSocket");
-        try {
-          wsRef.current.removeAllListeners();
-          wsRef.current.close();
-        } catch (e) {
-          console.error("Error during cleanup:", e);
-        }
-        wsRef.current = null;
-      }
+      socket.disconnect();
+      socketRef.current = null;
     };
-  }, [limit, totalVisitors]);
+  }, []);
 
   return {
     history,

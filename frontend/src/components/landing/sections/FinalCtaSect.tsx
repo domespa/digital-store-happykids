@@ -3,12 +3,10 @@ import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import FormattedPrice from "./FormattedPrice";
-import { useLandingAnalytics } from "../../../hooks/useLandingAnalytics";
 
 export default function FinalCTA() {
   const { config } = useLandingContext();
   const landingCart = useLandingCart();
-  const { trackCtaClick } = useLandingAnalytics();
 
   if (!config || !config.finalCta) return null;
 
@@ -175,7 +173,6 @@ export default function FinalCTA() {
           <button
             data-cta="final-cta"
             onClick={() => {
-              trackCtaClick("final_cta", { location: "final_section" });
               landingCart.addMainProductToCart();
             }}
             disabled={landingCart.isLoading}

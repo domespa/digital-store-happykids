@@ -76,7 +76,7 @@ export class FileUploadService {
     filePath: string,
     originalName: string,
     folder: string = "digital-products",
-    userId?: string
+    userId?: string,
   ): Promise<UploadResult> {
     const sanitizedFolder = folder
       .replace(/[^a-zA-Z0-9-_]/g, "")
@@ -98,7 +98,7 @@ export class FileUploadService {
       console.log(
         `Secure digital file upload: ${publicId} by user ${
           userId || "anonymous"
-        }`
+        }`,
       );
 
       return {
@@ -118,7 +118,7 @@ export class FileUploadService {
     filePath: string,
     originalName: string,
     folder: string = "products",
-    userId?: string
+    userId?: string,
   ): Promise<ProcessedImageSizes> {
     const sanitizedFolder = folder
       .replace(/[^a-zA-Z0-9-_]/g, "")
@@ -174,7 +174,7 @@ export class FileUploadService {
             folder: sanitizedFolder,
             resource_type: "image",
             strip_metadata: true,
-          }
+          },
         );
 
         results[size] = resizedUpload.secure_url;
@@ -183,7 +183,7 @@ export class FileUploadService {
       console.log(
         `Secure image upload completed: ${publicId} by user ${
           userId || "anonymous"
-        }`
+        }`,
       );
     } catch (error) {
       console.error(`Upload error for ${publicId}:`, error);
@@ -198,7 +198,7 @@ export class FileUploadService {
   async uploadProductGallery(
     files: Express.Multer.File[],
     productId: string,
-    userId?: string
+    userId?: string,
   ): Promise<
     Array<{
       id: string;
@@ -242,7 +242,7 @@ export class FileUploadService {
         file.path,
         file.originalname,
         `products/${productId}`,
-        userId
+        userId,
       );
 
       const baseAltText = file.originalname
@@ -263,7 +263,7 @@ export class FileUploadService {
       console.log(
         `Product gallery image uploaded: ${
           imageSizes.large
-        } for product ${productId} by user ${userId || "anonymous"}`
+        } for product ${productId} by user ${userId || "anonymous"}`,
       );
       return {
         id: createdImage.id,
@@ -320,7 +320,7 @@ export class FileUploadService {
         if (!allowedExtensions.includes(fileExtension)) {
           return cb(
             new CustomError(`File extension ${fileExtension} not allowed`, 400),
-            false
+            false,
           );
         }
 
@@ -340,7 +340,7 @@ export class FileUploadService {
         if (!allowedMimeTypes.includes(file.mimetype)) {
           return cb(
             new CustomError(`File type ${file.mimetype} not allowed`, 400),
-            false
+            false,
           );
         }
 
@@ -387,7 +387,7 @@ export class FileUploadService {
     if (!isValidMagicBytes) {
       throw new CustomError(
         "File type mismatch - possible malicious file",
-        400
+        400,
       );
     }
 
@@ -467,7 +467,7 @@ export class FileUploadService {
     }
 
     console.log(
-      `Rate limit maps cleaned: ${this.uploadAttempts.size} upload IPs, ${this.downloadAttempts.size} download keys`
+      `Rate limit maps cleaned: ${this.uploadAttempts.size} upload IPs, ${this.downloadAttempts.size} download keys`,
     );
   }
 
@@ -525,160 +525,6 @@ export class FileUploadService {
   //        DOWNLOAD E UTILITY METHODS
   // ===========================================
 
-  static async getSecureDownloadUrl(
-    fileId: string,
-    userId: string,
-    orderId?: string
-  ): Promise<string> {
-    const hasPermission = await this.verifyDownloadPermission(
-      fileId,
-      userId,
-      orderId
-    );
-    if (!hasPermission) {
-      throw new CustomError("Access denied", 403);
-    }
-
-    const downloadKey = `download:${userId}:${fileId}`;
-    if (!this.checkDownloadRateLimit(downloadKey)) {
-      throw new CustomError("Too many download attempts", 429);
-    }
-
-    const timestamp = Math.floor(Date.now() / 1000) + 15 * 60;
-    const signature = this.generateDownloadSignature(fileId, userId, timestamp);
-
-    const baseUrl = process.env.BASE_URL;
-    if (!baseUrl) {
-      throw new CustomError("Server configuration error", 500);
-    }
-
-    return `${baseUrl}/api/files/download/${encodeURIComponent(
-      fileId
-    )}?userId=${encodeURIComponent(
-      userId
-    )}&expires=${timestamp}&signature=${signature}`;
-  }
-
-  private static async verifyDownloadPermission(
-    fileId: string,
-    userId: string,
-    orderId?: string
-  ): Promise<boolean> {
-    if (!fileId || !userId || fileId.length > 255 || userId.length > 36) {
-      return false;
-    }
-
-    const sanitizedFileId = fileId.replace(/[^a-zA-Z0-9-_.]/g, "");
-    const sanitizedUserId = userId.replace(/[^a-zA-Z0-9-]/g, "");
-
-    try {
-      const product = await prisma.product.findFirst({
-        where: {
-          OR: [
-            { fileName: { equals: sanitizedFileId } },
-            { filePath: { contains: sanitizedFileId } },
-          ],
-        },
-      });
-
-      if (!product) return false;
-
-      const order = await prisma.order.findFirst({
-        where: {
-          userId: sanitizedUserId,
-          status: "COMPLETED",
-          paymentStatus: "SUCCEEDED",
-          createdAt: {
-            gte: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
-          },
-          orderItems: {
-            some: {
-              productId: product.id,
-            },
-          },
-        },
-        include: {
-          orderItems: true,
-        },
-      });
-
-      if (!order) return false;
-
-      console.log(
-        `Download permission verified: ${sanitizedFileId} for user ${sanitizedUserId}`
-      );
-
-      return true;
-    } catch (error) {
-      console.error("Permission verification error:", error);
-      return false;
-    }
-  }
-
-  private static checkDownloadRateLimit(key: string): boolean {
-    const now = Date.now();
-    const windowMs = 60 * 1000;
-    const maxAttempts = 3;
-
-    if (!this.downloadAttempts.has(key)) {
-      this.downloadAttempts.set(key, []);
-    }
-
-    const attempts = this.downloadAttempts.get(key)!;
-    const validAttempts = attempts.filter((time) => now - time < windowMs);
-
-    if (validAttempts.length >= maxAttempts) {
-      return false;
-    }
-
-    validAttempts.push(now);
-    this.downloadAttempts.set(key, validAttempts);
-    return true;
-  }
-
-  private static generateDownloadSignature(
-    fileId: string,
-    userId: string,
-    timestamp: number
-  ): string {
-    const secret = process.env.DOWNLOAD_SECRET;
-    if (!secret || secret === "default-secret") {
-      throw new CustomError("Invalid download configuration", 500);
-    }
-
-    const data = `${fileId}:${userId}:${timestamp}:${process.env.NODE_ENV}`;
-    return crypto.createHmac("sha256", secret).update(data).digest("hex");
-  }
-
-  static verifyDownloadSignature(
-    fileId: string,
-    userId: string,
-    timestamp: number,
-    signature: string
-  ): boolean {
-    try {
-      const expectedSignature = this.generateDownloadSignature(
-        fileId,
-        userId,
-        timestamp
-      );
-      const now = Math.floor(Date.now() / 1000);
-
-      const isValidSignature = crypto.timingSafeEqual(
-        Buffer.from(signature, "hex"),
-        Buffer.from(expectedSignature, "hex")
-      );
-
-      const isNotExpired = timestamp > now;
-      const isNotTooFarInFuture = timestamp < now + 60 * 60;
-
-      return isValidSignature && isNotExpired && isNotTooFarInFuture;
-    } catch (error) {
-      console.error("Signature verification error:", error);
-      return false;
-    }
-  }
-
   static extractPublicIdFromUrl(url: string): string | null {
     try {
       const urlObj = new URL(url);
@@ -732,7 +578,7 @@ export class FileUploadService {
     }
 
     console.log(
-      `Secure cleanup completed: ${cleanedCount} orphan images removed`
+      `Secure cleanup completed: ${cleanedCount} orphan images removed`,
     );
   }
 
@@ -756,7 +602,7 @@ export class FileUploadService {
       const usage = await cloudinary.api.usage();
       storageUsed = `${(usage.storage.used / 1024 / 1024).toFixed(2)} MB`;
       monthlyBandwidth = `${(usage.bandwidth.used / 1024 / 1024).toFixed(
-        2
+        2,
       )} MB`;
     } catch (error) {
       console.error("Failed to get Cloudinary usage:", error);

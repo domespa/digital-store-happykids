@@ -4,11 +4,10 @@ import { TimeFilters } from "./TimeFilters";
 import { ChartsSection } from "./ChartSection";
 import { useCompleteDashboard } from "../../hooks/useCompleteDashboard";
 import Globe from "react-globe.gl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useUserHistory } from "../../hooks/useUserHistory";
 import type { OnlineUser } from "../../types/admin";
-import { landingAnalytics } from "../../services/adminApi";
-import { SessionDetailModal } from "../../components/admin/SessionDetailModal";
+import VisitorDetailModal from "../../components/admin/VisitorDetailModal";
 
 // ============================================
 //   CONSTANTS
@@ -24,6 +23,8 @@ const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   Berlin: { lat: 52.52, lng: 13.405 },
   Madrid: { lat: 40.4168, lng: -3.7038 },
   NewYork: { lat: 40.7128, lng: -74.006 },
+  "New York City": { lat: 40.7128, lng: -74.006 },
+  Montreal: { lat: 45.5017, lng: -73.5673 },
   Tokyo: { lat: 35.6762, lng: 139.6503 },
 };
 
@@ -38,6 +39,41 @@ const STAT_CARD_COLORS = {
 };
 
 // ============================================
+//   TYPES
+// ============================================
+interface SessionWithLocation {
+  id: string;
+  timestamp: string;
+  disconnectedAt: string | null;
+  isOnline: boolean;
+  city: string;
+  country: string;
+}
+
+interface GroupedVisitor {
+  visitorNumber: number;
+  visitorId?: string;
+  city: string;
+  country: string;
+  sessions: SessionWithLocation[];
+  isOnline: boolean;
+  latestTimestamp: string;
+}
+
+interface CombinedUser {
+  id: string;
+  visitorId?: string;
+  visitorNumber: number | null | undefined;
+  city: string;
+  country: string;
+  sessionCity: string;
+  sessionCountry: string;
+  timestamp: string;
+  disconnectedAt: string | null;
+  isOnline: boolean;
+}
+
+// ============================================
 //   UTILITY FUNCTIONS
 // ============================================
 const formatPrice = (amount: number): string => {
@@ -45,32 +81,6 @@ const formatPrice = (amount: number): string => {
     style: "currency",
     currency: "EUR",
   }).format(amount);
-};
-
-const formatExactTime = (timestamp: string): string => {
-  const date = new Date(timestamp);
-
-  return date.toLocaleString("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const formatSessionDuration = (startTime: string, endTime?: string): string => {
-  const start = new Date(startTime);
-  const end = endTime ? new Date(endTime) : new Date();
-
-  const diffMs = end.getTime() - start.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-
-  if (diffMins < 1) return "(<1m)";
-  if (diffHours > 0) {
-    return `(${diffHours}h ${diffMins % 60}m)`;
-  }
-  return `(${diffMins}m)`;
 };
 
 const formatTimeAgo = (timestamp: string): string => {
@@ -132,111 +142,246 @@ const StatCard = ({
 };
 
 // ============================================
+//   VISITOR CARD COMPONENT
+// ============================================
+interface VisitorCardMiniProps {
+  visitor: GroupedVisitor;
+  onClick: () => void;
+}
+
+const VisitorCardMini = ({ visitor, onClick }: VisitorCardMiniProps) => {
+  return (
+    <div
+      onClick={onClick}
+      className="flex items-center justify-between p-3 mb-2 
+                 bg-white dark:bg-slate-800 
+                 border border-gray-200 dark:border-slate-700 
+                 rounded-lg 
+                 hover:bg-gray-50 dark:hover:bg-slate-700 
+                 hover:shadow-md 
+                 transition-all cursor-pointer 
+                 group"
+    >
+      {/* LEFT */}
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div
+          className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+            visitor.isOnline ? "bg-green-500 animate-pulse" : "bg-gray-400"
+          }`}
+        />
+
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
+            #{visitor.visitorNumber}
+          </span>
+          <span className="text-gray-400 dark:text-gray-600">•</span>
+          <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+            {visitor.city}
+          </span>
+          <span className="text-gray-400 dark:text-gray-600">•</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            {visitor.country}
+          </span>
+        </div>
+      </div>
+
+      {/* RIGHT */}
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {visitor.sessions.length}{" "}
+          {visitor.sessions.length === 1 ? "sessione" : "sessioni"}
+        </span>
+
+        <svg
+          className="w-4 h-4 text-gray-400 dark:text-gray-500 
+                     group-hover:text-blue-500 dark:group-hover:text-blue-400 
+                     group-hover:translate-x-1 transition-all"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </div>
+
+      {visitor.isOnline && (
+        <span className="ml-2 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 rounded-full flex-shrink-0">
+          Online
+        </span>
+      )}
+    </div>
+  );
+};
+
+// ============================================
 //   MAIN COMPONENT
 // ============================================
 export default function DashboardPageV2() {
+  // ========== STATE ==========
+  const [selectedVisitor, setSelectedVisitor] = useState<any>(null);
+  const [selectedVisitorOnline, setSelectedVisitorOnline] = useState(false);
+  const [globeReady, setGlobeReady] = useState(false);
+  const globeEl = useRef<any>(null);
+
   // ========== HOOKS ==========
   const { onlineUsers } = useRealTimeUsers();
   const dashboard = useCompleteDashboard();
   const { history: userHistory, loading: historyLoading } = useUserHistory(20);
-  const [selectedSession, setSelectedSession] = useState<any>(null);
 
-  // ========== GLOBE STATE ==========
-  const globeEl = useRef<any>(null);
-  const [globeReady, setGlobeReady] = useState(false);
-
-  // ========== DEDUPLICAZIONE UTENTI ONLINE ==========
-  const uniqueOnlineUsers = onlineUsers.reduce<OnlineUser[]>((acc, user) => {
-    if (!acc.some((u) => u.sessionId === user.sessionId)) {
-      acc.push(user);
-    }
-    return acc;
-  }, []);
-
-  const realOnlineUsers = uniqueOnlineUsers.filter(
-    (user) => user.visitorNumber !== null && user.visitorNumber !== undefined,
-  );
-
-  // ========== COMBINED USERS ==========
-  const combinedUsers = [
-    ...uniqueOnlineUsers.map((u) => ({
-      id: u.sessionId,
-      visitorNumber: u.visitorNumber,
-      city: u.location?.city ?? "Unknown",
-      country: u.location?.country ?? "Unknown",
-      timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
-      disconnectedAt: null as string | null,
-      isOnline: true,
-    })),
-    ...userHistory.map((h) => ({
-      id: h.id,
-      visitorNumber: h.visitorNumber,
-      city: h.city,
-      country: h.country,
-      timestamp: h.timestamp,
-      disconnectedAt: h.disconnectedAt || null,
-      isOnline: h.isOnline,
-    })),
-  ];
-
-  const combinedUsersWithoutAdmin = combinedUsers.filter(
-    (user) => user.visitorNumber !== null && user.visitorNumber !== undefined,
-  );
-
-  // ========== DEDUPLICAZIONE SOLO PER SESSION ID ==========
-  const deduplicateBySessionId = (
-    users: typeof combinedUsers,
-  ): typeof combinedUsers => {
-    const seen = new Map<string, (typeof combinedUsers)[0]>();
-
-    return users.filter((user) => {
-      if (seen.has(user.id)) {
-        return false;
+  // ==========  DEDUPLICA UTENTI ONLINE ==========
+  const uniqueOnlineUsers = useMemo(() => {
+    return onlineUsers.reduce<OnlineUser[]>((acc, user) => {
+      if (!acc.some((u) => u.sessionId === user.sessionId)) {
+        acc.push(user);
       }
-      seen.set(user.id, user);
-      return true;
+      return acc;
+    }, []);
+  }, [onlineUsers]);
+
+  const realOnlineUsers = useMemo(() => {
+    return uniqueOnlineUsers.filter(
+      (user) => user.visitorNumber !== null && user.visitorNumber !== undefined,
+    );
+  }, [uniqueOnlineUsers]);
+
+  // ==========  COMBINED & DEDUPLICATED USERS ==========
+  const visitorsUnique = useMemo(() => {
+    // STEP 1: Combina online + history
+    const combinedUsers: CombinedUser[] = [
+      // Online users
+      ...uniqueOnlineUsers.map((u) => ({
+        id: u.sessionId,
+        visitorId: u.visitorId,
+        visitorNumber: u.visitorNumber,
+        city: u.location?.city ?? "Unknown",
+        country: u.location?.country ?? "Unknown",
+        sessionCity: u.location?.city ?? "Unknown",
+        sessionCountry: u.location?.country ?? "Unknown",
+        timestamp: u.lastActivity || u.connectedAt || new Date().toISOString(),
+        disconnectedAt: null as string | null,
+        isOnline: true,
+      })),
+      // History users
+      ...userHistory.map((h) => ({
+        id: h.id,
+        visitorId: h.visitorId,
+        visitorNumber: h.visitorNumber,
+        city: h.city,
+        country: h.country,
+        sessionCity: h.city,
+        sessionCountry: h.country,
+        timestamp: h.timestamp,
+        disconnectedAt: h.disconnectedAt || null,
+        isOnline: h.isOnline,
+      })),
+    ];
+
+    // STEP 2: Filtra admin (visitorNumber null)
+    const withoutAdmin = combinedUsers.filter(
+      (user) => user.visitorNumber !== null && user.visitorNumber !== undefined,
+    );
+
+    // STEP 3: Deduplica per session ID
+    const deduplicatedById = withoutAdmin.reduce((acc, user) => {
+      if (!acc.some((u) => u.id === user.id)) {
+        acc.push(user);
+      }
+      return acc;
+    }, [] as CombinedUser[]);
+
+    console.log(
+      `🔍 Sessions: ${withoutAdmin.length} total, ${deduplicatedById.length} unique`,
+    );
+
+    // STEP 4: Raggruppa per visitor number
+    const grouped = deduplicatedById.reduce(
+      (acc, user) => {
+        const visitorNumber = user.visitorNumber!;
+
+        if (!acc[visitorNumber]) {
+          acc[visitorNumber] = {
+            visitorNumber,
+            visitorId: user.visitorId,
+            city: user.city,
+            country: user.country,
+            sessions: [],
+            isOnline: false,
+            latestTimestamp: user.timestamp,
+          };
+        }
+
+        // Aggiungi sessione con location
+        acc[visitorNumber].sessions.push({
+          id: user.id,
+          timestamp: user.timestamp,
+          disconnectedAt: user.disconnectedAt,
+          isOnline: user.isOnline,
+          city: user.sessionCity,
+          country: user.sessionCountry,
+        });
+
+        // Aggiorna stato online
+        if (user.isOnline) {
+          acc[visitorNumber].isOnline = true;
+        }
+
+        // Aggiorna timestamp più recente
+        if (
+          new Date(user.timestamp) >
+          new Date(acc[visitorNumber].latestTimestamp)
+        ) {
+          acc[visitorNumber].latestTimestamp = user.timestamp;
+        }
+
+        return acc;
+      },
+      {} as Record<number, GroupedVisitor>,
+    );
+
+    // STEP 5: Converti in array e ordina (online first, poi per timestamp)
+    return Object.values(grouped).sort((a, b) => {
+      if (a.isOnline && !b.isOnline) return -1;
+      if (!a.isOnline && b.isOnline) return 1;
+      return (
+        new Date(b.latestTimestamp).getTime() -
+        new Date(a.latestTimestamp).getTime()
+      );
     });
-  };
+  }, [uniqueOnlineUsers, userHistory]);
 
-  // ========== ORDINAMENTO FINALE ==========
-  const combinedUsersSorted = deduplicateBySessionId(
-    [...combinedUsersWithoutAdmin]
-      .filter((user) => user.city !== "Catania")
-      .sort((a, b) => {
-        if (a.isOnline && !b.isOnline) return -1;
-        if (!a.isOnline && b.isOnline) return 1;
-        return (
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-        );
-      }),
-  );
+  // ========== GLOBE POINTS ==========
+  const globePoints = useMemo(() => {
+    return uniqueOnlineUsers
+      .filter(
+        (user) =>
+          user.visitorNumber !== null &&
+          user.visitorNumber !== undefined &&
+          user.location?.city,
+      )
+      .filter((user) => {
+        const cityKey = user.location!.city!.replace(/\s+/g, "");
+        return CITY_COORDINATES[cityKey];
+      })
+      .map((user) => {
+        const cityKey = user.location!.city!.replace(/\s+/g, "");
+        const coords = CITY_COORDINATES[cityKey];
 
-  // ========== GLOBE DATA ==========
-  const globePoints = uniqueOnlineUsers
-    .filter(
-      (user) =>
-        user.visitorNumber !== null &&
-        user.visitorNumber !== undefined &&
-        user.location?.city,
-    )
-    .filter((user) => {
-      const cityKey = user.location!.city!.replace(/\s+/g, "");
-      return CITY_COORDINATES[cityKey];
-    })
-    .map((user) => {
-      const cityKey = user.location!.city!.replace(/\s+/g, "");
-      const coords = CITY_COORDINATES[cityKey];
+        return {
+          lat: coords.lat,
+          lng: coords.lng,
+          size: 0.8,
+          color: "#3b82f6",
+          label: `${user.location?.city}, ${user.location?.country}`,
+        };
+      });
+  }, [uniqueOnlineUsers]);
 
-      return {
-        lat: coords.lat,
-        lng: coords.lng,
-        size: 0.8,
-        color: "#3b82f6",
-        label: `${user.location?.city}, ${user.location?.country}`,
-      };
-    });
-
-  // ========== GLOBE SETUP ==========
+  // ========== EFFECT: GLOBE SETUP ==========
   useEffect(() => {
     if (!globeEl.current || !globeReady) return;
 
@@ -254,6 +399,36 @@ export default function DashboardPageV2() {
     controls.rotateSpeed = 0.5;
   }, [globeReady]);
 
+  // ========== HANDLER: VISITOR CLICK ==========
+  const handleVisitorClick = (visitor: GroupedVisitor, isOnline: boolean) => {
+    const mostRecentSession = visitor.sessions[0];
+
+    console.log("🔍 Opening modal for visitor:", {
+      visitorNumber: visitor.visitorNumber,
+      visitorCity: visitor.city,
+      visitorCountry: visitor.country,
+      sessionCity: mostRecentSession?.city,
+      sessionCountry: mostRecentSession?.country,
+      allSessions: visitor.sessions,
+    });
+
+    setSelectedVisitor({
+      visitorNumber: visitor.visitorNumber,
+      visitorId: visitor.visitorId,
+      location: {
+        city: mostRecentSession?.city || visitor.city || "Unknown",
+        country: mostRecentSession?.country || visitor.country || "Unknown",
+        region: undefined,
+        countryCode: undefined,
+        timezone: undefined,
+      },
+      sessions: visitor.sessions,
+      connectedAt: visitor.latestTimestamp,
+      lastActivity: visitor.latestTimestamp,
+    });
+    setSelectedVisitorOnline(isOnline);
+  };
+
   // ========== LOADING STATE ==========
   if (dashboard.loading) {
     return (
@@ -268,11 +443,18 @@ export default function DashboardPageV2() {
     );
   }
 
-  // ========== RENDER ==========
+  // ========== COMPUTED VALUES ==========
+  const onlineVisitors = visitorsUnique.filter((v) => v.isOnline);
+  const offlineVisitors = visitorsUnique.filter((v) => !v.isOnline);
+
+  // ============================================
+  //   RENDER
+  // ============================================
   return (
     <div className="space-y-6 bg-gray-100 dark:bg-slate-900 min-h-screen">
-      {/* GLOBE + USERS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
+      {/* ==================== GLOBE + VISITORS ==================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* GLOBE */}
         <Card className="p-4 shadow-2xl shadow-black/10">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
             <span>🌍</span>
@@ -299,149 +481,75 @@ export default function DashboardPageV2() {
           </div>
         </Card>
 
+        {/* VISITORS LIST */}
         <Card className="p-4 shadow-2xl shadow-black/10">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
             <span>👥</span>
-            <span>User History</span>
-            <span className="ml-auto text-sm font-normal text-gray-500">
-              {realOnlineUsers.length} online / {combinedUsersSorted.length}{" "}
-              total
+            <span>Visitors</span>
+            <span className="ml-auto text-sm font-normal text-gray-500 dark:text-gray-400">
+              {onlineVisitors.length} online / {visitorsUnique.length} total
             </span>
           </h3>
 
-          <div className="h-[500px] overflow-y-auto space-y-2">
+          <div className="h-[500px] overflow-y-auto pr-2">
             {historyLoading ? (
-              <p className="text-center text-gray-500">Loading...</p>
-            ) : combinedUsersSorted.length === 0 ? (
-              <p className="text-center text-gray-500 mt-10">No visitors yet</p>
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Loading...
+                  </p>
+                </div>
+              </div>
+            ) : visitorsUnique.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="text-5xl mb-3">👥</div>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No visitors yet
+                  </p>
+                </div>
+              </div>
             ) : (
-              combinedUsersSorted.map((entry) => {
-                const visitorNumber = entry.visitorNumber;
-
-                return (
-                  <div
-                    key={entry.id}
-                    onClick={() => {
-                      landingAnalytics
-                        .getSessions({ limit: 100, days: 30 })
-                        .then((res) => {
-                          // Prima prova con visitor_id se esiste
-                          let session = res.sessions.find(
-                            (s) =>
-                              s.visitor_id && entry.id.includes(s.visitor_id),
-                          );
-
-                          // Se non trova, prova con timestamp
-                          if (!session) {
-                            const entryTime = new Date(
-                              entry.timestamp,
-                            ).getTime();
-                            session = res.sessions.find((s) => {
-                              const sessionTime = new Date(
-                                s.started_at,
-                              ).getTime();
-                              const diff = Math.abs(entryTime - sessionTime);
-                              return diff < 300000; // 5 minuti
-                            });
-                          }
-
-                          if (session) {
-                            setSelectedSession(session);
-                          } else {
-                            alert(
-                              "Nessuna sessione analytics trovata per questo visitatore",
-                            );
-                          }
-                        });
-                    }}
-                    className="p-2 sm:p-3 border border-black/10 dark:bg-slate-700 rounded-lg space-y-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
-                  >
-                    {/* Header: Visitatore + Location */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div
-                          className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            entry.isOnline
-                              ? "bg-green-500 animate-pulse"
-                              : "bg-gray-400"
-                          }`}
-                        />
-                        <p className="text-xs sm:text-sm font-medium truncate">
-                          <span className=" dark:text-gray-400">
-                            Visitatore nr {visitorNumber}
-                          </span>
-                          <span className="mx-1.5">•</span>
-                          {entry.city && entry.city !== "Unknown" ? (
-                            <>
-                              <span className="font-semibold">
-                                {entry.city}
-                              </span>
-                              <span className="mx-1">•</span>
-                              <span className=" dark:text-gray-400">
-                                {entry.country}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-gray-500 dark:text-gray-400">
-                                Unknown City
-                              </span>
-                              <span className="text-gray-400 mx-1">•</span>
-                              <span className="font-semibold">
-                                {entry.country}
-                              </span>
-                            </>
-                          )}
-                        </p>
-                      </div>
-
-                      {entry.isOnline && (
-                        <span className="text-[10px] sm:text-xs bg-green-100 text-green-700 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-medium flex-shrink-0">
-                          Online
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Time info */}
-                    <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 pl-4">
-                      {entry.isOnline ? (
-                        <div>
-                          <span className="font-medium">A:</span>{" "}
-                          {formatExactTime(entry.timestamp)}
-                        </div>
-                      ) : entry.disconnectedAt ? (
-                        <div className="space-y-0.5">
-                          <div>
-                            <span className="font-medium">A:</span>{" "}
-                            {formatExactTime(entry.timestamp)}
-                          </div>
-                          <div>
-                            <span className="font-medium">P:</span>{" "}
-                            {formatExactTime(entry.disconnectedAt)}
-                          </div>
-                          <div className="text-gray-500">
-                            {formatSessionDuration(
-                              entry.timestamp,
-                              entry.disconnectedAt,
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div>
-                          <span className="font-medium">Visto:</span>{" "}
-                          {formatExactTime(entry.timestamp)}
-                        </div>
-                      )}
-                    </div>
+              <>
+                {/* ONLINE VISITORS */}
+                {onlineVisitors.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-xs font-semibold text-green-600 dark:text-green-500 uppercase tracking-wide mb-2 px-2">
+                      🟢 Online ({onlineVisitors.length})
+                    </h4>
+                    {onlineVisitors.map((visitor) => (
+                      <VisitorCardMini
+                        key={visitor.visitorNumber}
+                        visitor={visitor}
+                        onClick={() => handleVisitorClick(visitor, true)}
+                      />
+                    ))}
                   </div>
-                );
-              })
+                )}
+
+                {/* OFFLINE VISITORS */}
+                {offlineVisitors.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 px-2">
+                      📋 Recent History ({offlineVisitors.length})
+                    </h4>
+                    {offlineVisitors.map((visitor) => (
+                      <VisitorCardMini
+                        key={visitor.visitorNumber}
+                        visitor={visitor}
+                        onClick={() => handleVisitorClick(visitor, false)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </Card>
       </div>
 
-      {/* FILTRI */}
+      {/* ==================== FILTERS ==================== */}
       <div className="flex items-center gap-3">
         <TimeFilters
           loading={dashboard.loading}
@@ -459,8 +567,8 @@ export default function DashboardPageV2() {
         </button>
       </div>
 
-      {/* STAT CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
+      {/* ==================== STAT CARDS ==================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <StatCard
           title="Total Revenue"
           value={formatPrice(dashboard.summary.totalRevenue)}
@@ -479,27 +587,15 @@ export default function DashboardPageV2() {
           icon="⏳"
           color="yellow"
         />
-        {/* <StatCard
-          title="Conversion"
-          value={`${dashboard.summary.conversionRate?.toFixed(1) || 0}%`}
-          icon="📊"
-          color="purple"
-        /> */}
         <StatCard
           title="Avg Order"
           value={formatPrice(dashboard.summary.averageOrderValue)}
           icon="💳"
           color="pink"
         />
-        {/* <StatCard
-          title="Online"
-          value={uniqueOnlineUsers.length}
-          icon="👥"
-          color="cyan"
-        /> */}
       </div>
 
-      {/* CHARTS */}
+      {/* ==================== CHARTS ==================== */}
       <ChartsSection
         period={dashboard.period}
         loading={false}
@@ -507,20 +603,20 @@ export default function DashboardPageV2() {
         previousData={dashboard.previousChartData}
       />
 
-      {/* RECENT ORDERS */}
+      {/* ==================== RECENT ORDERS ==================== */}
       <Card className="p-6 shadow-2xl shadow-black/10">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <span>🔔</span>
             <span>Recent Orders</span>
           </h3>
-          <span className="text-xs text-gray-500 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">
+          <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded">
             {dashboard.recentActivity.length} recent
           </span>
         </div>
 
         {dashboard.recentActivity.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <div className="text-5xl mb-3">📦</div>
             <p className="text-base font-medium">No recent orders</p>
           </div>
@@ -538,11 +634,11 @@ export default function DashboardPageV2() {
                     {activity.message}
                   </p>
                   <div className="flex items-center gap-2 mt-1.5">
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {formatTimeAgo(activity.timestamp)}
                     </p>
                     <span className="text-xs text-gray-400">•</span>
-                    <span className="text-xs text-gray-600 font-medium">
+                    <span className="text-xs text-gray-600 dark:text-gray-300 font-medium">
                       #{activity.metadata.orderId.slice(-8)}
                     </span>
                   </div>
@@ -551,17 +647,17 @@ export default function DashboardPageV2() {
                   <span
                     className={`text-xs px-2 py-1 rounded-full font-medium ${
                       activity.metadata.status === "COMPLETED"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                         : activity.metadata.status === "PAID"
-                          ? "bg-blue-100 text-blue-700"
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                           : activity.metadata.status === "PENDING"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-700"
+                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                            : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
                     }`}
                   >
                     {activity.metadata.status}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {activity.metadata.items} item
                     {activity.metadata.items !== 1 ? "s" : ""}
                   </span>
@@ -571,14 +667,14 @@ export default function DashboardPageV2() {
           </div>
         )}
       </Card>
-      {/* Modal */}
-      {selectedSession && (
-        <div className="relative z-[9999]">
-          <SessionDetailModal
-            session={selectedSession}
-            onClose={() => setSelectedSession(null)}
-          />
-        </div>
+
+      {/* ==================== MODAL ==================== */}
+      {selectedVisitor && (
+        <VisitorDetailModal
+          visitor={selectedVisitor}
+          isOnline={selectedVisitorOnline}
+          onClose={() => setSelectedVisitor(null)}
+        />
       )}
     </div>
   );

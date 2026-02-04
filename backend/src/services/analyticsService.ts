@@ -70,7 +70,7 @@ export class AnalyticsService {
   }
 
   static async getDashboardMetricsCached(
-    filters: AnalyticsFilters
+    filters: AnalyticsFilters,
   ): Promise<DashboardMetrics> {
     const cacheKey = `dashboard_metrics_${filters.period}`;
 
@@ -145,7 +145,7 @@ export class AnalyticsService {
   }
 
   static async getDashboardMetrics(
-    filters: AnalyticsFilters
+    filters: AnalyticsFilters,
   ): Promise<DashboardMetrics> {
     const dateRange = this.getDateRange(filters);
 
@@ -239,7 +239,7 @@ export class AnalyticsService {
         change: currentRevenue - previousRevenue,
         changePercent: AnalyticsService.calculatePercentChange(
           previousRevenue,
-          currentRevenue
+          currentRevenue,
         ),
       },
       totalOrders: {
@@ -248,7 +248,7 @@ export class AnalyticsService {
         change: currentOrders - previousOrders,
         changePercent: this.calculatePercentChange(
           previousOrders,
-          currentOrders
+          currentOrders,
         ),
       },
       totalUsers: {
@@ -263,7 +263,7 @@ export class AnalyticsService {
         change: currentConversion - previousConversion,
         changePercent: this.calculatePercentChange(
           previousConversion,
-          currentConversion
+          currentConversion,
         ),
       },
     };
@@ -315,7 +315,7 @@ export class AnalyticsService {
     const totalRevenue = revenueData.reduce((sum, item) => sum + item.value, 0);
     const totalOrders = paymentMethods.reduce(
       (sum, item) => sum + item._count.id,
-      0
+      0,
     );
 
     const completedOrders =
@@ -354,7 +354,7 @@ export class AnalyticsService {
         .filter(
           (pm) =>
             pm.paymentProvider &&
-            ["STRIPE", "PAYPAL"].includes(pm.paymentProvider)
+            ["STRIPE", "PAYPAL"].includes(pm.paymentProvider),
         )
         .map((pm) => ({
           method: pm.paymentProvider as "STRIPE" | "PAYPAL",
@@ -425,10 +425,10 @@ export class AnalyticsService {
           product.stock === 0
             ? "critical"
             : product.stock <= (product.lowStockThreshold || 5) / 2
-            ? "critical"
-            : product.stock <= (product.lowStockThreshold || 5)
-            ? "low"
-            : "warning",
+              ? "critical"
+              : product.stock <= (product.lowStockThreshold || 5)
+                ? "low"
+                : "warning",
       })),
       categoryPerformance,
       averageRating: Number(reviewStats._avg.rating || 0),
@@ -512,7 +512,7 @@ export class AnalyticsService {
       ratingDistribution.length > 0
         ? ratingDistribution.reduce(
             (sum, item) => sum + item.rating * item._count.rating,
-            0
+            0,
           ) /
           ratingDistribution.reduce((sum, item) => sum + item._count.rating, 0)
         : 0;
@@ -596,7 +596,7 @@ export class AnalyticsService {
   }
 
   static async getDashboardInsights(
-    metrics: DashboardMetrics
+    metrics: DashboardMetrics,
   ): Promise<DashboardInsights> {
     const insights: PerformanceInsight[] = [];
 
@@ -605,7 +605,7 @@ export class AnalyticsService {
         type: "warning",
         title: "Calo delle Vendite",
         description: `Le vendite sono diminuite del ${Math.abs(
-          metrics.overview.totalRevenue.changePercent
+          metrics.overview.totalRevenue.changePercent,
         ).toFixed(1)}% rispetto al periodo precedente`,
         metric: "revenue",
         value: metrics.overview.totalRevenue.current,
@@ -620,7 +620,7 @@ export class AnalyticsService {
 
     if (metrics.products.lowStock.length > 0) {
       const criticalStock = metrics.products.lowStock.filter(
-        (p) => p.status === "critical"
+        (p) => p.status === "critical",
       ).length;
       insights.push({
         type: criticalStock > 0 ? "critical" : "warning",
@@ -657,7 +657,7 @@ export class AnalyticsService {
         type: "warning",
         title: "Tasso di Conversione Basso",
         description: `Il tasso di conversione è solo del ${metrics.overview.conversionRate.current.toFixed(
-          2
+          2,
         )}%`,
         metric: "conversion",
         value: metrics.overview.conversionRate.current,
@@ -756,7 +756,7 @@ export class AnalyticsService {
       case "custom":
         const daysDiff = Math.ceil(
           (dateRange.to.getTime() - dateRange.from.getTime()) /
-            (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24),
         );
         if (daysDiff <= 1) {
           periodData = await this.getHourlyData(dateRange);
@@ -816,7 +816,7 @@ export class AnalyticsService {
     const totalOrders = periodData.reduce((sum, item) => sum + item.orders, 0);
     const totalRevenue = periodData.reduce(
       (sum, item) => sum + item.revenue,
-      0
+      0,
     );
     const conversionRate =
       totalUsers > 0 ? (totalOrders / totalUsers) * 100 : 0;
@@ -824,7 +824,7 @@ export class AnalyticsService {
 
     const peakPeriod = periodData.reduce(
       (peak, current) => (current.revenue > peak.revenue ? current : peak),
-      { period: "", orders: 0, revenue: 0 }
+      { period: "", orders: 0, revenue: 0 },
     );
 
     return {
@@ -879,7 +879,7 @@ export class AnalyticsService {
       const italianTime = new Date(
         order.createdAt.toLocaleString("en-US", {
           timeZone: italianTimeZone,
-        })
+        }),
       );
 
       const hour = italianTime.getHours();
@@ -1050,7 +1050,7 @@ export class AnalyticsService {
 
     orders.forEach((order) => {
       const monthKey = `${order.createdAt.getFullYear()}-${String(
-        order.createdAt.getMonth() + 1
+        order.createdAt.getMonth() + 1,
       ).padStart(2, "0")}`;
       monthlyData[monthKey] = monthlyData[monthKey] || {
         orders: 0,
@@ -1185,13 +1185,13 @@ export class AnalyticsService {
         if (!filters.from || !filters.to) {
           throw new AnalyticsError(
             "Date from e to sono richieste per periodo custom",
-            400
+            400,
           );
         }
         from = filters.from;
         to = filters.to;
         const daysDiff = Math.ceil(
-          (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)
+          (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24),
         );
         previousFrom = new Date(from);
         previousFrom.setDate(previousFrom.getDate() - daysDiff);
@@ -1208,7 +1208,7 @@ export class AnalyticsService {
 
   private static calculatePercentChange(
     previous: number,
-    current: number
+    current: number,
   ): number {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
@@ -1295,7 +1295,7 @@ export class AnalyticsService {
     const monthlyRevenue: Record<string, number> = {};
     orders.forEach((order) => {
       const monthKey = `${order.createdAt.getFullYear()}-${String(
-        order.createdAt.getMonth() + 1
+        order.createdAt.getMonth() + 1,
       ).padStart(2, "0")}`;
       monthlyRevenue[monthKey] =
         (monthlyRevenue[monthKey] || 0) + Number(order.total);
@@ -1635,7 +1635,7 @@ export class AnalyticsService {
 
     const totalOrders = statusCounts.reduce(
       (sum, item) => sum + item._count.status,
-      0
+      0,
     );
 
     return statusCounts.map((item) => ({
@@ -1682,7 +1682,7 @@ export class AnalyticsService {
 
       const totalUsers = sources.reduce(
         (sum, item) => sum + item._count.source,
-        0
+        0,
       );
 
       return sources.map((item) => ({

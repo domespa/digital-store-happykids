@@ -65,12 +65,9 @@ export const useLandingCart = () => {
         maximumFractionDigits: 2,
       });
 
-      // ✅ Per valute con simbolo "$" ambiguo, aggiungi sempre il codice
       const ambiguousCurrencies = ["USD", "CAD", "AUD"];
 
       if (ambiguousCurrencies.includes(currency)) {
-        // Rimuovi il codice valuta che toLocaleString aggiunge automaticamente
-        // e lo sostituiamo con uno spazio + codice per più chiarezza
         return formatted.replace(currency, "").trim() + " " + currency;
       }
 
@@ -83,134 +80,41 @@ export const useLandingCart = () => {
   //   AUTO-CONVERT PRICES
   // ========================
   useEffect(() => {
-    console.log(
-      "🔄 useEffect triggered - backendProduct:",
-      backendProduct?.id,
-      "currency:",
-      user?.currency,
-    );
-
-    const convertPrices = async () => {
-      if (!backendProduct || !user?.currency) {
-        console.log("⏳ Waiting for data...", {
-          hasProduct: !!backendProduct,
-          hasCurrency: !!user?.currency,
-        });
-        return;
-      }
-
-      const productPrice = backendProduct.price;
-      const productCurrency = backendProduct.currency || "EUR";
-      const productCompareAt = backendProduct.compareAtPrice || productPrice;
-      const targetCurrency = user.currency;
-
-      // Stesso currency - no conversion
-      if (productCurrency === targetCurrency) {
-        setConvertedPrices({
-          mainPrice: productPrice,
-          originalPrice: productCompareAt,
-          currency: productCurrency,
-          formattedMainPrice: formatPriceSync(productPrice, productCurrency),
-          formattedOriginalPrice: formatPriceSync(
-            productCompareAt,
-            productCurrency,
-          ),
-        });
-        return;
-      }
-
-      console.log("🔄 Conversion triggered:", {
+    if (!backendProduct || !user?.currency) {
+      console.log("⏳ Waiting for data...", {
         hasProduct: !!backendProduct,
-        productId: backendProduct?.id,
-        currency: user?.currency,
+        hasCurrency: !!user?.currency,
       });
+      return;
+    }
 
-      // ✅ Conversione necessaria
-      setIsConverting(true);
+    console.log("✅ Using backend prices:", {
+      displayPrice: backendProduct.displayPrice,
+      price: backendProduct.price,
+      currency: backendProduct.currency,
+      userCurrency: user.currency,
+    });
 
-      try {
-        const apiBase =
-          import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+    // Usa displayPrice se presente, altrimenti price
+    const displayPrice = backendProduct.displayPrice ?? backendProduct.price;
+    const displayCompareAt =
+      backendProduct.displayCompareAtPrice ??
+      backendProduct.compareAtPrice ??
+      displayPrice;
+    const displayCurrency = backendProduct.currency;
 
-        const [mainConv, compareConv] = await Promise.all([
-          fetch(
-            `${apiBase}/api/currency/convert?` +
-              new URLSearchParams({
-                amount: productPrice.toString(),
-                from: productCurrency,
-                to: targetCurrency,
-              }),
-          ).then((r) => (r.ok ? r.json() : null)),
-          fetch(
-            `${apiBase}/api/currency/convert?` +
-              new URLSearchParams({
-                amount: productCompareAt.toString(),
-                from: productCurrency,
-                to: targetCurrency,
-              }),
-          ).then((r) => (r.ok ? r.json() : null)),
-        ]);
+    setConvertedPrices({
+      mainPrice: displayPrice,
+      originalPrice: displayCompareAt,
+      currency: displayCurrency,
+      formattedMainPrice: formatPriceSync(displayPrice, displayCurrency),
+      formattedOriginalPrice: formatPriceSync(
+        displayCompareAt,
+        displayCurrency,
+      ),
+    });
 
-        if (mainConv && compareConv) {
-          const convertedMain =
-            mainConv.convertedAmount ?? mainConv.data?.convertedAmount;
-          const convertedCompare =
-            compareConv.convertedAmount ?? compareConv.data?.convertedAmount;
-
-          setConvertedPrices({
-            mainPrice: convertedMain,
-            originalPrice: convertedCompare,
-            currency: targetCurrency,
-            formattedMainPrice: formatPriceSync(convertedMain, targetCurrency),
-            formattedOriginalPrice: formatPriceSync(
-              convertedCompare,
-              targetCurrency,
-            ),
-          });
-        } else {
-          // Fallback rates
-          const fallbackRates: Record<string, Record<string, number>> = {
-            USD: { EUR: 0.91, GBP: 0.77, AUD: 1.5, CAD: 1.35 },
-            EUR: { USD: 1.1, GBP: 0.85, AUD: 1.65, CAD: 1.48 },
-            GBP: { USD: 1.3, EUR: 1.18, AUD: 1.95, CAD: 1.75 },
-            AUD: { USD: 0.67, EUR: 0.61, GBP: 0.51, CAD: 0.9 },
-          };
-
-          const rate = fallbackRates[productCurrency]?.[targetCurrency] || 1;
-          const convertedMain = productPrice * rate;
-          const convertedCompare = productCompareAt * rate;
-
-          setConvertedPrices({
-            mainPrice: convertedMain,
-            originalPrice: convertedCompare,
-            currency: targetCurrency,
-            formattedMainPrice: formatPriceSync(convertedMain, targetCurrency),
-            formattedOriginalPrice: formatPriceSync(
-              convertedCompare,
-              targetCurrency,
-            ),
-          });
-        }
-      } catch (error) {
-        console.error("Price conversion failed", error);
-
-        // In caso di errore, usa il prezzo originale
-        setConvertedPrices({
-          mainPrice: productPrice,
-          originalPrice: productCompareAt,
-          currency: productCurrency,
-          formattedMainPrice: formatPriceSync(productPrice, productCurrency),
-          formattedOriginalPrice: formatPriceSync(
-            productCompareAt,
-            productCurrency,
-          ),
-        });
-      } finally {
-        setIsConverting(false);
-      }
-    };
-
-    convertPrices();
+    setIsConverting(false);
   }, [backendProduct, user?.currency, formatPriceSync]);
 
   // ========================
@@ -236,7 +140,7 @@ export const useLandingCart = () => {
 
     const product: ProductToAdd = {
       id: `main-product-${config.productId}`,
-      productId: config.productId || "cmkcfleu40000brx7zyn51pla",
+      productId: config.productId || "cml878t320000evywtampu4aj",
       name: backendProduct?.name || config.hero.title,
       price: convertedPrices.mainPrice,
       currency: convertedPrices.currency,

@@ -1,368 +1,186 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { adminUsers, adminWebSocket } from "../services/adminApi";
+import { io, Socket } from "socket.io-client";
 import type { OnlineUser } from "../types/admin";
 
-interface WebSocketMessage {
-  type: "user_count" | "notification" | "unread_count" | "system";
-  count?: number;
-  data?: any;
-}
-
-interface UserTrackingMessage {
-  type:
-    | "user_connected"
-    | "user_disconnected"
-    | "user_activity"
-    | "session_ended";
-  sessionId?: string;
-  visitorNumber?: number;
-  location?: {
-    country?: string;
-    city?: string;
+interface VisitorData {
+  sessionId: string;
+  visitorId: string;
+  visitorNumber: number;
+  location: {
+    country: string;
+    city: string;
     region?: string;
     countryCode?: string;
     timezone?: string;
-  } | null;
-  connectedAt?: string;
-  disconnectedAt?: string;
-  disconnectReason?: string;
-  page?: string;
-  timestamp?: string;
-  action?: string;
-  endTime?: string;
+  };
+  connectedAt: string;
 }
-type AnyWebSocketMessage = WebSocketMessage | UserTrackingMessage;
 
 export function useRealTimeUsers() {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const wsRef = useRef<any>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-  const maxReconnectAttempts = 5;
-  const isRefreshingRef = useRef(false);
-
-  const refreshData = useCallback(async () => {
-    if (isRefreshingRef.current) {
-      console.log("⏭️ Skipping refresh - already in progress");
-      return;
-    }
-
-    try {
-      isRefreshingRef.current = true;
-      setLoading(true);
-
-      const users = await adminUsers.getOnline();
-      console.log("📊 Refreshed users:", users?.length || 0);
-
-      setOnlineUsers(users || []);
-      setError(null);
-    } catch (err) {
-      console.error("❌ Refresh failed:", err);
-      setError("Failed to refresh data");
-    } finally {
-      setLoading(false);
-      isRefreshingRef.current = false;
-    }
-  }, []);
-
-  const handleReconnect = useCallback(() => {
-    if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-      console.error("❌ Max reconnect attempts reached");
-      setError("Connection failed. Please refresh the page.");
-      return;
-    }
-
-    reconnectAttemptsRef.current += 1;
-    const delay = Math.min(
-      1000 * Math.pow(2, reconnectAttemptsRef.current),
-      10000,
-    );
-
-    console.log(
-      `🔄 Scheduling reconnect attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts} in ${delay}ms`,
-    );
-
-    reconnectTimeoutRef.current = setTimeout(() => {
-      console.log(`🔄 Attempting reconnect #${reconnectAttemptsRef.current}`);
-      if (wsRef.current && typeof wsRef.current.connect === "function") {
-        wsRef.current.connect();
-      }
-    }, delay);
-  }, []);
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     let mounted = true;
 
-    const initialLoad = async () => {
+    const connectWebSocket = () => {
       try {
-        console.log("📊 Initial data load...");
-        const users = await adminUsers.getOnline();
-        if (mounted) {
-          setOnlineUsers(users || []);
-          setLoading(false);
-          setError(null);
-        }
-      } catch (err) {
-        console.error("❌ Initial load failed:", err);
-        if (mounted) {
-          setError("Failed to load initial data");
-          setLoading(false);
-        }
-      }
-    };
+        console.log("🔌 Connecting to admin tracking WebSocket...");
 
-    initialLoad();
+        const socket = io(
+          import.meta.env.VITE_API_URL || "http://localhost:3001",
+          {
+            path: "/admin-tracking",
+            transports: ["websocket", "polling"],
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: 5,
+          },
+        );
 
-    const setupWebSocket = () => {
-      try {
-        console.log("🔧 Setting up WebSocket connection...");
+        socketRef.current = socket;
 
-        wsRef.current = adminWebSocket.connect((data: AnyWebSocketMessage) => {
+        // CONNECTION
+        socket.on("connect", () => {
           if (!mounted) return;
+          console.log("✅ Connected to admin tracking WebSocket");
+          setIsConnected(true);
+          setError(null);
+        });
 
-          console.log("🔌 WebSocket message received:", data);
+        // INITIAL VISITORS (quando ci connettiamo)
+        socket.on("initial_visitors", (data: { visitors: VisitorData[] }) => {
+          if (!mounted) return;
+          console.log("📊 Initial visitors received:", data.visitors.length);
 
-          if ("type" in data) {
-            switch (data.type) {
-              case "user_connected":
-                if (data.sessionId) {
-                  console.log("🔵 Processing user_connected:", data.sessionId);
+          const users: OnlineUser[] = data.visitors.map((v) => ({
+            id: `visitor-${v.visitorNumber}`,
+            sessionId: v.sessionId,
+            visitorNumber: v.visitorNumber,
+            visitorId: v.visitorId,
+            location: {
+              country: v.location.country,
+              city: v.location.city,
+              region: v.location.region,
+              countryCode: v.location.countryCode,
+              timezone: v.location.timezone,
+            },
+            connectedAt: v.connectedAt,
+            lastActivity: v.connectedAt,
+            currentPage: "/",
+            userAgent: null,
+            ipAddress: null,
+            isAuthenticated: false,
+          }));
 
-                  setOnlineUsers((prev: OnlineUser[]) => {
-                    console.log("📊 Previous users count:", prev.length);
+          setOnlineUsers(users);
+          setLoading(false);
+        });
 
-                    // Check se già esiste
-                    if (prev.some((u) => u.sessionId === data.sessionId)) {
-                      console.log(
-                        "⏭️ User already exists, skipping:",
-                        data.sessionId,
-                      );
-                      return prev;
-                    }
+        // USER CONNECTED (nuovo visitatore)
+        socket.on("user_connected", (data: any) => {
+          if (!mounted) return;
+          console.log("🔵 New visitor connected:", data.visitorNumber);
 
-                    const newUser: OnlineUser = {
-                      sessionId: data.sessionId!,
-                      visitorNumber: data.visitorNumber,
-                      location: data.location
-                        ? {
-                            country: data.location.country || "Unknown",
-                            city: data.location.city || "Unknown",
-                            region: data.location.region,
-                            countryCode: data.location.countryCode,
-                            timezone: data.location.timezone,
-                          }
-                        : null,
-                      connectedAt: data.connectedAt || new Date().toISOString(),
-                      lastActivity:
-                        data.connectedAt || new Date().toISOString(),
-                      currentPage: "homepage",
-                      userAgent: null,
-                      ipAddress: null,
-                      isAuthenticated: false,
-                    };
-
-                    console.log(
-                      "➕ Adding new user:",
-                      newUser.sessionId,
-                      newUser.location,
-                    );
-
-                    const updated = [...prev, newUser];
-
-                    console.log(`📊 New users count: ${updated.length}`);
-                    console.log(`🔄 Triggering re-render with new array`);
-
-                    return updated;
-                  });
-                }
-                break;
-
-              case "user_disconnected":
-                if (data.sessionId) {
-                  console.log(
-                    "🔴 Processing user_disconnected:",
-                    data.sessionId,
-                  );
-
-                  setOnlineUsers((prev: OnlineUser[]) => {
-                    console.log("📊 Previous users count:", prev.length);
-
-                    // Check se esiste
-                    if (!prev.some((u) => u.sessionId === data.sessionId)) {
-                      console.log(
-                        "⏭️ User not found, skipping:",
-                        data.sessionId,
-                      );
-                      return prev;
-                    }
-
-                    console.log("➖ Removing user:", data.sessionId);
-                    console.log(
-                      `📊 Disconnect reason:`,
-                      data.disconnectReason || "unknown",
-                    );
-
-                    const remaining = prev.filter(
-                      (u) => u.sessionId !== data.sessionId,
-                    );
-
-                    console.log(`📊 New users count: ${remaining.length}`);
-                    console.log(`🔄 Triggering re-render with new array`);
-
-                    return remaining;
-                  });
-                }
-                break;
-              case "user_activity":
-                if (data.sessionId) {
-                  console.log("🔄 User activity:", data.sessionId, data.page);
-                  setOnlineUsers((prev: OnlineUser[]) =>
-                    prev.map((user) =>
-                      user.sessionId === data.sessionId
-                        ? {
-                            ...user,
-                            currentPage: data.page || user.currentPage,
-                            lastActivity:
-                              data.timestamp || new Date().toISOString(),
-                          }
-                        : user,
-                    ),
-                  );
-                }
-                break;
-
-              case "user_count":
-                if (typeof data.count === "number") {
-                  const count = data.count;
-                  console.log("👥 User count update:", count);
-                  setOnlineUsers((prev) => {
-                    if (Math.abs(prev.length - count) > 0) {
-                      console.log("⚠️ Count mismatch, triggering refresh...");
-                      setTimeout(() => {
-                        refreshData();
-                      }, 0);
-                    }
-                    return prev;
-                  });
-                }
-                break;
-
-              default:
-                console.log("ℹ️ Unhandled message type:", data.type);
+          setOnlineUsers((prev) => {
+            // Check se già esiste
+            if (prev.some((u) => u.sessionId === data.sessionId)) {
+              console.log("⏭️ User already exists, skipping");
+              return prev;
             }
-          }
+
+            const newUser: OnlineUser = {
+              id: `visitor-${data.visitorNumber}`,
+              sessionId: data.sessionId,
+              visitorNumber: data.visitorNumber,
+              visitorId: data.visitorId,
+              location: {
+                country: data.location.country,
+                city: data.location.city,
+                region: data.location.region,
+                countryCode: data.location.countryCode,
+                timezone: data.location.timezone,
+              },
+              connectedAt: data.connectedAt,
+              lastActivity: data.connectedAt,
+              currentPage: "/",
+              userAgent: null,
+              ipAddress: null,
+              isAuthenticated: false,
+            };
+
+            return [...prev, newUser];
+          });
         });
 
-        if (!wsRef.current) {
-          console.error("❌ Failed to create WebSocket connection");
-          setError("Failed to create WebSocket connection");
-          return;
-        }
-
-        console.log("✅ WebSocket object created:", typeof wsRef.current);
-
-        // Event: connect
-        wsRef.current.on("connect", () => {
+        // USER DISCONNECTED (visitatore esce)
+        socket.on("user_disconnected", (data: any) => {
           if (!mounted) return;
-          console.log("✅ Connected to WebSocket");
-          setIsConnected(true);
-          setError(null);
-          reconnectAttemptsRef.current = 0;
+          console.log("🔴 Visitor disconnected:", data.visitorNumber);
+
+          setOnlineUsers((prev) =>
+            prev.filter((u) => u.sessionId !== data.sessionId),
+          );
         });
 
-        // Event: disconnect
-        wsRef.current.on("disconnect", (reason: string) => {
+        // ❌ DISCONNECT
+        socket.on("disconnect", (reason: string) => {
           if (!mounted) return;
-          console.log("⚠️ Disconnected from WebSocket. Reason:", reason);
-          setIsConnected(false);
-
-          if (reason === "io server disconnect") {
-            console.log("🔄 Server disconnected us, attempting reconnect...");
-            handleReconnect();
-          } else if (
-            reason === "transport close" ||
-            reason === "transport error"
-          ) {
-            console.log("🔄 Transport issue, attempting reconnect...");
-            handleReconnect();
-          }
-        });
-
-        // Event: reconnect
-        wsRef.current.on("reconnect", (attemptNumber: number) => {
-          if (!mounted) return;
-          console.log(`✅ Reconnected after ${attemptNumber} attempts`);
-          setIsConnected(true);
-          setError(null);
-          reconnectAttemptsRef.current = 0;
-          refreshData(); // Solo dopo reconnect
-        });
-
-        // Event: reconnect_attempt
-        wsRef.current.on("reconnect_attempt", (attemptNumber: number) => {
-          if (!mounted) return;
-          console.log(`🔄 Reconnect attempt ${attemptNumber}...`);
-        });
-
-        // Event: reconnect_error
-        wsRef.current.on("reconnect_error", (error: any) => {
-          if (!mounted) return;
-          console.error("❌ Reconnect error:", error);
-        });
-
-        // Event: reconnect_failed
-        wsRef.current.on("reconnect_failed", () => {
-          if (!mounted) return;
-          console.error("❌ Reconnection failed after all attempts");
-          setError("Connection lost. Please refresh the page.");
+          console.log("🔴 Disconnected from admin tracking:", reason);
           setIsConnected(false);
         });
 
-        // Event: error
-        wsRef.current.on("error", (error: any) => {
-          if (!mounted) return;
-          console.error("❌ WebSocket error:", error);
-          setError("WebSocket connection error");
-        });
-
-        // Event: connect_error
-        wsRef.current.on("connect_error", (error: any) => {
+        // ❌ ERROR
+        socket.on("connect_error", (error: any) => {
           if (!mounted) return;
           console.error("❌ Connection error:", error);
-          setError(`Connection error: ${error.message || "Unknown error"}`);
-          handleReconnect();
+          setError("Failed to connect to real-time tracking");
         });
       } catch (error) {
         console.error("❌ Failed to setup WebSocket:", error);
-        setError("Failed to setup WebSocket connection");
-        setIsConnected(false);
+        setError("Failed to setup WebSocket");
       }
     };
 
-    setupWebSocket();
+    connectWebSocket();
 
     return () => {
       mounted = false;
-
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-        reconnectTimeoutRef.current = null;
-      }
-
-      if (wsRef.current) {
-        console.log("🧹 Cleaning up WebSocket connection");
-        try {
-          wsRef.current.removeAllListeners();
-          wsRef.current.close();
-        } catch (e) {
-          console.error("Error during cleanup:", e);
-        }
-        wsRef.current = null;
+      if (socketRef.current) {
+        console.log("🧹 Cleaning up admin tracking WebSocket");
+        socketRef.current.disconnect();
+        socketRef.current = null;
       }
     };
+  }, []);
+
+  const refreshData = useCallback(async () => {
+    // Fallback
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/admin/users/online`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch");
+
+      const result = await response.json();
+      if (result.success) {
+        setOnlineUsers(result.users || []);
+        setError(null);
+      }
+    } catch (err) {
+      console.error("❌ Refresh failed:", err);
+      setError("Failed to refresh data");
+    }
   }, []);
 
   return {
@@ -371,7 +189,6 @@ export function useRealTimeUsers() {
     error,
     isConnected,
     totalOnline: onlineUsers.length,
-    isWebSocketConnected: () => isConnected,
     refreshData,
     getOnlineUsersByCountry: (country: string) =>
       onlineUsers.filter((user) => user.location?.country === country),

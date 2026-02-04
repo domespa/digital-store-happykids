@@ -71,6 +71,7 @@ export interface OnlineUser {
   firstName?: string;
   lastName?: string;
   sessionId: string;
+  visitorId?: string;
   visitorNumber?: number;
   ipAddress: string | null;
   userAgent: string | null;

@@ -1,7 +1,7 @@
 import type { LandingConfig } from "../../types/landing";
 
 export const screenDetoxConfig: LandingConfig = {
-  productId: "cmkcfleu40000brx7zyn51pla",
+  productId: "cml878t320000evywtampu4aj",
 
   hero: {
     title:

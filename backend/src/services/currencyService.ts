@@ -58,10 +58,10 @@ export class CurrencyService {
     // TASSI DI FALLBACK SE LE API NON FUNZIONANO
     this.fallbackRates = {
       EUR: {
-        USD: 1.1,
-        GBP: 0.85,
-        AUD: 1.65,
-        CAD: 1.5,
+        USD: 1.18,
+        GBP: 0.86,
+        AUD: 1.68,
+        CAD: 1.61,
         JPY: 165.0,
         CHF: 0.97,
         SEK: 11.5,
@@ -69,8 +69,8 @@ export class CurrencyService {
         DKK: 7.45,
       },
       USD: {
-        EUR: 0.91,
-        GBP: 0.77,
+        EUR: 0.85,
+        GBP: 0.73,
         AUD: 1.5,
         CAD: 1.36,
         JPY: 150.0,
@@ -124,7 +124,7 @@ export class CurrencyService {
 
   // OTTIENI TASSI DI CAMBIO DA API ESTERNE
   private async fetchExchangeRates(
-    baseCurrency: string = "EUR"
+    baseCurrency: string = "EUR",
   ): Promise<ExchangeRates | null> {
     const cacheKey = `rates_${baseCurrency}`;
 
@@ -157,7 +157,7 @@ export class CurrencyService {
         // SALVA IN CACHE
         this.cache.set(cacheKey, response);
         console.log(
-          `💰 Fresh rates loaded for ${baseCurrency} from ${provider}`
+          `💰 Fresh rates loaded for ${baseCurrency} from ${provider}`,
         );
         return response;
       }
@@ -170,7 +170,7 @@ export class CurrencyService {
 
   // API EXCHANGERATE-API.COM (GRATUITA)
   private async fetchFromExchangeRate(
-    baseCurrency: string
+    baseCurrency: string,
   ): Promise<ExchangeRates | null> {
     try {
       const url = `https://api.exchangerate-api.com/v4/latest/${baseCurrency}`;
@@ -189,7 +189,7 @@ export class CurrencyService {
 
   // API FIXER.IO
   private async fetchFromFixer(
-    baseCurrency: string
+    baseCurrency: string,
   ): Promise<ExchangeRates | null> {
     const apiKey = process.env.EXCHANGE_API_KEY;
     if (!apiKey) return null;
@@ -213,7 +213,7 @@ export class CurrencyService {
 
   // API CURRENCYAPI.COM
   private async fetchFromCurrencyAPI(
-    baseCurrency: string
+    baseCurrency: string,
   ): Promise<ExchangeRates | null> {
     const apiKey = process.env.EXCHANGE_API_KEY;
     if (!apiKey) return null;
@@ -226,7 +226,7 @@ export class CurrencyService {
       // TRASFORMA FORMATO CURRENCYAPI NEL NOSTRO FORMATO
       const rates: Record<string, number> = {};
       for (const [currency, data] of Object.entries(
-        response.data.data as Record<string, any>
+        response.data.data as Record<string, any>,
       )) {
         rates[currency] = data.value;
       }
@@ -251,7 +251,7 @@ export class CurrencyService {
     amount: number,
     fromCurrency: string,
     toCurrency: string,
-    precision: number = 2
+    precision: number = 2,
   ): Promise<{
     convertedAmount: number;
     rate: number;
@@ -287,7 +287,7 @@ export class CurrencyService {
 
     // USA TASSI DI FALLBACK
     console.warn(
-      `⚠️  Using fallback rates for ${fromCurrency} -> ${toCurrency}`
+      `⚠️  Using fallback rates for ${fromCurrency} -> ${toCurrency}`,
     );
     const fallbackRate = this.fallbackRates[fromCurrency]?.[toCurrency];
 
@@ -306,7 +306,7 @@ export class CurrencyService {
 
     // NESSUN TASSO TROVATO
     console.error(
-      `❌ No conversion rate found for ${fromCurrency} -> ${toCurrency}`
+      `❌ No conversion rate found for ${fromCurrency} -> ${toCurrency}`,
     );
     return {
       convertedAmount: amount,
@@ -319,7 +319,7 @@ export class CurrencyService {
   // CONVERTI LISTA DI PREZZI
   async convertPriceList(
     items: Array<{ amount: number; currency: string }>,
-    targetCurrency: string
+    targetCurrency: string,
   ): Promise<
     Array<{
       originalAmount: number;
@@ -334,7 +334,7 @@ export class CurrencyService {
       const conversion = await this.convertPrice(
         item.amount,
         item.currency,
-        targetCurrency
+        targetCurrency,
       );
       results.push({
         originalAmount: item.amount,
@@ -360,7 +360,7 @@ export class CurrencyService {
   formatPrice(
     amount: number,
     currency: string,
-    locale: string = "it-IT"
+    locale: string = "it-IT",
   ): string {
     const currencyConfig = SUPPORTED_CURRENCIES[currency];
     if (!currencyConfig) return `${amount} ${currency}`;

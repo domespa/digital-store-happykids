@@ -2,14 +2,17 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { payments } from "../services/api";
 import { trackPurchase } from "../utils/analytics";
+import { useVisitorTracking } from "../hooks/useVisitorTracking";
 
 export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
+    "loading",
   );
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [paymentProvider, setPaymentProvider] = useState<string>("");
+  const { trackEvent } = useVisitorTracking({ autoConnect: false });
 
   useEffect(() => {
     const processPayment = async () => {
@@ -27,14 +30,27 @@ export default function PaymentSuccess() {
         if (provider === "stripe" || paymentIntent) {
           console.log("✅ Stripe payment - showing success");
           setStatus("success");
+          setPaymentProvider("stripe");
+
+          const orderId = crypto.randomUUID();
+          const total = Number(localStorage.getItem("cart_total") || 0);
+
+          trackEvent("purchase", {
+            orderId,
+            value: total,
+            metadata: {
+              provider: "stripe",
+              currency: localStorage.getItem("currency") || "EUR",
+            },
+          });
 
           trackPurchase(
-            crypto.randomUUID(),
+            orderId,
             JSON.parse(localStorage.getItem("cart_items") || "[]"),
-            Number(localStorage.getItem("cart_total") || 0),
+            total,
             0,
             0,
-            localStorage.getItem("currency") || "EUR"
+            localStorage.getItem("currency") || "EUR",
           );
 
           localStorage.removeItem("cart");
@@ -55,14 +71,27 @@ export default function PaymentSuccess() {
 
           if (result.success) {
             setStatus("success");
+            setPaymentProvider("paypal");
+
+            const orderId = crypto.randomUUID();
+            const total = Number(localStorage.getItem("cart_total") || 0);
+
+            trackEvent("purchase", {
+              orderId,
+              value: total,
+              metadata: {
+                provider: "paypal",
+                currency: localStorage.getItem("currency") || "EUR",
+              },
+            });
 
             trackPurchase(
-              crypto.randomUUID(),
+              orderId,
               JSON.parse(localStorage.getItem("cart_items") || "[]"),
-              Number(localStorage.getItem("cart_total") || 0),
+              total,
               0,
               0,
-              localStorage.getItem("currency") || "EUR"
+              localStorage.getItem("currency") || "EUR",
             );
 
             localStorage.removeItem("paypal_pending_order");
@@ -89,14 +118,14 @@ export default function PaymentSuccess() {
         setErrorMessage(
           error.response?.data?.message ||
             error.message ||
-            "Something went wrong"
+            "Something went wrong",
         );
       }
     };
 
     console.log("🎯 PaymentSuccess component mounted");
     processPayment();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, trackEvent]);
 
   if (status === "loading") {
     return (
@@ -175,7 +204,9 @@ export default function PaymentSuccess() {
           Thank you for your purchase! You will receive a confirmation email
           shortly.
         </p>
-        <div className="text-sm text-gray-500">Redirecting in 5 seconds...</div>
+        <div className="text-sm text-gray-500">
+          Redirecting in {paymentProvider === "stripe" ? "10" : "5"} seconds...
+        </div>
       </div>
     </div>
   );

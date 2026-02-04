@@ -52,20 +52,36 @@ export const LandingProvider = ({
         return;
       }
 
+      // ASPETTA CHE LOCATION SIA PRONTA
+      if (landingData.isLoading) {
+        console.log("⏳ Waiting for location...");
+        return;
+      }
+
       setIsLoadingProduct(true);
       try {
         const baseUrl =
           import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
         const apiUrl = `${baseUrl}/api/products/${config.productId}`;
 
-        console.log("Fetching,", apiUrl);
+        const userCurrency = landingData.user?.currency || "EUR";
 
-        const resp = await fetch(apiUrl);
+        console.log("📦 Fetching product with currency:", userCurrency);
+
+        const resp = await fetch(apiUrl, {
+          headers: {
+            "X-User-Currency": userCurrency,
+          },
+        });
+
         if (!resp.ok) throw new Error("Prodotto non trovato");
 
         const data = await resp.json();
-        console.log("Prodotto trovato", data.product?.name);
-        console.log("🎯 Setting backendProduct:", data.product);
+        console.log("✅ Product received:", {
+          name: data.product?.name,
+          price: data.product?.displayPrice || data.product?.price,
+          currency: data.product?.currency,
+        });
 
         setBackendProduct(data.product);
       } catch (error) {
@@ -74,8 +90,9 @@ export const LandingProvider = ({
         setIsLoadingProduct(false);
       }
     };
+
     fetchProd();
-  }, [config.productId]);
+  }, [config.productId, landingData.isLoading, landingData.user?.currency]);
 
   const value: ExtendedLandingContextType = {
     ...landingData,

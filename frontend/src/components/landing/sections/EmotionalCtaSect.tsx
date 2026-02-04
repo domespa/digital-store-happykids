@@ -3,12 +3,10 @@ import { useLandingContext } from "../../../context/LandingContext";
 import { useLandingCart } from "../../../hooks/useLandingCart";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import FormattedPrice from "./FormattedPrice";
-import { useLandingAnalytics } from "../../../hooks/useLandingAnalytics";
 
 export default function EmotionalCTA() {
   const { config } = useLandingContext();
   const landingCart = useLandingCart();
-  const { trackCtaClick } = useLandingAnalytics();
 
   if (!config) return null;
 
@@ -136,7 +134,6 @@ export default function EmotionalCTA() {
           <button
             data-cta="emotional-cta"
             onClick={() => {
-              trackCtaClick("emotional_cta", { location: "emotional_section" });
               landingCart.addMainProductToCart();
             }}
             disabled={landingCart.isLoading}

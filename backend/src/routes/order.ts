@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { createOrder, getOrderById } from "../controllers/orderController";
 import { optionalAuth } from "../middleware/auth";
-import { r2Service } from "../services/r2Service";
 import { prisma } from "../utils/prisma";
 
 const router = Router();
@@ -69,7 +68,7 @@ router.get("/download/:orderId", async (req, res) => {
 
     if (isExpired) {
       const daysAgo = Math.floor(
-        (now.getTime() - expirationDate.getTime()) / (1000 * 60 * 60 * 24)
+        (now.getTime() - expirationDate.getTime()) / (1000 * 60 * 60 * 24),
       );
       return res.status(410).json({
         success: false,
@@ -99,7 +98,7 @@ router.get("/download/:orderId", async (req, res) => {
 
     if (productId) {
       productWithFile = order.orderItems.find(
-        (item) => item.product?.id === productId && item.product?.filePath
+        (item) => item.product?.id === productId && item.product?.filePath,
       );
 
       if (!productWithFile) {
@@ -133,13 +132,11 @@ router.get("/download/:orderId", async (req, res) => {
     const remainingDownloads = downloadLimit - newDownloadCount;
 
     console.log(
-      `✅ Download authorized: ${newDownloadCount}/${downloadLimit} for order ${orderId}`
+      `✅ Download authorized: ${newDownloadCount}/${downloadLimit} for order ${orderId}`,
     );
 
     // 7. Genera URL download tramite R2Service
-    const downloadUrl = await r2Service.generateDownload(
-      productWithFile.product.filePath
-    );
+    const downloadUrl = productWithFile.product.filePath;
 
     // 8. Log per tracking
     console.log({
@@ -150,7 +147,6 @@ router.get("/download/:orderId", async (req, res) => {
       remainingDownloads: remainingDownloads,
       expiresOn: expirationDate.toISOString(),
       customerEmail: order.customerEmail,
-      fileSource: productWithFile.product.filePath.split(":")[0],
     });
 
     // 9. Redirect al file

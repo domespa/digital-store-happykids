@@ -14,6 +14,7 @@ import type {
   CartStorageData,
 } from "../types/cart";
 import useCurrency from "../hooks/useCurrency";
+import { useVisitorTracking } from "../hooks/useVisitorTracking";
 
 // AZIONI
 type CartAction =
@@ -50,11 +51,11 @@ const initCartState: CartState = {
 const calculateTotals = (items: CartItem[]) => {
   const originalTotal = items.reduce(
     (sum, item) => sum + item.originalPrice * item.quantity,
-    0
+    0,
   );
   const displayTotal = items.reduce(
     (sum, item) => sum + item.displayPrice * item.quantity,
-    0
+    0,
   );
   return {
     originalTotal: Math.round(originalTotal * 100) / 100,
@@ -113,7 +114,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
       const existItem = state.items.find(
-        (item) => item.id === action.payload.id
+        (item) => item.id === action.payload.id,
       );
 
       let newItems: CartItem[];
@@ -122,7 +123,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         newItems = state.items.map((item) =>
           item.id === action.payload.id
             ? { ...item, quantity: item.quantity + 1 }
-            : item
+            : item,
         );
       } else {
         const newItem: CartItem = {
@@ -185,7 +186,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         .map((item) =>
           item.id === action.payload.id
             ? { ...item, quantity: Math.max(0, action.payload.quantity) }
-            : item
+            : item,
         )
         .filter((item) => item.quantity > 0);
 
@@ -222,7 +223,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
     case "LOAD_CART": {
       const { originalTotal, displayTotal } = calculateTotals(
-        action.payload.items
+        action.payload.items,
       );
       const itemsCount = calculateItemsCount(action.payload.items);
       return {
@@ -291,12 +292,13 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 
 // CONTEXT
 export const CartContext = createContext<CartContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, dispatch] = useReducer(cartReducer, initCartState);
   const { convertPrice, isLoading: isConverting } = useCurrency();
+  const { trackEvent } = useVisitorTracking({ autoConnect: false });
 
   useEffect(() => {
     const savedCart = loadCartFromStorage();
@@ -304,9 +306,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
       dispatch({ type: "LOAD_CART", payload: savedCart });
     }
   }, []);
-  const addItem = useCallback((product: ProductToAdd) => {
-    dispatch({ type: "ADD_ITEM", payload: product });
-  }, []);
+  const addItem = useCallback(
+    (product: ProductToAdd) => {
+      dispatch({ type: "ADD_ITEM", payload: product });
+      trackEvent("add_to_cart", {
+        productId: product.id,
+        value: product.price,
+        metadata: {
+          productName: product.name,
+          currency: product.currency,
+        },
+      });
+    },
+    [trackEvent],
+  );
 
   const removeItem = useCallback((itemId: string) => {
     dispatch({ type: "REMOVE_ITEM", payload: itemId });
@@ -330,12 +343,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const getCartTotal = useCallback(
     () => cart.displayTotal,
-    [cart.displayTotal]
+    [cart.displayTotal],
   );
   const getItemsCount = useCallback(() => cart.itemsCount, [cart.itemsCount]);
   const getDisplayCurrency = useCallback(
     () => cart.displayCurrency,
-    [cart.displayCurrency]
+    [cart.displayCurrency],
   );
 
   const updateCurrency = useCallback(
@@ -352,7 +365,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             const conversion = await convertPrice(
               item.originalPrice,
               item.originalCurrency,
-              newCurrency
+              newCurrency,
             );
 
             return conversion
@@ -364,12 +377,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
                   conversionTime: conversion.timestamp,
                 }
               : item;
-          })
+          }),
         );
 
         const newDisplayTotal = updatedItems.reduce(
           (sum, item) => sum + item.displayPrice * item.quantity,
-          0
+          0,
         );
 
         dispatch({
@@ -385,7 +398,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         dispatch({ type: "UPDATE_CURRENCY_ERROR" });
       }
     },
-    [cart.displayCurrency, cart.items, convertPrice]
+    [cart.displayCurrency, cart.items, convertPrice],
   );
 
   // AGGIORNA TASSI DI CAMBIO
@@ -437,7 +450,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updateCurrency,
       refreshRates,
       setInitialCurrency,
-    ]
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

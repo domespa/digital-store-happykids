@@ -36,7 +36,7 @@ class LocationWebSocketService {
 
       console.log(
         "🔌 Connecting to location WebSocket:",
-        `${BASE_URL}${LOCATION_PATH}`
+        `${BASE_URL}${LOCATION_PATH}`,
       );
 
       this.socket = io(BASE_URL, {
@@ -61,7 +61,7 @@ class LocationWebSocketService {
     this.socket.on("connect", () => {
       console.log(
         "✅ Connected to location tracking WebSocket:",
-        this.socket?.id
+        this.socket?.id,
       );
       this.isConnected = true;
       this.reconnectAttempts = 0;
@@ -101,7 +101,7 @@ class LocationWebSocketService {
 
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
         console.error(
-          "❌ Max reconnection attempts reached for location tracking"
+          "❌ Max reconnection attempts reached for location tracking",
         );
       }
     });
@@ -121,7 +121,7 @@ class LocationWebSocketService {
 
     if ("latitude" in data || "longitude" in data) {
       console.warn(
-        "⚠️ WARNING: GPS coordinates detected and removed for GDPR compliance"
+        "⚠️ WARNING: GPS coordinates detected and removed for GDPR compliance",
       );
       const { latitude, longitude, ...cleanData } = data as any;
       this.locationData = cleanData;
@@ -137,14 +137,23 @@ class LocationWebSocketService {
     }
   }
 
-  sendActivity(page: string, action: string = "page_view") {
+  sendActivity(
+    page: string,
+    action: string = "page_view",
+    target?: string,
+    data?: Record<string, any>,
+  ) {
     if (this.isConnected && this.socket) {
       this.socket.emit("user_activity", {
         page,
         action,
+        target,
+        data,
         timestamp: new Date().toISOString(),
       });
-      console.log(`📊 Activity sent: ${page} (${action})`);
+      console.log(
+        `📊 Activity sent: ${page} (${action})${target ? ` [${target}]` : ""}`,
+      );
     }
   }
 

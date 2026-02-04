@@ -1,20 +1,9 @@
 import { useState, useEffect } from "react";
-import locationWebSocketService from "../services/locationWebSocketService";
 import type {
   LandingConfig,
   LandingUser,
   LandingContextType,
 } from "../types/landing";
-interface IpApiResponse {
-  country_name: string;
-  country_code: string;
-  city: string;
-  region: string;
-  latitude: number;
-  longitude: number;
-  timezone: string;
-  error?: boolean;
-}
 
 // ============================================
 // TIMEZONE-BASED FALLBACK DETECTION
@@ -203,16 +192,17 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
       }
 
       try {
-        console.log("🌍 Fetching location from ipapi.co...");
+        console.log("🌍 Fetching location from backend...");
+
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-        const response = await fetch("https://ipapi.co/json/", {
+        const response = await fetch(`${baseUrl}/api/public/location`, {
           method: "GET",
           headers: {
             Accept: "application/json",
-            "User-Agent": "Mozilla/5.0 (compatible; LocationService/1.0)",
           },
           signal: controller.signal,
         });
@@ -223,46 +213,37 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const data: IpApiResponse = await response.json();
-        console.log("🔍 DATI PRESI:", {
-          country: data.country_name,
+        const data = await response.json();
+
+        console.log("🔍 DATI PRESI DA BACKEND:", {
+          country: data.country,
           city: data.city,
-          region: data.region,
+          currency: data.currency,
         });
 
-        if (data.country_name && !data.error) {
-          console.log("✅ Geolocalizzazione riuscita:", data.country_name);
+        if (data.country && data.country !== "Unknown") {
+          console.log("✅ Geolocalizzazione riuscita:", data.country);
 
-          const detectedCurrency = getCurrencyByCountry(data.country_code);
-          localStorage.setItem("userCountry", data.country_name);
+          // USA LA CURRENCY DAL BACKEND
+          const detectedCurrency =
+            data.currency || getCurrencyByCountry(data.countryCode);
+
+          localStorage.setItem("userCountry", data.country);
           localStorage.setItem("userCurrency", detectedCurrency);
           localStorage.setItem("userLocationTimestamp", Date.now().toString());
 
           const detectedUser: LandingUser = {
-            country: data.country_name,
+            country: data.country,
             currency: detectedCurrency,
           };
 
           setUser(detectedUser);
-
-          const locationData = {
-            country: data.country_name,
-            city: data.city || "Unknown",
-            region: data.region || "Unknown",
-            detectionMethod: "ip" as const,
-            precisionLevel: "city" as const,
-            countryCode: data.country_code,
-            timezone: data.timezone,
-          };
-
-          locationWebSocketService.connect();
-          locationWebSocketService.setLocationData(locationData);
         } else {
-          throw new Error("Invalid data from ipapi.co");
+          throw new Error("Invalid data from backend");
         }
       } catch (error) {
         console.log(
-          "🌍 API geolocalizzazione non disponibile, uso fallback timezone:",
+          "🌍 Backend location non disponibile, uso fallback timezone:",
           error,
         );
 
@@ -277,24 +258,6 @@ export const useLanding = (config: LandingConfig): LandingContextType => {
         };
 
         setUser(fallbackUser);
-
-        const fallbackLocationData = {
-          country: detectedFromTimezone.country,
-          city: detectedFromTimezone.city,
-          region: detectedFromTimezone.region,
-          detectionMethod: "fallback" as const,
-          precisionLevel: "country" as const,
-          countryCode: detectedFromTimezone.countryCode,
-          timezone: detectedFromTimezone.timezone,
-        };
-
-        console.log(
-          "📍 Invio dati fallback timezone al WebSocket:",
-          fallbackLocationData,
-        );
-
-        locationWebSocketService.connect();
-        locationWebSocketService.setLocationData(fallbackLocationData);
       } finally {
         setIsLoading(false);
       }

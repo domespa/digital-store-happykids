@@ -1,21 +1,19 @@
 import { useState, useCallback } from "react";
 import type { ConversionResponse } from "../types/cart";
 
-export default function useCurrency() {
+function useCurrency() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
 
-  // CONVERTITORE VALUTA
   const convertPrice = useCallback(
     async (
       amount: number,
       fromCurrency: string,
-      toCurrency: string
+      toCurrency: string,
     ): Promise<ConversionResponse | null> => {
-      // STESSA VALUTA
       if (fromCurrency === toCurrency) {
         return {
           convertedAmount: amount,
@@ -41,7 +39,7 @@ export default function useCurrency() {
             headers: {
               "Content-Type": "application/json",
             },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -69,10 +67,11 @@ export default function useCurrency() {
         console.warn("CONVERSION FAIL", error);
 
         const fallbackRates: Record<string, Record<string, number>> = {
-          USD: { EUR: 0.91, GBP: 0.77, AUD: 1.5 },
-          EUR: { USD: 1.1, GBP: 0.85, AUD: 1.65 },
-          GBP: { USD: 1.3, EUR: 1.18, AUD: 1.95 },
-          AUD: { USD: 0.67, EUR: 0.61, GBP: 0.51 },
+          USD: { EUR: 0.91, GBP: 0.77, AUD: 1.5, CAD: 1.36 },
+          EUR: { USD: 1.1, GBP: 0.85, AUD: 1.65, CAD: 1.48 },
+          GBP: { USD: 1.3, EUR: 1.18, AUD: 1.95, CAD: 1.77 },
+          AUD: { USD: 0.67, EUR: 0.61, GBP: 0.51, CAD: 0.91 },
+          CAD: { USD: 0.73, EUR: 0.68, GBP: 0.57, AUD: 1.1 },
         };
 
         const rate = fallbackRates[fromCurrency]?.[toCurrency];
@@ -93,14 +92,13 @@ export default function useCurrency() {
         setIsLoading(false);
       }
     },
-    [API_BASE_URL]
+    [API_BASE_URL],
   );
 
-  // CONVERTIAMO TUTTO IL CARRELLO
   const convertPriceList = useCallback(
     async (
       items: Array<{ amount: number; fromCurrency: string }>,
-      toCurrency: string
+      toCurrency: string,
     ): Promise<ConversionResponse[]> => {
       setIsLoading(true);
       setError(null);
@@ -131,7 +129,7 @@ export default function useCurrency() {
           const conversion = await convertPrice(
             item.amount,
             item.fromCurrency,
-            toCurrency
+            toCurrency,
           );
 
           if (conversion) {
@@ -143,7 +141,7 @@ export default function useCurrency() {
         setIsLoading(false);
       }
     },
-    [convertPrice, API_BASE_URL]
+    [convertPrice, API_BASE_URL],
   );
 
   return {
@@ -153,3 +151,5 @@ export default function useCurrency() {
     error,
   };
 }
+
+export default useCurrency;

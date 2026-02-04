@@ -48,7 +48,7 @@ router.post(
       .withMessage("Folder name must be a string max 50 chars"),
   ],
   handleValidationErrors,
-  FileController.uploadSingleImage
+  FileController.uploadSingleImage,
 );
 
 // POST /api/files/upload/product-gallery/:productId - Upload galleria prodotto
@@ -65,7 +65,7 @@ router.post(
       .withMessage("Valid productId required"),
   ],
   handleValidationErrors,
-  FileController.uploadProductGallery
+  FileController.uploadProductGallery,
 );
 
 // POST /api/files/upload/digital - Upload file digitale
@@ -83,49 +83,7 @@ router.post(
       .withMessage("Folder name must be a string max 50 chars"),
   ],
   handleValidationErrors,
-  FileController.uploadDigitalFile
-);
-
-// ============== DOWNLOAD ROUTES ==============
-
-// GET /api/files/download/:fileId - Download protetto
-router.get(
-  "/download/:fileId",
-  downloadLimiter,
-  [
-    param("fileId")
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage("Valid fileId required"),
-    query("userId")
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage("Valid userId required"),
-    query("expires")
-      .isNumeric()
-      .withMessage("Valid expires timestamp required"),
-    query("signature")
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage("Valid signature required"),
-  ],
-  handleValidationErrors,
-  FileController.downloadFile
-);
-
-// GET /api/files/download-link/:productId - Genera link download
-router.get(
-  "/download-link/:productId",
-  downloadLimiter,
-  authenticateToken,
-  [
-    param("productId")
-      .isString()
-      .isLength({ min: 1 })
-      .withMessage("Valid productId required"),
-  ],
-  handleValidationErrors,
-  FileController.generateDownloadLink
+  FileController.uploadDigitalFile,
 );
 
 // ============== IMAGE MANAGEMENT ROUTES ==============
@@ -140,7 +98,7 @@ router.get(
       .withMessage("Valid productId required"),
   ],
   handleValidationErrors,
-  FileController.getProductImages
+  FileController.getProductImages,
 );
 
 // PUT /api/files/product/:productId/images/reorder - Riordina immagini
@@ -168,7 +126,7 @@ router.put(
       .withMessage("isMain must be boolean"),
   ],
   handleValidationErrors,
-  FileController.reorderProductImages
+  FileController.reorderProductImages,
 );
 
 // DELETE /api/files/image/:imageId - Elimina immagine
@@ -183,7 +141,7 @@ router.delete(
       .withMessage("Valid imageId required"),
   ],
   handleValidationErrors,
-  FileController.deleteProductImage
+  FileController.deleteProductImage,
 );
 
 // ============== ADMIN ROUTES ==============
@@ -193,7 +151,7 @@ router.get(
   "/stats",
   authenticateToken,
   requireAdmin,
-  FileController.getStorageStats
+  FileController.getStorageStats,
 );
 
 // POST /api/files/cleanup - Cleanup file orfani
@@ -201,7 +159,7 @@ router.post(
   "/cleanup",
   authenticateToken,
   requireAdmin,
-  FileController.cleanupOrphanFiles
+  FileController.cleanupOrphanFiles,
 );
 
 export default router;

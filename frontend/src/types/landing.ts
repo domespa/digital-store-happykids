@@ -17,15 +17,20 @@ export interface LandingUser {
 export interface BackendProduct {
   id: string;
   name: string;
+  description: string | null;
   price: number;
-  compareAtPrice?: number;
-  description?: string;
-  images?: Array<{
-    url: string;
-    altText?: string;
-    isMain?: boolean;
-  }>;
   currency: string;
+  compareAtPrice?: number | null;
+  displayPrice?: number;
+  displayCompareAtPrice?: number;
+  images?: Array<{
+    id: string;
+    url: string;
+    altText?: string | null;
+    isMain: boolean;
+  }>;
+  isActive: boolean;
+  createdAt: string;
 }
 
 export interface LandingContextType {

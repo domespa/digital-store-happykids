@@ -20,7 +20,6 @@ import WebSocketService from "../services/websocketService";
 import { AnalyticsService } from "../services/analyticsService";
 import { prisma } from "../utils/prisma";
 import { FileUploadService } from "../services/uploadService";
-import { cache } from "../utils/cache";
 import type { AnalyticsFilters } from "../types/analytics";
 
 interface LocationData {
@@ -30,12 +29,10 @@ interface LocationData {
   countryCode: string;
   timezone: string;
   socketId: string;
+  visitorId: string;
+  visitorNumber: number;
   timestamp: Date;
 }
-
-const getLocationTracking = () => {
-  return (globalThis as any).locationTrackingWebSocket;
-};
 
 const router = Router();
 const upload = FileUploadService.getMulterConfig();
@@ -59,59 +56,33 @@ router.use(requireAuthenticatedAdmin);
 //        PRODUCT ROUTES
 // ====================================
 
-// LISTA PRODOTTI CON PATH
-// GET /api/admin/products
 router.get("/products", getProductsAdmin);
-
-// CREA PRODOTTO
-// POST /api/admin/products
 router.post("/products", createProduct);
-
-// MODIFICA PRODOTTO
-// PUT /api/admin/products/:id
 router.put("/products/:id", updateProduct);
-
-// ELIMINAZIONE SOFT
-// DELETE /api/admin/products/:id
 router.delete("/products/:id", deleteProduct);
 
 // ====================================
 //         PRODUCT IMAGE
 // ====================================
-// LISTA IM
-// GET /api/admin/products/:id/images
-router.get("/products/:id/images", getProductImages);
 
-// AGGIORNA IM
-// POST /api/admin/products/:id/images
+router.get("/products/:id/images", getProductImages);
 router.post(
   "/products/:id/images",
   upload.array("images", 5),
   uploadProductImages,
 );
-
-// DEL IM
-// DELETE /api/admin/products/:id/images/:imageId
 router.delete("/products/:id/images/:imageId", deleteProductImage);
-
-// IMAMGINE IN EVIDENZA
-// PATCH /api/admin/products/:id/images/:imageId/featured
 router.patch("/products/:id/images/:imageId/featured", setFeaturedImage);
 
 // ====================================
 //      PRODUCT EBOOK UPLOAD
 // ====================================
 
-// UPLOAD EBOOK PER PRODOTTO
-// POST /api/admin/products/:productId/upload-ebook
 router.post(
   "/products/:productId/upload-ebook",
   upload.single("ebook"),
   FileController.uploadProductEbook,
 );
-
-// GENERA DOWNLOAD LINK CLOUDINARY FIRMATO
-// POST /api/admin/generate-download-link
 router.post(
   "/generate-download-link",
   FileController.generateCloudinaryDownloadLink,
@@ -120,198 +91,63 @@ router.post(
 // ====================================
 //        ORDER
 // ====================================
-// ORDINE
-// GET /api/admin/orders
+
 router.get("/orders", getOrdersAdmin);
-// PUT /api/admin/orders/:id/status
 router.put("/orders/:id/status", updateOrderStatus);
 router.post("/orders/:id/resend-email", resendOrderEmail);
 
 // ====================================
-//      USER & WEBSOCKET
+//      USER & WEBSOCKET - TRACKING
 // ====================================
-// ONLINE USERS
+
 // GET /api/admin/users/online
 router.get("/users/online", async (req, res) => {
-  console.log("🔍 ADMIN ENDPOINT /users/online (IP-only mode)");
+  console.log("🔍 ADMIN ENDPOINT /users/online (UNIFIED)");
   try {
-    const webSocketService = (globalThis as any).webSocketService;
-    const locationTrackingService = (globalThis as any).locationTrackingService;
+    const trackingService = (globalThis as any).trackingService;
 
-    if (!webSocketService) {
-      console.error("❌ WebSocket service not available");
+    if (!trackingService) {
+      console.error("❌ Tracking service not available");
       return res.status(500).json({
         success: false,
-        error: "WebSocket service not available",
+        error: "Tracking service not available",
       });
     }
 
-    // OTTIENI LIVE LOCATIONS
-    const liveLocations: LocationData[] = locationTrackingService
-      ? locationTrackingService.getOnlineUserLocations()
-      : [];
+    // Get online visitors from memory
+    const onlineVisitors = trackingService.getOnlineVisitors();
+    console.log(`📊 Online visitors: ${onlineVisitors.length}`);
 
-    console.log(
-      "📍 Live locations from tracking service:",
-      liveLocations.length,
-    );
-
-    // ✅ DEDUPLICAZIONE PER SOCKET ID
-    const uniqueLocations = liveLocations.reduce((acc, loc) => {
-      if (!acc.some((l) => l.socketId === loc.socketId)) {
-        acc.push(loc);
-      }
-      return acc;
-    }, [] as LocationData[]);
-
-    console.log(
-      `✅ After deduplication: ${uniqueLocations.length} unique locations`,
-    );
-
-    const locationBySocketId = new Map<
-      string,
-      {
-        country: string;
-        city: string;
-        region: string;
-        countryCode: string;
-        timezone: string;
-      }
-    >();
-
-    uniqueLocations.forEach((loc) => {
-      locationBySocketId.set(loc.socketId, {
-        country: loc.country,
-        city: loc.city,
-        region: loc.region,
-        countryCode: loc.countryCode,
-        timezone: loc.timezone,
-      });
-    });
-
-    // ✅ CACHE PER RECENT CONNECTIONS (30 secondi)
-    const cacheKey = "online_users_connections";
-    let recentConnections = cache.get<any[]>(cacheKey);
-
-    if (!recentConnections) {
-      console.log("🔄 Cache MISS: loading recent connections");
-      recentConnections = await prisma.webSocketConnection.findMany({
-        where: {
-          isActive: true,
-          lastPing: {
-            gte: new Date(Date.now() - 5 * 60 * 1000), // Ultimi 5 minuti
-          },
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-              lastActivity: true,
-            },
-          },
-        },
-        take: 100,
-        orderBy: {
-          lastPing: "desc",
-        },
-      });
-      cache.set(cacheKey, recentConnections, 30);
-      console.log("📦 Cache SET: online users connections");
-    } else {
-      console.log("✅ Cache HIT: online users connections");
-    }
-
-    // ✅ AUTHENTICATED USERS (deduplicati)
-    const authenticatedUsersMap = new Map();
-
-    recentConnections
-      .filter((conn) => conn.user)
-      .forEach((conn) => {
-        // Usa sessionId come chiave unica
-        if (!authenticatedUsersMap.has(conn.socketId)) {
-          const socketLocation = locationBySocketId.get(conn.socketId);
-
-          const location = socketLocation ?? {
-            country: "Italy",
-            city: "Rome",
-            region: "Lazio",
-            countryCode: "IT",
-            timezone: "Europe/Rome",
-          };
-
-          authenticatedUsersMap.set(conn.socketId, {
-            id: conn.user!.id,
-            email: conn.user!.email,
-            firstName: conn.user!.firstName,
-            lastName: conn.user!.lastName,
-            sessionId: conn.socketId,
-            ipAddress: conn.ipAddress,
-            userAgent: conn.userAgent,
-            location,
-            currentPage: "/dashboard",
-            connectedAt: conn.connectedAt.toISOString(),
-            lastActivity: conn.lastPing.toISOString(),
-            isAuthenticated: true,
-          });
-        }
-      });
-
-    const onlineUsers = Array.from(authenticatedUsersMap.values());
-
-    // ✅ ANONYMOUS USERS (deduplicati e solo se non già autenticati)
-    const anonymousVisitorsMap = new Map();
-
-    uniqueLocations.forEach((loc: LocationData, index: number) => {
-      // ✅ SALTA SE GIÀ PRESENTE COME AUTENTICATO
-      if (!authenticatedUsersMap.has(loc.socketId)) {
-        anonymousVisitorsMap.set(loc.socketId, {
-          id: `anonymous-${loc.socketId}`,
-          email: "anonymous@visitor.com",
-          firstName: "Anonymous",
-          lastName: `Visitor ${index + 1}`,
-          sessionId: loc.socketId,
-          ipAddress: "unknown",
-          userAgent: "unknown",
-          location: {
-            country: loc.country,
-            city: loc.city,
-            region: loc.region,
-            countryCode: loc.countryCode,
-            timezone: loc.timezone,
-          },
-          currentPage: "/",
-          connectedAt: loc.timestamp.toISOString(),
-          lastActivity: loc.timestamp.toISOString(),
-          isAuthenticated: false,
-        });
-      }
-    });
-
-    const anonymousVisitors = Array.from(anonymousVisitorsMap.values());
-    const allUsers = [...onlineUsers, ...anonymousVisitors];
-
-    console.log(
-      `✅ Returning ${allUsers.length} users (${onlineUsers.length} authenticated + ${anonymousVisitors.length} anonymous)`,
-    );
+    // Format for frontend
+    const users = onlineVisitors.map((visitor: LocationData) => ({
+      id: `visitor-${visitor.visitorNumber}`,
+      sessionId: visitor.socketId,
+      visitorNumber: visitor.visitorNumber,
+      visitorId: visitor.visitorId,
+      location: {
+        country: visitor.country,
+        city: visitor.city,
+        region: visitor.region,
+        countryCode: visitor.countryCode,
+        timezone: visitor.timezone,
+      },
+      connectedAt: visitor.timestamp.toISOString(),
+      lastActivity: visitor.timestamp.toISOString(),
+      isAuthenticated: false,
+    }));
 
     res.json({
       success: true,
-      users: allUsers,
-      total: allUsers.length,
+      users,
+      total: users.length,
       stats: {
-        totalOnline: allUsers.length,
-        authenticated: onlineUsers.length,
-        anonymous: anonymousVisitors.length,
-        locationDataAvailable: uniqueLocations.length > 0,
-        detectionMethod: "socket+ip",
-        precisionLevel: "city",
+        totalOnline: users.length,
+        authenticated: 0,
+        anonymous: users.length,
       },
     });
   } catch (error) {
-    console.error("Error fetching online users:", error);
+    console.error("❌ Error fetching online users:", error);
     res.status(500).json({
       success: false,
       error: "Failed to fetch online users",
@@ -319,7 +155,124 @@ router.get("/users/online", async (req, res) => {
   }
 });
 
-// USERS SESSIONS
+// GET /api/admin/users/history
+router.get("/users/history", async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    console.log(`📊 Loading user history (limit: ${limit})`);
+
+    const totalVisitors = await prisma.visitor.count();
+
+    const trackingService = (globalThis as any).trackingService;
+    const onlineVisitors: LocationData[] = trackingService
+      ? trackingService.getOnlineVisitors()
+      : [];
+
+    // Pulisci sessioni fantasma (più vecchie di 5 minuti e ancora "online")
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+    await prisma.session.updateMany({
+      where: {
+        isOnline: true,
+        disconnectedAt: null,
+        connectedAt: { lt: fiveMinutesAgo },
+      },
+      data: {
+        isOnline: false,
+        disconnectedAt: new Date(),
+      },
+    });
+
+    console.log("✅ Cleaned up stale sessions");
+
+    // Get ALL recent visitors
+    const recentVisitors = await prisma.visitor.findMany({
+      include: {
+        sessions: {
+          orderBy: { connectedAt: "desc" },
+          take: 1,
+        },
+      },
+      orderBy: { lastSeen: "desc" },
+      take: limit,
+    });
+
+    // DEBUG LOG
+    console.log("📊 DEBUG - Visitors from DB (ordered by lastSeen DESC):");
+    recentVisitors.forEach((v) => {
+      console.log(
+        `  #${v.visitorNumber}: ${v.lastCity}, ${v.lastCountry} - lastSeen: ${v.lastSeen.toISOString()}`,
+      );
+    });
+
+    const onlineVisitorMap = new Map(
+      onlineVisitors.map((v) => [v.visitorId, v]),
+    );
+
+    const history = recentVisitors
+      .filter((v) => v.sessions.length > 0)
+      .map((visitor) => {
+        const latestSession = visitor.sessions[0];
+        const onlineData = onlineVisitorMap.get(visitor.id);
+
+        if (onlineData) {
+          return {
+            id: onlineData.socketId,
+            visitorId: visitor.id,
+            visitorNumber: visitor.visitorNumber,
+            city: onlineData.city || "Unknown",
+            country: onlineData.country || "Unknown",
+            timestamp: onlineData.timestamp.toISOString(),
+            disconnectedAt: null,
+            isOnline: true,
+          };
+        }
+
+        return {
+          id: latestSession.sessionId,
+          visitorId: visitor.id,
+          visitorNumber: visitor.visitorNumber,
+          city: latestSession.city || "Unknown",
+          country: latestSession.country || "Unknown",
+          timestamp: latestSession.connectedAt.toISOString(),
+          disconnectedAt: latestSession.disconnectedAt?.toISOString() || null,
+          isOnline: false,
+        };
+      });
+
+    const onlineCount = history.filter((h) => h.isOnline).length;
+
+    // DEBUG LOG
+    console.log("📊 DEBUG - History returned (should match DB order):");
+    history.forEach((h) => {
+      console.log(
+        `  #${h.visitorNumber}: ${h.city}, ${h.country} - isOnline: ${h.isOnline}`,
+      );
+    });
+
+    console.log(
+      `✅ Returning ${history.length} visitors (${onlineCount} online, ${history.length - onlineCount} offline)`,
+    );
+
+    res.json({
+      success: true,
+      history,
+      total: history.length,
+      totalVisitors,
+      onlineCount,
+    });
+  } catch (error) {
+    console.error("❌ Error loading user history:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to load user history",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// GET /api/admin/users/sessions (WebSocketConnection - per admin loggati)
 router.get("/users/sessions", async (req, res) => {
   try {
     const { limit = 100, offset = 0, userId, isActive } = req.query;
@@ -384,113 +337,6 @@ router.get("/users/sessions", async (req, res) => {
   }
 });
 
-// ====================================
-//   USER VISIT HISTORY - CODICE COMPLETO
-// ====================================
-
-router.get("/users/history", async (req: Request, res: Response) => {
-  try {
-    const limit = 20;
-
-    const totalVisitors = await prisma.pageView.count({
-      where: {
-        country: { not: null },
-      },
-    });
-
-    console.log(`📊 Total visitors ever: ${totalVisitors}`);
-
-    let liveLocations: any[] = [];
-    try {
-      const locationTracking = getLocationTracking();
-      if (
-        locationTracking &&
-        typeof locationTracking.getOnlineUserLocations === "function"
-      ) {
-        liveLocations = locationTracking.getOnlineUserLocations() || [];
-      }
-    } catch (locErr) {
-      console.warn("⚠️ Could not get live locations:", locErr);
-    }
-
-    console.log(`📊 Live locations: ${liveLocations.length}`);
-
-    const onlineSessionIds = new Set(
-      liveLocations.map((loc: any) => loc.socketId).filter(Boolean),
-    );
-
-    const onlineHistory = liveLocations.map((loc: any, index: number) => ({
-      id: loc.socketId || `loc-${index}`,
-      visitorNumber: totalVisitors - index,
-      city: loc.city || "Unknown",
-      country: loc.country || "Unknown",
-      timestamp: loc.timestamp?.toISOString() || new Date().toISOString(),
-      disconnectedAt: null,
-      isOnline: true,
-    }));
-
-    console.log(`✅ Online history: ${onlineHistory.length} entries`);
-
-    const offlineLimit = Math.max(0, limit - onlineHistory.length);
-
-    const recentVisits = await prisma.pageView.findMany({
-      where: {
-        country: { not: null },
-        sessionId: { notIn: Array.from(onlineSessionIds) },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: offlineLimit,
-      select: {
-        id: true,
-        sessionId: true,
-        country: true,
-        city: true,
-        createdAt: true,
-        disconnectedAt: true,
-      },
-    });
-
-    console.log(`📊 DB visits: ${recentVisits.length} entries`);
-
-    const offlineHistory = recentVisits.map((visit, index) => ({
-      id: visit.id,
-      visitorNumber: totalVisitors - onlineHistory.length - index,
-      city: visit.city || "Unknown",
-      country: visit.country || "Unknown",
-      timestamp: visit.createdAt.toISOString(),
-      disconnectedAt: visit.disconnectedAt?.toISOString() || null,
-      isOnline: false,
-    }));
-
-    console.log(`📊 Offline history: ${offlineHistory.length} entries`);
-
-    // ✅ COMBINA E LIMITA A 20
-    const history = [...onlineHistory, ...offlineHistory].slice(0, limit);
-
-    console.log(
-      `✅ Returning ${history.length} visitors (${onlineHistory.length} online, ${offlineHistory.length} offline)`,
-    );
-
-    res.json({
-      success: true,
-      history,
-      total: history.length,
-      totalVisitors,
-      onlineCount: onlineHistory.length,
-    });
-  } catch (error) {
-    console.error("❌ Error loading user history:", error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to load user history",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-});
-
-// WEBSOCKET STATS
 // GET /api/admin/websocket/stats
 router.get("/websocket/stats", async (req, res) => {
   try {
@@ -523,12 +369,13 @@ router.get("/websocket/stats", async (req, res) => {
   }
 });
 
-// GET TOTAL VISITS (ALL TIME)
+// GET /api/admin/analytics/total-visits
 router.get("/analytics/total-visits", async (req, res) => {
   try {
     console.log("📊 Fetching total visits...");
 
-    const totalVisits = await prisma.pageView.count();
+    // Count total sessions (= total visits)
+    const totalVisits = await prisma.session.count();
 
     console.log(`✅ Total visits: ${totalVisits}`);
 
@@ -546,8 +393,125 @@ router.get("/analytics/total-visits", async (req, res) => {
 });
 
 // ====================================
-//   DASHBOARD COMPLETE NEW UPDATE
+//   VISITOR ACTIVITY DETAILS
 // ====================================
+
+// GET /api/admin/visitors/:visitorId/events
+router.get(
+  "/visitors/:visitorId/events",
+  async (req: Request, res: Response) => {
+    try {
+      const { visitorId } = req.params;
+
+      if (!visitorId) {
+        return res.status(400).json({
+          success: false,
+          error: "visitorId is required",
+        });
+      }
+
+      // Fetch visitor info with sessions and events
+      const visitor = await prisma.visitor.findUnique({
+        where: { id: visitorId },
+        include: {
+          sessions: {
+            orderBy: { connectedAt: "desc" },
+            take: 10,
+          },
+          events: {
+            orderBy: { timestamp: "desc" },
+            take: 100,
+          },
+        },
+      });
+
+      if (!visitor) {
+        return res.status(404).json({
+          success: false,
+          error: "Visitor not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          visitor: {
+            id: visitor.id,
+            visitorNumber: visitor.visitorNumber,
+            firstSeen: visitor.firstSeen,
+            lastSeen: visitor.lastSeen,
+            totalVisits: visitor.totalVisits,
+            totalTimeSpent: visitor.totalTimeSpent,
+            lastCountry: visitor.lastCountry,
+            lastCity: visitor.lastCity,
+          },
+          sessions: visitor.sessions.map((session) => ({
+            id: session.id,
+            sessionId: session.sessionId,
+            connectedAt: session.connectedAt,
+            disconnectedAt: session.disconnectedAt,
+            duration: session.duration,
+            country: session.country,
+            city: session.city,
+            isOnline: session.isOnline,
+          })),
+          events: visitor.events.map((event) => ({
+            id: event.id,
+            type: event.type,
+            page: event.page,
+            pageTitle: event.pageTitle,
+            productId: event.productId,
+            orderId: event.orderId,
+            value: event.value,
+            metadata: event.metadata,
+            timestamp: event.timestamp,
+          })),
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching visitor events:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to fetch visitor events",
+      });
+    }
+  },
+);
+
+// GET /api/admin/sessions/:sessionId/events
+router.get(
+  "/sessions/:sessionId/events",
+  async (req: Request, res: Response) => {
+    try {
+      const { sessionId } = req.params;
+
+      console.log(`📊 Loading events for session: ${sessionId}`);
+
+      const events = await prisma.event.findMany({
+        where: { sessionId },
+        orderBy: { timestamp: "asc" },
+      });
+
+      console.log(`✅ Found ${events.length} events for session ${sessionId}`);
+
+      res.json({
+        success: true,
+        data: { events },
+      });
+    } catch (error) {
+      console.error("❌ Error loading session events:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to load session events",
+      });
+    }
+  },
+);
+
+// ====================================
+//   DASHBOARD COMPLETE
+// ====================================
+
 // GET /api/admin/dashboard/complete
 router.get("/dashboard/complete", async (req: Request, res: Response) => {
   try {
@@ -636,20 +600,13 @@ router.get("/dashboard/complete", async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: {
-        // CARD
         metrics: dashboardMetrics,
-
-        // DATA
         realtime: realtimeMetrics,
-
-        // GRAPH
         charts: {
           data: periodData.periodData,
           previousData: periodData.previousPeriodData,
           summary: periodData.summary,
         },
-
-        // REC
         recentActivity: {
           activities,
           summary: activitySummary,
@@ -671,11 +628,10 @@ router.get("/dashboard/complete", async (req: Request, res: Response) => {
 // ================================
 //       RECENT ACTIVITY
 // ================================
-// Ordini più recenti
+
 // GET /api/admin/dashboard/recent-activity
 router.get(
   "/dashboard/recent-activity",
-  // requireAuthenticatedAdmin,
   async (req: Request, res: Response) => {
     try {
       const limit = parseInt(req.query.limit as string) || 15;
@@ -768,7 +724,6 @@ router.get(
 //      ANALYTICS ENDPOINTS
 // ====================================
 
-// DASHBOARD METRICS
 // GET /api/admin/analytics/dashboard
 router.get("/analytics/dashboard", async (req: Request, res: Response) => {
   try {
@@ -778,7 +733,6 @@ router.get("/analytics/dashboard", async (req: Request, res: Response) => {
       period: period as any,
     };
 
-    // VERSIONE CACHED
     const metrics = await AnalyticsService.getDashboardMetricsCached(filters);
 
     res.json({
@@ -802,7 +756,6 @@ router.get("/analytics/dashboard", async (req: Request, res: Response) => {
   }
 });
 
-// PERIOD DATA (per i grafici)
 // GET /api/admin/analytics/period-data
 router.get("/analytics/period-data", async (req: Request, res: Response) => {
   try {
@@ -814,7 +767,6 @@ router.get("/analytics/period-data", async (req: Request, res: Response) => {
       to: to ? new Date(to as string) : undefined,
     };
 
-    // VERSIONE CACHED
     const result = await AnalyticsService.getPeriodDataCached(filters);
 
     res.json({
@@ -832,11 +784,9 @@ router.get("/analytics/period-data", async (req: Request, res: Response) => {
   }
 });
 
-// REALTIME METRICS
 // GET /api/admin/analytics/realtime
 router.get("/analytics/realtime", async (req: Request, res: Response) => {
   try {
-    // VERSIONE CACHED
     const realtime = await AnalyticsService.getRealTimeMetricsCached();
 
     res.json({

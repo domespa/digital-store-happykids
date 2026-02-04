@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,7 +5,84 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  // directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Visitor {
+  id            String   @id @default(cuid())
+  visitorNumber Int      @unique @default(autoincrement())
+  fingerprint   String   @unique
+  lastCountry   String?
+  lastCity      String?
+  lastRegion    String?
+  lastCountryCode String?
+  totalVisits   Int      @default(1)
+  totalTimeSpent Int     @default(0)
+  firstSeen     DateTime @default(now())
+  lastSeen      DateTime @updatedAt
+  events        Event[]
+  sessions      Session[]
+
+  @@map("visitors")
+}
+
+
+model Session {
+  id             String    @id @default(cuid())
+  sessionId      String    @unique
+  visitorId      String
+  country        String?
+  city           String?
+  region         String?
+  countryCode    String?
+  timezone       String?
+  ipAddress      String?
+  userAgent      String?
+  referrer       String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  utmContent     String?
+  utmTerm        String?
+  entryPage      String?
+  currentPage    String?
+  exitPage       String?
+  connectedAt    DateTime  @default(now())
+  lastActivity   DateTime  @default(now())
+  disconnectedAt DateTime?
+  duration       Int?
+  isOnline       Boolean   @default(true)
+  events         Event[]
+  visitor        Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  @@index([visitorId])
+  @@index([sessionId])
+  @@index([isOnline])
+  @@index([connectedAt])
+  @@map("sessions")
+}
+
+model Event {
+  id        String    @id @default(cuid())
+  sessionId String
+  visitorId String
+  type      EventType
+  name      String?
+  page      String?
+  pageTitle String?
+  productId String?
+  orderId   String?
+  value     Float?
+  metadata  Json?
+  timestamp DateTime  @default(now())
+  session     Session   @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  visitor     Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([visitorId])
+  @@index([type])
+  @@index([timestamp])
+  @@map("events")
 }
 
 model User {
@@ -55,7 +131,7 @@ model Product {
   description        String?
   shortDescription   String?
   price              Decimal          @db.Decimal(10, 2)
-  currency           String           @default("EUR")  
+  currency           String           @default("EUR")
   originalPrice      Decimal?         @db.Decimal(10, 2)
   compareAtPrice     Decimal?
   fileName           String?
@@ -321,20 +397,6 @@ model DiscountCode {
   @@map("discount_codes")
 }
 
-model PageView {
-  id             String    @id @default(uuid())
-  page           String
-  sessionId      String    @unique @map("session_id") 
-  ipAddress      String?
-  country        String?
-  city           String?  
-  userAgent      String?
-  createdAt      DateTime  @default(now())
-  disconnectedAt DateTime? @map("disconnected_at") 
-
-  @@map("page_views")
-}
-
 model EmailQueue {
   id          String      @id @default(cuid())
   to          String
@@ -349,7 +411,6 @@ model EmailQueue {
 
   @@map("email_queue")
 }
-
 
 model PasswordResetToken {
   id        String   @id @default(cuid())
@@ -693,6 +754,21 @@ model SupportAnalytics {
   @@unique([businessModel, tenantId, date, hour])
   @@index([businessModel, tenantId, date])
   @@map("support_analytics")
+}
+
+enum EventType {
+  CONNECTED
+  DISCONNECTED
+  PAGE_VIEW
+  PRODUCT_VIEW
+  ADD_TO_CART
+  REMOVE_FROM_CART
+  CHECKOUT_START
+  CHECKOUT_ABANDON
+  PURCHASE
+  CTA_CLICK         
+  SECTION_VIEW     
+  SCROLL_DEPTH     
 }
 
 enum UserRole {
