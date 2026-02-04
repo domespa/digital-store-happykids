@@ -3,8 +3,6 @@ import { useApp } from "../../context/AppContext";
 import DashboardPageV2 from "../../pages/admin/DashboardPageV2";
 import OrdersPage from "../../pages/admin/OrdersPage";
 import OrderDetailPage from "../../pages/admin/OrderDetailPage";
-// import UsersOnlinePage from "../../pages/admin/UsersOnlinePage";
-// import UserMapPage from "../../pages/admin/UserMapPage";
 import ProductsPage from "../../pages/admin/ProductsPage";
 
 interface AdminAppProps {
@@ -22,10 +20,6 @@ export default function AdminApp({ onLogout }: AdminAppProps) {
         return <OrdersPage />;
       case "order-detail":
         return <OrderDetailPage />;
-      // case "users-online":
-      // return <UsersOnlinePage />;
-      // case "user-map":
-      // return <UserMapPage />;
       case "products":
         return <ProductsPage />;
       case "analytics":

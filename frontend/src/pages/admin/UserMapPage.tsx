@@ -107,7 +107,7 @@ const CITY_COORDINATES: Record<string, [number, number]> = {
 
 const getCityCoordinates = (
   city: string,
-  country: string
+  country: string,
 ): [number, number] => {
   // Try exact match first
   const exactKey = `${city}, ${country}`;
@@ -118,7 +118,7 @@ const getCityCoordinates = (
 
   // Try country-based search
   const countryMatch = Object.entries(CITY_COORDINATES).find(([k]) =>
-    k.toLowerCase().includes(country.toLowerCase())
+    k.toLowerCase().includes(country.toLowerCase()),
   );
 
   if (countryMatch) {
@@ -127,15 +127,14 @@ const getCityCoordinates = (
   }
 
   console.log(
-    `⚠️ No coordinates found for ${city}, ${country} - using default`
+    `⚠️ No coordinates found for ${city}, ${country} - using default`,
   );
   return CITY_COORDINATES["Unknown, Unknown"];
 };
 
 // 🗺️ COMPONENTE PRINCIPALE
 export default function UserGlobePage() {
-  const { onlineUsers, loading, isWebSocketConnected, refreshData } =
-    useRealTimeUsers();
+  const { onlineUsers, loading, refreshData } = useRealTimeUsers();
   console.log("🗺️ Online users for globe:", onlineUsers);
   console.log("🗺️ First user location:", onlineUsers[0]?.location);
   const globeRef = useRef<any>(null);
@@ -183,7 +182,7 @@ export default function UserGlobePage() {
 
       globeRef.current.pointOfView(
         { lat: 45.0, lng: 10.0, altitude: 2.2 },
-        1000
+        1000,
       );
 
       console.log("✅ Globe: Responsive, No Zoom, Auto-rotate");
@@ -205,10 +204,8 @@ export default function UserGlobePage() {
 
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           {/* WebSocket Status */}
-          <Badge variant={isWebSocketConnected() ? "success" : "default"}>
-            <span className="text-xs sm:text-sm">
-              {isWebSocketConnected() ? "🟢 Live" : "🔴 Offline"}
-            </span>
+          <Badge>
+            <span className="text-xs sm:text-sm">{}</span>
           </Badge>
 
           {/* Refresh Button */}
@@ -326,7 +323,7 @@ export default function UserGlobePage() {
             <p className="text-2xl sm:text-4xl font-bold text-green-600 dark:text-green-400">
               {
                 new Set(
-                  onlineUsers.map((u) => u.location?.country).filter(Boolean)
+                  onlineUsers.map((u) => u.location?.country).filter(Boolean),
                 ).size
               }
             </p>
@@ -347,7 +344,7 @@ export default function UserGlobePage() {
                 new Set(
                   onlineUsers
                     .map((u) => `${u.location?.city}, ${u.location?.country}`)
-                    .filter(Boolean)
+                    .filter(Boolean),
                 ).size
               }
             </p>
@@ -364,31 +361,11 @@ export default function UserGlobePage() {
                 <span className="sm:hidden">Status</span>
               </h3>
             </div>
-            <div
-              className={`flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg ${
-                isWebSocketConnected()
-                  ? "bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-600"
-                  : "bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-600"
-              }`}
-            >
-              <span className="text-xl sm:text-2xl">
-                {isWebSocketConnected() ? "🟢" : "🔴"}
-              </span>
+            <div>
+              <span className="text-xl sm:text-2xl"></span>
               <div>
-                <p
-                  className={`text-xs sm:text-sm font-bold ${
-                    isWebSocketConnected()
-                      ? "text-green-700 dark:text-green-400"
-                      : "text-red-700 dark:text-red-400"
-                  }`}
-                >
-                  {isWebSocketConnected() ? "Live Stream" : "Disconnected"}
-                </p>
-                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">
-                  {isWebSocketConnected()
-                    ? "Real-time active"
-                    : "Reconnecting..."}
-                </p>
+                <p></p>
+                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400"></p>
               </div>
             </div>
           </Card>
