@@ -1,6 +1,6 @@
-// console.log = () => {};
-// console.debug = () => {};
-// console.info = () => {};
+console.log = () => {};
+console.debug = () => {};
+console.info = () => {};
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
