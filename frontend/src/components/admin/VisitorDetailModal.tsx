@@ -425,7 +425,7 @@ export default function VisitorDetailModal({
 
                                       {event.page && (
                                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
-                                          {event.page}
+                                          HomePage
                                         </p>
                                       )}
 
