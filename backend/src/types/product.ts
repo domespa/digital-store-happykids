@@ -73,6 +73,9 @@ export interface PublicProductResponse {
   exchangeSource: "api" | "fallback" | "same";
   isActive: boolean;
   createdAt: Date;
+  pages?: number;
+  ageRange?: string;
+  previewImages?: string[];
   images?: Array<{
     id: string;
     url: string;

@@ -1,34 +1,69 @@
-console.log = () => {};
-console.debug = () => {};
-console.info = () => {};
+// console.log = () => {};
+// console.debug = () => {};
+// console.info = () => {};
 
+// ROUTER
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// CONTEXTS
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { AppProvider } from "./context/AppContext";
 import { ThemeProvider } from "./context/ThemeContext";
+
+// PROVIDERS
 import StripeProvider from "./providers/StripeProvider";
-import LandingPage from "./components/landing/LandingPage";
+
+// CONFIGS
 import screenDetoxConfig from "./config/landing-config/screenDetoxConfig";
-import AdminRoute from "./components/admin/AdminRoute";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import CookiePolicyPage from "./pages/CookiePolicyPage";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancel from "./pages/PaymentCancel";
-import RefundPolicyPage from "./pages/RefundPolicyPage";
+import workbooksConfig from "./config/landing-config/workbooksConfig";
+
+// HOOKS
 import { useVisitorTracking } from "./hooks/useVisitorTracking";
 import { usePageTracking } from "./hooks/usePageTracking";
+
+// ADMIN
+import AdminRoute from "./features/admin/components/AdminRoute";
+
+// LEGAL PAGES
+import PrivacyPolicyPage from "./features/legal/pages/PrivacyPolicyPage";
+import CookiePolicyPage from "./features/legal/pages/CookiePolicyPage";
+import RefundPolicyPage from "./features/legal/pages/RefundPolicyPage";
+
+// CHECKOUT PAGES
+import PaymentSuccess from "./features/checkout/pages/PaymentSuccess";
+import PaymentCancel from "./features/checkout/pages/PaymentCancel";
+
+// LANDING PAGES
+import LandingPageWorkbooks from "./features/landing/pages/LandingPageWorkbooks";
+import LandingPageDetox from "./features/landing/pages/LandingPageDetox";
+
+// COMMON COMPONENTS
+import Header from "./components/common/Header";
+
+// PRODUCTS & CONTACTS PAGES
+import ProductsPage from "./features/products/pages/ProductsPage";
+import ContactsPage from "./features/contacts/pages/ContactsPage";
+import ProductPage from "./features/products/pages/ProductPage";
 
 function CustomerApp() {
   return (
     <AuthProvider>
       <CartProvider>
         <StripeProvider>
+          <Header />
           <Routes>
             <Route
-              path="/"
-              element={<LandingPage config={screenDetoxConfig} />}
+              path="/screen-detox"
+              element={<LandingPageDetox config={screenDetoxConfig} />}
             />
+            <Route
+              path="/"
+              element={<LandingPageWorkbooks config={workbooksConfig} />}
+            />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/:id" element={<ProductPage />} />
+            <Route path="/contact" element={<ContactsPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/cookie-policy" element={<CookiePolicyPage />} />
             <Route path="/refund-policy" element={<RefundPolicyPage />} />

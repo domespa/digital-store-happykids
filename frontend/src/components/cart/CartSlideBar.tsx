@@ -1,14 +1,14 @@
 import { useCart } from "../../hooks/useCart";
 import { useEffect, useState, useCallback } from "react";
 import { useCheckout } from "../../hooks/useCheckout";
-import StripePaymentForm from "../StripePaymentForm";
+import StripePaymentForm from "../../features/checkout/components/StripePaymentForm";
 import type { CheckoutForm } from "../../types/checkout";
 import {
   trackBeginCheckout,
   trackAddPaymentInfo,
   trackPurchase,
 } from "../../utils/analytics";
-import WorkbookPreviewModal from "../landing/WorkbookPreviewModal";
+import WorkbookPreviewModal from "../../features/landing/components/shared/WorkbookPreviewModal";
 
 interface CartSlideBar {
   className?: string;
@@ -49,6 +49,11 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
     getCartTotal,
     getDisplayCurrency,
   } = useCart();
+
+  // BLOCCO SCROLL SE CART APERTO
+  useEffect(() => {
+    document.body.style.overflow = cart.isOpen ? "hidden" : "auto";
+  }, [cart.isOpen]);
 
   const {
     processCheckoutData,
@@ -505,16 +510,26 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
     }
   };
 
-  if (!cart.isOpen) return null;
-
   return (
-    <div className={`fixed inset-0 z-50 ${className || ""}`}>
+    <div
+      className={`fixed inset-0 z-50 transition-opacity duration-300 ${
+        cart.isOpen ? "pointer-events-auto" : "pointer-events-none"
+      } ${className || ""}`}
+    >
       <div
-        className="absolute inset-0 bg-black/30 transition-opacity"
         onClick={handleOverlayClick}
+        className={`absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${
+          cart.isOpen ? "opacity-100" : "opacity-0"
+        }`}
       />
 
-      <div className="absolute right-0 top-0 h-[100dvh] w-full max-w-lg bg-white shadow-2xl transform transition-transform duration-300 ease-in-out">
+      <div
+        className={`absolute right-0 top-0 h-[100dvh] w-full max-w-lg bg-white shadow-2xl 
+        transform transition-transform duration-300 ease-out ${
+          cart.isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {" "}
         <div className="flex h-full flex-col">
           {/* HEADER */}
           <div className="flex items-center justify-between border-b border-[#e2e8f0] p-6 bg-[#f8fafc]">
@@ -551,7 +566,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             </button>
           </div>
 
-          {/* CONTENUTO DINAMICO - SCROLLABILE */}
           <div className="flex-1 overflow-y-auto p-6">
             {/* ERRORI */}
             {error && checkoutStep !== "stripe" && (
@@ -1060,7 +1074,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                   <div className="p-4 bg-white border-2 border-blue-200 rounded-xl">
                     <div className="mb-4">
                       <div className="relative">
-                        {/* Book Image - CLICCABILE per preview */}
+                        {/* Book Image */}
                         <div
                           className="m-auto w-32 sm:w-40 md:w-48 aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg overflow-hidden mb-3 cursor-pointer hover:ring-4 hover:ring-blue-400 transition-all group relative"
                           onClick={() =>

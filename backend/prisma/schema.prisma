@@ -136,6 +136,9 @@ model Product {
   compareAtPrice     Decimal?
   fileName           String?
   filePath           String?
+  pages              Int?
+  ageRange           String?
+  previewImages      Json?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   publishedAt        DateTime?
