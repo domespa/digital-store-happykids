@@ -3,7 +3,7 @@
 // console.info = () => {};
 
 // ROUTER
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 // CONTEXTS
 import { AuthProvider } from "./context/AuthContext";
@@ -47,18 +47,28 @@ import ContactsPage from "./features/contacts/pages/ContactsPage";
 import ProductPage from "./features/products/pages/ProductPage";
 
 function CustomerApp() {
+  const location = useLocation();
+
+  // QUESTE ROTTE NON DEVON OAVERE HEADER PER LANDINGPAGE PROFITTEVOLE
+  const shouldShowHeader = !(
+    location.pathname === "/bundle-workbooks" ||
+    location.pathname === "/screen-detox" ||
+    location.pathname.startsWith("/products/")
+  );
+
   return (
     <AuthProvider>
       <CartProvider>
         <StripeProvider>
-          <Header />
+          {/* HEADER SOLO SE NON è IN LANDING */}
+          {shouldShowHeader && <Header />}
           <Routes>
             <Route
-              path="/screen-detox"
+              path="/workbooks-bundle"
               element={<LandingPageDetox config={screenDetoxConfig} />}
             />
             <Route
-              path="/"
+              path="/bundle-workbooks"
               element={<LandingPageWorkbooks config={workbooksConfig} />}
             />
             <Route path="/products" element={<ProductsPage />} />

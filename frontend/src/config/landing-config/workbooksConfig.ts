@@ -1,13 +1,13 @@
 import type { LandingConfig } from "../../types/landing";
 
 export const workbooksConfig: LandingConfig = {
+  productId: "cml87a3250000140vhvtptbd6", // BUNDLE CMPLETO
   productIds: [
     "cml874iv70000j5ma3lmjfjzq", // A RAINBOW OF COLORS
     "cml874jfl0001j5ma9jkc2hl7", // LETTERS AND NUMBERS IN PLAY
     "cml874jyu0002j5mapb5yr6zg", // MY FIRST WRITING ADVENTURES
     "cml874ki50003j5macmb9lxda", // THE BIG BOOK OF ANIMALS AND DINO
     "cml874l1f0004j5ma1ve5e511", // WORLD OF SHAPES
-    "cml87a3250000140vhvtptbd6", // BUNDLE COMPLETO
   ],
 
   hero: {
@@ -32,13 +32,13 @@ export const workbooksConfig: LandingConfig = {
   workbooksShowcase: {
     title: "What's Inside: 5 Complete Workbooks",
     subtitle:
-      "295 pages designed to replace screen time naturally—so your toddler chooses real play without you forcing it.",
+      "295 pages designed to replace screen time naturally - so your toddler chooses real play without you forcing it.",
     showIndividualPricing: true,
     upsellMessage:
       "💡 Smart Choice: Get all 5 workbooks for €25 instead of buying separately and save €10!",
     workbooks: [
       {
-        id: "cmkgme4jd0000a59mmfw1523f",
+        id: "cml874iv70000j5ma3lmjfjzq",
         name: "A Rainbow of Colors",
         pages: 47,
         price: 5,
@@ -51,39 +51,57 @@ export const workbooksConfig: LandingConfig = {
           "No prep needed",
           "Perfect for short attention spans",
         ],
+        previewImages: [
+          "/extractebooks/arainbow1.jpg",
+          "/extractebooks/arainbow2.jpg",
+          "/extractebooks/arainbow3.jpg",
+          "/extractebooks/arainbow4.jpg",
+        ],
       },
       {
-        id: "cmkgme52g0001a59mltiz39wx",
+        id: "cml874jfl0001j5ma9jkc2hl7",
         name: "Letters and Numbers in Play",
         pages: 60,
         price: 5,
         priceEUR: 5,
         image: "/cover-ebook/lettersnumbersinplay.jpg",
         description:
-          "Early literacy and math skills disguised as fun—because forcing ABCs doesn't work.",
+          "Early literacy and math skills disguised as fun - because forcing ABCs doesn't work.",
         highlights: [
           "Letter tracing that doesn't feel like homework",
           "Number games that build counting skills",
           "Prepares them for kindergarten",
         ],
+        previewImages: [
+          "/extractebooks/letter1.jpg",
+          "/extractebooks/letter2.jpg",
+          "/extractebooks/letter3.jpg",
+          "/extractebooks/letter4.jpg",
+        ],
       },
       {
-        id: "cmkgme5jn0002a59mxqg8yxah",
+        id: "cml874jyu0002j5mapb5yr6zg",
         name: "My First Writing Adventure",
         pages: 59,
         price: 5,
         priceEUR: 5,
         image: "/cover-ebook/myfirstadventure.jpg",
         description:
-          "Pre-writing skills that build confidence and focus—two things screens destroyed.",
+          "Pre-writing skills that build confidence and focus - two things screens destroyed.",
         highlights: [
           "Line tracing and patterns",
           "Improves hand-eye coordination",
           "Builds focus and patience",
         ],
+        previewImages: [
+          "/extractebooks/writing1.jpg",
+          "/extractebooks/writing2.jpg",
+          "/extractebooks/writing3.jpg",
+          "/extractebooks/writing4.jpg",
+        ],
       },
       {
-        id: "cmkgme60s0003a59mwtnpoutt",
+        id: "cml874ki50003j5macmb9lxda",
         name: "The Big Book of Animals and Dinosaurs",
         pages: 64,
         price: 5,
@@ -96,20 +114,32 @@ export const workbooksConfig: LandingConfig = {
           "Dinosaur activities",
           "Real engagement, not passive watching",
         ],
+        previewImages: [
+          "/extractebooks/animals1.jpg",
+          "/extractebooks/animals2.jpg",
+          "/extractebooks/animals3.jpg",
+          "/extractebooks/animals4.jpg",
+        ],
       },
       {
-        id: "cmkgme6hx0004a59m76ln9301",
+        id: "cml874l1f0004j5ma1ve5e511",
         name: "World of Shapes",
         pages: 65,
         price: 5,
         priceEUR: 5,
         image: "/cover-ebook/worldofshapes.jpg",
         description:
-          "Spatial reasoning and problem-solving through hands-on activities—not passive watching.",
+          "Spatial reasoning and problem-solving through hands-on activities - not passive watching.",
         highlights: [
           "Shape recognition games",
           "Critical thinking skills",
           "Independent play (you can breathe)",
+        ],
+        previewImages: [
+          "/extractebooks/shapes1.jpg",
+          "/extractebooks/shapes2.jpg",
+          "/extractebooks/shapes3.jpg",
+          "/extractebooks/shapes4.jpg",
         ],
       },
     ],
@@ -128,7 +158,7 @@ export const workbooksConfig: LandingConfig = {
     title:
       "Your Toddler Prefers the iPad to You. And It's Breaking Your Heart.",
     subtitle:
-      "You're not a bad parent. You're just exhausted. But screens are stealing the best years of your child's development—and you know it.",
+      "You're not a bad parent. You're just exhausted. But screens are stealing the best years of your child's development - and you know it.",
     emotionalHook:
       "The iPad has become your third parent. Your toddler asks for it before breakfast. Melts down without it. Doesn't know how to play anymore. And you're too tired to fight.",
     problems: [
@@ -153,7 +183,7 @@ export const workbooksConfig: LandingConfig = {
           "Taking the screen away triggers World War III. So you give in. Again. And again.",
         painPoints: [
           "Epic meltdowns that last 30+ minutes when screen time ends",
-          "They scream, cry, and throw things—you can't take them anywhere",
+          "They scream, cry, and throw things - you can't take them anywhere",
           "You negotiate like a hostage situation just to avoid the tantrum",
           "You've given up trying because the peace isn't worth the war",
         ],
@@ -181,7 +211,7 @@ export const workbooksConfig: LandingConfig = {
           "Other parents judge you at the playground ('My child never uses screens')",
           "You feel like you failed because you gave in 'too early'",
           "You know this isn't healthy, but you don't know how to fix it",
-          "Every night you promise yourself 'tomorrow will be different'—but it never is",
+          "Every night you promise yourself 'tomorrow will be different' - but it never is",
         ],
       },
       {
@@ -194,7 +224,7 @@ export const workbooksConfig: LandingConfig = {
           "Their speech is delayed compared to other kids their age",
           "They struggle with eye contact and don't play with other children",
           "They can't sit still, follow instructions, or focus on anything real",
-          "You're terrified this is damaging them permanently—and you're right",
+          "You're terrified this is damaging them permanently - and you're right",
         ],
       },
     ],
@@ -203,18 +233,18 @@ export const workbooksConfig: LandingConfig = {
   contentPreview: {
     title: "Why the Complete Bundle Is Your Best Choice",
     subtitle:
-      "Everything you need to replace screen time—in one complete package",
+      "Everything you need to replace screen time - in one complete package",
     totalPages: 295,
     chapters: [
       {
         number: 1,
         title: "295 Pages of Engaging Activities",
         description:
-          "From simple coloring to pre-writing skills—designed for ages 3-5",
+          "From simple coloring to pre-writing skills - designed for ages 3-5",
         highlights: [
           "Activities last 3-5 minutes each (perfect for toddler attention spans)",
           "Progressive difficulty: starts easy, gets more challenging",
-          "No reading required—kids can do most activities independently",
+          "No reading required - kids can do most activities independently",
         ],
       },
       {
@@ -222,7 +252,7 @@ export const workbooksConfig: LandingConfig = {
         title: "Complete Skill Development System",
         description: "Covers everything a 3-5 year old needs to develop",
         highlights: [
-          "Colors, letters, numbers, shapes, animals—all covered",
+          "Colors, letters, numbers, shapes, animals - all covered",
           "Fine motor skills: tracing, coloring, matching",
           "Focus and patience: learning to finish without instant rewards",
         ],
@@ -476,13 +506,6 @@ export const workbooksConfig: LandingConfig = {
           "No. This isn't magic. These workbooks give you something BETTER to offer when they ask for the iPad. 'Not right now, but look at THIS!' Eventually, they choose the workbook because it's engaging. It takes time - usually 1-2 weeks of consistency.",
         category: "product",
       },
-      {
-        id: "guarantee",
-        question: "What if I buy it and my kid hates it?",
-        answer:
-          "30-day money-back guarantee. If your toddler won't engage with ANY of the 295 pages across 5 workbooks, email us. Full refund, no questions. Your only risk is staying stuck with screen battles forever.",
-        category: "product",
-      },
     ],
   },
 
@@ -513,7 +536,6 @@ export const workbooksConfig: LandingConfig = {
       "295 total pages of activities",
       "Print unlimited copies for your family",
       "Ages 3-5 (pre-writing, no reading required)",
-      "30-day money-back guarantee",
     ],
     highlights: [
       {
@@ -532,11 +554,7 @@ export const workbooksConfig: LandingConfig = {
         description: "Print → Hand to toddler → Breathe",
       },
     ],
-    guarantees: [
-      "30-day money-back guarantee - try it risk-free",
-      "If your toddler won't engage, full refund - no questions",
-      "Instant access, lifetime downloads",
-    ],
+    guarantees: ["Instant access, lifetime downloads"],
     urgency: {
       enabled: false,
       message: "",
@@ -569,7 +587,7 @@ export const workbooksConfig: LandingConfig = {
   settings: {
     theme: "default",
     colors: {
-      primary: "#2563eb",
+      primary: "primary",
       secondary: "#1e293b",
       accent: "#10b981",
       background: "#ffffff",

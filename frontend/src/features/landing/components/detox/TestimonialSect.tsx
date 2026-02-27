@@ -58,7 +58,7 @@ export default function ParentStrugglesSection() {
         "My child forgot how to play. 'I'm bored' every 5 minutes. They can't sit alone for 10 seconds without asking for a screen.",
       context: "Lost ability to play",
       icon: AlertTriangle,
-      color: "text-blue-600",
+      color: "text-primary",
       bg: "bg-blue-100",
     },
     {
@@ -77,7 +77,7 @@ export default function ParentStrugglesSection() {
       Icon: Calendar,
       number: "30",
       label: "Days to Reset",
-      color: "text-blue-600",
+      color: "text-primary",
       bg: "bg-blue-100",
     },
     {
@@ -209,7 +209,7 @@ export default function ParentStrugglesSection() {
             return (
               <div
                 key={index}
-                className="group text-center p-4 sm:p-5 bg-white rounded-xl border-2 border-gray-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
+                className="group text-center p-4 sm:p-5 bg-white rounded-xl border-2 border-gray-200 hover:border-primary-light shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
               >
                 <div className="flex justify-center mb-3">
                   <div

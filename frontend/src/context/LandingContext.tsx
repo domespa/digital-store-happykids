@@ -47,50 +47,70 @@ export const LandingProvider = ({
 
   useEffect(() => {
     const fetchProd = async () => {
-      const productId = config.productId || config.productIds?.[0];
+      const productId = config.productId;
 
       if (!productId) {
         console.warn("⚠️ productId mancante nel config");
         return;
       }
 
-      // ASPETTA CHE LOCATION SIA PRONTA
       if (landingData.isLoading) {
         console.log("⏳ Waiting for location...");
         return;
       }
 
       setIsLoadingProduct(true);
-      try {
-        const baseUrl =
-          import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
-        const apiUrl = `${baseUrl}/api/products/${productId}`;
 
-        const userCurrency = landingData.user?.currency || "EUR";
+      let retries = 0;
+      const maxRetries = 3;
 
-        console.log("📦 Fetching product with currency:", userCurrency);
+      const attemptFetch = async (): Promise<void> => {
+        try {
+          const baseUrl =
+            import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+          const apiUrl = `${baseUrl}/api/products/${productId}`;
+          const userCurrency = landingData.user?.currency || "EUR";
 
-        const resp = await fetch(apiUrl, {
-          headers: {
-            "X-User-Currency": userCurrency,
-          },
-        });
+          console.log("📦 Fetching product with currency:", userCurrency);
 
-        if (!resp.ok) throw new Error("Prodotto non trovato");
+          const resp = await fetch(apiUrl, {
+            headers: {
+              "X-User-Currency": userCurrency,
+            },
+          });
 
-        const data = await resp.json();
-        console.log("✅ Product received:", {
-          name: data.product?.name,
-          price: data.product?.displayPrice || data.product?.price,
-          currency: data.product?.currency,
-        });
+          if (!resp.ok) throw new Error("Prodotto non trovato");
 
-        setBackendProduct(data.product);
-      } catch (error) {
-        console.error("❌ [CONTEXT] Errore fetch prodotto:", error);
-      } finally {
-        setIsLoadingProduct(false);
-      }
+          const data = await resp.json();
+          console.log("✅ Product received:", {
+            name: data.product?.name,
+            price: data.product?.displayPrice || data.product?.price,
+            currency: data.product?.currency,
+          });
+
+          setBackendProduct(data.product);
+        } catch (error) {
+          if (
+            retries < maxRetries &&
+            error instanceof TypeError &&
+            error.message.includes("Failed to fetch")
+          ) {
+            retries++;
+            const delay = retries * 1000;
+            console.log(
+              `🔄 Backend not ready, retrying in ${delay}ms... (${retries}/${maxRetries})`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return attemptFetch();
+          }
+
+          console.error("❌ [CONTEXT] Errore fetch prodotto:", error);
+        } finally {
+          setIsLoadingProduct(false);
+        }
+      };
+
+      attemptFetch();
     };
 
     fetchProd();

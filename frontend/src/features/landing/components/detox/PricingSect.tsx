@@ -53,9 +53,9 @@ export default function PricingSect({}: PricingSect = {}) {
 
             {/* Loading State */}
             {(landingCart.isLoading || landingCart.isConverting) && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 text-center">
-                <div className="flex items-center justify-center gap-2 text-blue-600 text-sm font-medium">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 text-center">
+                <div className="flex items-center justify-center gap-2 text-primary text-sm font-medium">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                   <span>
                     Updating prices for {landingCart.displayCurrency}...
                   </span>

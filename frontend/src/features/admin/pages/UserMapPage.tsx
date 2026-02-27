@@ -304,7 +304,7 @@ export default function UserGlobePage() {
               </h3>
               <div className="animate-pulse w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
             </div>
-            <p className="text-2xl sm:text-4xl font-bold text-blue-600 dark:text-blue-400">
+            <p className="text-2xl sm:text-4xl font-bold text-primary dark:text-blue-400">
               {onlineUsers.length}
             </p>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">

@@ -33,7 +33,7 @@ export interface CartContextType {
   cart: CartState;
 
   // AZIONI
-  addItem: (product: ProductToAdd) => void;
+  addItem: (product: ProductToAdd, openCart?: boolean) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;

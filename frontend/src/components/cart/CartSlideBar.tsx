@@ -8,7 +8,6 @@ import {
   trackAddPaymentInfo,
   trackPurchase,
 } from "../../utils/analytics";
-import WorkbookPreviewModal from "../../features/landing/components/shared/WorkbookPreviewModal";
 
 interface CartSlideBar {
   className?: string;
@@ -64,8 +63,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   } = useCheckout();
 
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>("cart");
-  const [isWorkbooksExpanded, setIsWorkbooksExpanded] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [formData, setFormData] = useState<CheckoutForm>({
     customerEmail: "",
     customerFirstName: "",
@@ -98,11 +95,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
         fileName: string;
       } | null;
     }>;
-  } | null>(null);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [selectedWorkbookForPreview, setSelectedWorkbookForPreview] = useState<{
-    name: string;
-    images: string[];
   } | null>(null);
 
   useEffect(() => {
@@ -201,41 +193,40 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   // ========================
   //   WORKBOOKS CONFIG
   // ========================
-  const WORKBOOKS_PRICE_EUR = 15; // Prezzo in EUR
-  const INDIVIDUAL_WORKBOOK_PRICE_EUR = 5; // Prezzo in EUR
+  const WORKBOOKS_PRICE_EUR = 5; // Prezzo in EUR
   const WORKBOOKS_BUNDLE_ID = "cml87a3250000140vhvtptbd6";
 
   const workbooks = [
     {
-      id: "cmkgme4jd0000a59mmfw1523f",
+      id: "cml874iv70000j5ma3lmjfjzq",
       name: "A Rainbow of Colors",
       pages: 47,
       priceEUR: 5,
       image: "/cover-ebook/ranibowofcolors.jpg",
     },
     {
-      id: "cmkgme52g0001a59mltiz39wx",
+      id: "cml874jfl0001j5ma9jkc2hl7",
       name: "Letters and Numbers in Play",
       pages: 60,
       priceEUR: 5,
       image: "/cover-ebook/lettersnumbersinplay.jpg",
     },
     {
-      id: "cmkgme5jn0002a59mxqg8yxah",
+      id: "cml874jyu0002j5mapb5yr6zg",
       name: "My First Writing Adventure",
       pages: 59,
       priceEUR: 5,
       image: "/cover-ebook/myfirstadventure.jpg",
     },
     {
-      id: "cmkgme60s0003a59mwtnpoutt",
+      id: "cml874ki50003j5macmb9lxda",
       name: "The Big Book of Animals and Dinosaurs",
       pages: 64,
       priceEUR: 5,
       image: "/cover-ebook/animals.jpg",
     },
     {
-      id: "cmkgme6hx0004a59m76ln9301",
+      id: "cml874l1f0004j5ma1ve5e511",
       name: "World of Shapes",
       pages: 65,
       priceEUR: 5,
@@ -243,54 +234,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
     },
   ];
 
-  const workbooksPreviewImages: Record<string, string[]> = {
-    cmkgme4jd0000a59mmfw1523f: [
-      // A Rainbow of Colors
-      "/extractebooks/arainbow1.jpg",
-      "/extractebooks/arainbow2.jpg",
-      "/extractebooks/arainbow3.jpg",
-      "/extractebooks/arainbow4.jpg",
-    ],
-    cmkgme52g0001a59mltiz39wx: [
-      // Letters and Numbers
-      "/extractebooks/letter1.jpg",
-      "/extractebooks/letter2.jpg",
-      "/extractebooks/letter3.jpg",
-      "/extractebooks/letter4.jpg",
-    ],
-    cmkgme5jn0002a59mxqg8yxah: [
-      // My First Writing
-      "/extractebooks/writing1.jpg",
-      "/extractebooks/writing2.jpg",
-      "/extractebooks/writing3.jpg",
-      "/extractebooks/writing4.jpg",
-    ],
-    cmkgme60s0003a59mwtnpoutt: [
-      // Animals and Dinosaurs
-      "/extractebooks/animals1.jpg",
-      "/extractebooks/animals2.jpg",
-      "/extractebooks/animals3.jpg",
-      "/extractebooks/animals4.jpg",
-    ],
-    cmkgme6hx0004a59m76ln9301: [
-      // World of Shapes
-      "/extractebooks/shapes1.jpg",
-      "/extractebooks/shapes2.jpg",
-      "/extractebooks/shapes3.jpg",
-      "/extractebooks/shapes4.jpg",
-    ],
-  };
-
-  const openPreview = (workbookId: string, workbookName: string) => {
-    const previewImages = workbooksPreviewImages[workbookId];
-    if (previewImages) {
-      setSelectedWorkbookForPreview({
-        name: workbookName,
-        images: previewImages,
-      });
-      setShowPreviewModal(true);
-    }
-  };
   // ========================
   //   CONVERTI PREZZI WORKBOOKS
   // ========================
@@ -324,64 +267,14 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
     );
   };
 
-  // Check se workbook specifico è nel cart
-  const isWorkbookInCart = (workbookId: string) => {
-    return cart.items.some(
-      (item) =>
-        item.productId === workbookId || item.productId === WORKBOOKS_BUNDLE_ID,
-    );
-  };
-
   // Check se bundle è nel cart
   const hasBundleInCart = () => {
     return cart.items.some((item) => item.id === WORKBOOKS_BUNDLE_ID);
   };
 
-  // Naviga carousel
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % workbooks.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + workbooks.length) % workbooks.length);
-  };
-
   // ========================
   //   ADD TO CART (CON CONVERSIONE)
   // ========================
-  const addSingleWorkbook = (workbook: (typeof workbooks)[0]) => {
-    const convertedPrice = convertWorkbookPrice(workbook.priceEUR);
-
-    addItem({
-      id: `workbook-${workbook.id}`,
-      productId: workbook.id,
-      name: workbook.name,
-      price: convertedPrice,
-      currency: getDisplayCurrency(),
-      image: workbook.image,
-      description: `${workbook.pages} pages workbook for ages 3-5`,
-    });
-  };
-
-  const addWorkbooksBundle = () => {
-    const workbooksInCart = getWorkbooksInCart();
-    workbooksInCart.forEach((item) => {
-      removeItem(item.id);
-    });
-
-    const convertedPrice = convertWorkbookPrice(WORKBOOKS_PRICE_EUR);
-
-    addItem({
-      id: `workbooks-bundle-${WORKBOOKS_BUNDLE_ID}`,
-      productId: WORKBOOKS_BUNDLE_ID,
-      name: "5 Learning Workbooks Bundle",
-      price: convertedPrice,
-      currency: getDisplayCurrency(),
-      image: workbooks[0].image,
-      description: "Complete bundle: 295 pages of educational activities",
-    });
-    setIsWorkbooksExpanded(false);
-  };
 
   // Check se user ha tutti e 5 workbook individuali nel cart
   const hasAllIndividualWorkbooks = (): boolean => {
@@ -412,7 +305,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
       image: workbooks[0].image,
       description: "Complete bundle: 295 pages of educational activities",
     });
-    setIsWorkbooksExpanded(false);
   };
 
   const calculateTotal = (): number => {
@@ -578,9 +470,9 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             {checkoutStep === "cart" && (
               <>
                 {cart.isConverting && (
-                  <div className="mb-4 rounded-lg bg-blue-50 border border-blue-200 p-3">
-                    <div className="flex items-center gap-2 text-sm text-[#2563eb]">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#2563eb]"></div>
+                  <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3">
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                       Updating prices...
                     </div>
                   </div>
@@ -614,7 +506,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         key={item.id}
                         className="flex gap-4 p-5 bg-[#f8fafc] rounded-lg border border-[#e2e8f0] hover:border-[#cbd5e1] transition-colors"
                       >
-                        <div className="w-20 h-30 bg-gradient-to-br from-[#3b82f6] to-[#2563eb] rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-20 h-30 bg-gradient-to-br rounded-lg flex items-center justify-center flex-shrink-0">
                           {item.image ? (
                             <img
                               src={item.image}
@@ -638,7 +530,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                           )}
 
                           <div className="flex items-center justify-between mt-3">
-                            <div className="font-semibold text-[#2563eb]">
+                            <div className="font-semibold text-primary">
                               {formatPrice(item.displayPrice)}
                             </div>
 
@@ -724,7 +616,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                     </p>
                     <button
                       onClick={convertToBundle}
-                      className="w-full py-2.5 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold text-sm transition-all active:scale-95 shadow-md"
+                      className="w-full py-2.5 px-4 bg-gradient-success hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold text-sm transition-all active:scale-95 shadow-md"
                     >
                       ⭐ Apply Bundle Discount - Save{" "}
                       {formatPrice(convertWorkbookPrice(10))}!
@@ -753,7 +645,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         onChange={(e) =>
                           updateFormData("customerFirstName", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-[#2563eb] text-[#1e293b] placeholder:text-[#64748b] transition-all"
+                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[#1e293b] placeholder:text-[#64748b] transition-all"
                         placeholder="First name"
                         required
                       />
@@ -769,7 +661,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         onChange={(e) =>
                           updateFormData("customerLastName", e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-[#2563eb] text-[#1e293b] placeholder:text-[#64748b] transition-all"
+                        className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[#1e293b] placeholder:text-[#64748b] transition-all"
                         placeholder="Last name"
                         required
                       />
@@ -786,7 +678,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       onChange={(e) =>
                         updateFormData("customerEmail", e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-[#2563eb] focus:border-[#2563eb] text-[#1e293b] placeholder:text-[#64748b] transition-all"
+                      className="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[#1e293b] placeholder:text-[#64748b] transition-all"
                       placeholder="The file will be sent here"
                       required
                     />
@@ -805,12 +697,12 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       }
                       className={`relative flex flex-col items-center justify-center gap-2 p-4 border-2 rounded-xl transition-all ${
                         formData.paymentProvider === "STRIPE"
-                          ? "border-[#2563eb] bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
+                          ? "border-primary bg-gradient-to-br from-green-50 to-green-100 shadow-lg"
                           : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
                       }`}
                     >
                       {formData.paymentProvider === "STRIPE" && (
-                        <div className="absolute top-2 right-2 w-5 h-5 bg-[#2563eb] rounded-full flex items-center justify-center">
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
                           <svg
                             className="w-3 h-3 text-white"
                             fill="currentColor"
@@ -837,7 +729,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         <span
                           className={`text-xs font-bold block ${
                             formData.paymentProvider === "STRIPE"
-                              ? "text-[#2563eb]"
+                              ? "text-primary"
                               : "text-[#1e293b]"
                           }`}
                         >
@@ -856,7 +748,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                       }
                       className={`relative flex flex-col items-center justify-center gap-2 p-4 border-2 rounded-xl transition-all ${
                         formData.paymentProvider === "PAYPAL"
-                          ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg"
+                          ? "border-blue-500 bg-gradient-to-br from-green-50 to-green-100 shadow-lg"
                           : "border-[#e2e8f0] bg-white hover:border-[#cbd5e1]"
                       }`}
                     >
@@ -913,7 +805,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                           e.target.checked ? "true" : "false",
                         )
                       }
-                      className="mt-1 w-4 h-4 text-[#2563eb] border-[#e2e8f0] rounded focus:ring-[#2563eb] focus:ring-2"
+                      className="mt-1 w-4 h-4 text-primary border-[#e2e8f0] rounded focus:ring-primary focus:ring-2"
                       required
                     />
                     <span className="text-sm text-[#64748b] leading-relaxed">
@@ -922,7 +814,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         href="/refund-policy"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#2563eb] hover:text-[#1d4ed8] underline font-medium"
+                        className="text-primary hover:text-primary-hover underline font-medium"
                       >
                         Refund Policy
                       </a>
@@ -935,7 +827,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                   <span className="text-lg font-medium text-[#1e293b]">
                     Order total
                   </span>
-                  <span className="text-2xl font-bold text-[#2563eb]">
+                  <span className="text-2xl font-bold text-primary">
                     {formatPrice(calculateTotal())}
                   </span>
                 </div>
@@ -957,7 +849,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             {/* PAYPAL STEP */}
             {checkoutStep === "paypal" && (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
                 <h3 className="text-lg font-medium text-[#1e293b] mb-2">
                   Processing PayPal payment...
                 </h3>
@@ -1016,209 +908,13 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                     toggleCart();
                     resetCheckout();
                   }}
-                  className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm"
+                  className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-4 rounded-lg transition-colors shadow-sm"
                 >
                   Close
                 </button>
               </div>
             )}
           </div>
-
-          {/* FREQUENTLY BOUGHT TOGETHER - ACCORDION */}
-          {checkoutStep === "cart" &&
-            cart.items.length > 0 &&
-            !hasBundleInCart() && (
-              <div className="border-t border-[#e2e8f0] p-4 bg-[#f8fafc]">
-                <button
-                  onClick={() => setIsWorkbooksExpanded(!isWorkbooksExpanded)}
-                  className="w-full p-3 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl hover:border-blue-300 transition-all"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">💡</span>
-                      <div className="text-left">
-                        <h3 className="text-sm font-bold text-[#1e293b]">
-                          Frequently bought together
-                        </h3>
-                        <p className="text-xs text-[#64748b]">
-                          5 Learning Workbooks Bundle • Save{" "}
-                          {formatPrice(convertWorkbookPrice(10))}!
-                        </p>
-                      </div>
-                    </div>
-                    <svg
-                      className={`w-5 h-5 text-[#64748b] transition-transform ${
-                        isWorkbooksExpanded ? "rotate-180" : ""
-                      }`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </button>
-
-                <div
-                  className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                    isWorkbooksExpanded
-                      ? "max-h-[800px] opacity-100 mt-2"
-                      : "max-h-0 opacity-0 mt-0"
-                  }`}
-                >
-                  <div className="p-4 bg-white border-2 border-blue-200 rounded-xl">
-                    <div className="mb-4">
-                      <div className="relative">
-                        {/* Book Image */}
-                        <div
-                          className="m-auto w-32 sm:w-40 md:w-48 aspect-[3/4] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg overflow-hidden mb-3 cursor-pointer hover:ring-4 hover:ring-blue-400 transition-all group relative"
-                          onClick={() =>
-                            openPreview(
-                              workbooks[currentSlide].id,
-                              workbooks[currentSlide].name,
-                            )
-                          }
-                        >
-                          <img
-                            src={workbooks[currentSlide].image}
-                            alt={workbooks[currentSlide].name}
-                            className="w-full h-full object-cover"
-                          />
-
-                          {/* Overlay "Preview" al hover */}
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center">
-                            <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-sm">
-                              👁️ Preview Pages
-                            </span>
-                          </div>
-                        </div>
-
-                        {workbooks.length > 1 && (
-                          <>
-                            <button
-                              onClick={prevSlide}
-                              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center transition-all"
-                            >
-                              <svg
-                                className="w-5 h-5 text-[#1e293b]"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 19l-7-7 7-7"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={nextSlide}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white rounded-full shadow-lg flex items-center justify-center transition-all"
-                            >
-                              <svg
-                                className="w-5 h-5 text-[#1e293b]"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 5l7 7-7 7"
-                                />
-                              </svg>
-                            </button>
-                          </>
-                        )}
-
-                        <div className="flex justify-center gap-1 mt-2">
-                          {workbooks.map((_, index) => (
-                            <button
-                              key={index}
-                              onClick={() => setCurrentSlide(index)}
-                              className={`h-1.5 rounded-full transition-all ${
-                                index === currentSlide
-                                  ? "w-6 bg-blue-600"
-                                  : "w-1.5 bg-gray-300"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="text-center mb-3">
-                        <h4 className="font-bold text-[#1e293b] text-sm mb-1">
-                          {workbooks[currentSlide].name}
-                        </h4>
-                        <p className="text-xs text-[#64748b]">
-                          {workbooks[currentSlide].pages} pages
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          addSingleWorkbook(workbooks[currentSlide])
-                        }
-                        disabled={isWorkbookInCart(workbooks[currentSlide].id)}
-                        className={`w-full py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
-                          isWorkbookInCart(workbooks[currentSlide].id)
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-blue-600 hover:bg-blue-700 text-white active:scale-95"
-                        }`}
-                      >
-                        {isWorkbookInCart(workbooks[currentSlide].id)
-                          ? "✓ In Cart"
-                          : `Add This Book - ${formatPrice(
-                              convertWorkbookPrice(
-                                INDIVIDUAL_WORKBOOK_PRICE_EUR,
-                              ),
-                            )}`}
-                      </button>
-                    </div>
-
-                    <div className="relative my-4">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200"></div>
-                      </div>
-                      <div className="relative flex justify-center text-xs">
-                        <span className="bg-white px-2 text-[#64748b]">or</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={addWorkbooksBundle}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-bold text-sm transition-all active:scale-95 shadow-md"
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <span>
-                          ⭐ Get All 5 Books for{" "}
-                          {formatPrice(
-                            convertWorkbookPrice(WORKBOOKS_PRICE_EUR),
-                          )}
-                        </span>
-                      </div>
-                      <div className="text-xs opacity-90 mt-1">
-                        Save {formatPrice(convertWorkbookPrice(10))} vs buying
-                        separately!
-                      </div>
-                    </button>
-
-                    <div className="mt-3 text-center text-xs text-[#64748b]">
-                      295 pages • Instant download
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
           {/* FOOTER */}
           {(checkoutStep === "cart" || checkoutStep === "form") &&
             cart.items.length > 0 && (
@@ -1230,7 +926,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         Order total
                       </span>
                       <div className="text-right">
-                        <div className="text-2xl font-bold text-[#2563eb]">
+                        <div className="text-2xl font-bold text-primary">
                           {formatPrice(calculateTotal())}
                         </div>
                       </div>
@@ -1243,7 +939,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all duration-200 ${
                           cart.isConverting
                             ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-[#2563eb] hover:bg-[#1d4ed8] hover:shadow-lg active:scale-98"
+                            : "bg-primary hover:bg-primary-hover hover:shadow-lg active:scale-98"
                         }`}
                       >
                         {cart.isConverting
@@ -1279,7 +975,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
                         !formData.customerLastName ||
                         formData.acceptRefundPolicy !== "true"
                           ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-[#2563eb] hover:bg-[#1d4ed8] hover:shadow-lg active:scale-98"
+                          : "bg-primary hover:bg-primary-hover hover:shadow-lg active:scale-98"
                       }`}
                     >
                       {isProcessing ? (
@@ -1309,17 +1005,6 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
             )}
         </div>
       </div>
-      {/* PREVIEW MODAL */}
-      {showPreviewModal && selectedWorkbookForPreview && (
-        <WorkbookPreviewModal
-          workbookName={selectedWorkbookForPreview.name}
-          previewImages={selectedWorkbookForPreview.images}
-          onClose={() => {
-            setShowPreviewModal(false);
-            setSelectedWorkbookForPreview(null);
-          }}
-        />
-      )}
     </div>
   );
 }

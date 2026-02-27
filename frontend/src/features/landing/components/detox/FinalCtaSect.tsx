@@ -23,10 +23,10 @@ export default function FinalCTA() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl relative z-10">
-        <div className="bg-white rounded-xl shadow-xl p-6 sm:p-10 border-2 border-blue-600">
+        <div className="bg-white rounded-xl shadow-xl p-6 sm:p-10 border-2 border-primary">
           {/* Header - CONFIDENT & LOGICAL */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-full text-sm font-bold text-blue-600 mb-5">
+            <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2 rounded-full text-sm font-bold text-primary mb-5">
               <span>✓</span>
               <span>You've Seen Everything</span>
             </div>
@@ -48,7 +48,7 @@ export default function FinalCTA() {
           {/* Recap Box - CLEAN */}
           <div className="bg-gradient-to-br from-blue-50 to-green-50 rounded-xl p-5 sm:p-6 mb-6 border-2 border-blue-200">
             <div className="text-center mb-5">
-              <p className="text-xs sm:text-sm font-bold text-blue-600 uppercase tracking-wide mb-3">
+              <p className="text-xs sm:text-sm font-bold text-primary uppercase tracking-wide mb-3">
                 Everything You Get Today
               </p>
             </div>
@@ -158,7 +158,7 @@ export default function FinalCTA() {
                 <div className="text-right">
                   <FormattedPrice
                     value={landingCart.formattedMainPrice}
-                    className="text-3xl sm:text-4xl font-bold text-blue-600"
+                    className="text-3xl sm:text-4xl font-bold text-primary"
                     currencyClassName="text-lg font-normal opacity-70"
                   />
                   <p className="text-xs text-gray-500 line-through mt-1">
@@ -176,7 +176,7 @@ export default function FinalCTA() {
               landingCart.addMainProductToCart();
             }}
             disabled={landingCart.isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl text-base sm:text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-5"
+            className="w-full bg-primary hover:bg-primary-hover text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl text-base sm:text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-5"
           >
             <span className="flex items-center justify-center gap-3">
               {landingCart.isLoading ? (

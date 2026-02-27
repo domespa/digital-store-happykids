@@ -243,6 +243,7 @@ export interface WorkbookItem {
   image: string;
   description?: string;
   highlights?: string[];
+  previewImages: string[];
 }
 
 export interface WorkbooksShowcase {

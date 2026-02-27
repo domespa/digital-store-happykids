@@ -49,7 +49,7 @@ export default function WhatYouGetSect() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
         {/* Header */}
         <div className="text-center mb-10 lg:mb-12">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-full text-base font-bold text-blue-600 mb-5">
+          <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2 rounded-full text-base font-bold text-primary mb-5">
             <Package className="w-5 h-5" />
             <span>Complete Protocol Breakdown</span>
           </div>
@@ -67,7 +67,7 @@ export default function WhatYouGetSect() {
           {contentPreview.chapters.map((chapter, i) => (
             <div
               key={i}
-              className="group bg-white rounded-xl border-2 border-gray-200 hover:border-blue-400 shadow-sm hover:shadow-md transition-all overflow-hidden"
+              className="group bg-white rounded-xl border-2 border-gray-200 hover:border-primary-light shadow-sm hover:shadow-md transition-all overflow-hidden"
             >
               <div className="p-5 sm:p-6">
                 {/* Chapter Header */}
@@ -88,7 +88,7 @@ export default function WhatYouGetSect() {
                 {/* Chapter Highlights */}
                 {chapter.highlights && chapter.highlights.length > 0 && (
                   <div className="mt-4 pl-12 sm:pl-16 space-y-2">
-                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wide mb-2">
+                    <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">
                       What You'll Get:
                     </p>
                     {chapter.highlights.map((highlight, idx) => (
@@ -168,9 +168,9 @@ export default function WhatYouGetSect() {
               Icon: BookOpen,
               title: `${contentPreview.totalPages}+ Pages`,
               desc: "Complete step-by-step guide",
-              color: "text-blue-600",
+              color: "text-primary",
               bg: "bg-blue-100",
-              hoverBg: "group-hover:bg-blue-500",
+              hoverBg: "group-hover:bg-green-500",
             },
             {
               Icon: Smartphone,
@@ -191,7 +191,7 @@ export default function WhatYouGetSect() {
           ].map((feature, i) => (
             <div
               key={i}
-              className="group p-4 sm:p-5 bg-white rounded-lg border-2 border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all text-center"
+              className="group p-4 sm:p-5 bg-white rounded-lg border-2 border-gray-200 shadow-sm hover:border-primary-light hover:shadow-md transition-all text-center"
             >
               {/* Icon Circle */}
               <div className="flex justify-center mb-3">

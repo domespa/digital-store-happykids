@@ -352,7 +352,7 @@ export function PrivacyPolicyPage() {
               {/* Google Analytics */}
               <div className="border border-yellow-200 rounded-lg p-4 bg-yellow-50 mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-yellow-400 rounded flex items-center justify-center">
+                  <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
                     <span className="text-sm">📊</span>
                   </div>
                   <h4 className="font-semibold text-gray-900">

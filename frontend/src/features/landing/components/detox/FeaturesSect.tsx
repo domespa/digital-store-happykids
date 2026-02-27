@@ -217,7 +217,7 @@ export default function FeaturesSect() {
           </div>
         </div>
 
-        {/* BONUSES (if any) */}
+        {/* BONUSES */}
         {config.features.bonuses && config.features.bonuses.length > 0 && (
           <div className="mb-12 lg:mb-16">
             <div className="bg-gradient-to-br from-teal-600 to-cyan-600 rounded-xl p-8 lg:p-10 text-white shadow-lg border border-teal-500">
@@ -239,7 +239,7 @@ export default function FeaturesSect() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="text-3xl">{bonus.icon}</div>
-                      <div className="bg-yellow-400 text-teal-900 px-3 py-1 rounded-full text-xs font-bold">
+                      <div className="bg-primary text-teal-900 px-3 py-1 rounded-full text-xs font-bold">
                         ${bonus.value}
                       </div>
                     </div>
@@ -253,7 +253,7 @@ export default function FeaturesSect() {
 
               <div className="text-center p-6 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
                 <p className="text-sm text-teal-100 mb-2">Total Value:</p>
-                <div className="text-4xl font-bold text-yellow-400 mb-3">
+                <div className="text-4xl font-bold text-primary mb-3">
                   $
                   {config.features.bonuses.reduce(
                     (total, bonus) => total + bonus.value,

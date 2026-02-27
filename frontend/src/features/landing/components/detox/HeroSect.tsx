@@ -16,7 +16,7 @@ export default function HeroSect() {
     return (
       <section className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </section>
@@ -181,11 +181,11 @@ export default function HeroSect() {
               <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-6xl mx-auto">
                 {/* Trust Badge 1 */}
                 <div className="relative group">
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-4 rounded-xl shadow-md border-2 border-blue-200 text-center hover:border-blue-400 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 px-3 py-4 rounded-xl shadow-md border-2 border-blue-200 text-center hover:border-primary-light hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div className="flex justify-center mb-2">
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-500 transition-colors">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-green-500 transition-colors">
                         <BrainCog
-                          className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors"
+                          className="w-6 h-6 text-primary group-hover:text-white transition-colors"
                           strokeWidth={2.5}
                         />
                       </div>
@@ -320,12 +320,12 @@ export default function HeroSect() {
                 {
                   bg: "from-blue-50 to-cyan-50",
                   circle: "bg-blue-100",
-                  circleHover: "group-hover:bg-blue-500",
-                  icon: "text-blue-600",
+                  circleHover: "group-hover:bg-green-500",
+                  icon: "text-primary",
                   iconHover: "group-hover:text-white",
                   border: "border-blue-200",
-                  hover: "hover:border-blue-400",
-                  text: "text-blue-600",
+                  hover: "hover:border-primary-light",
+                  text: "text-primary",
                   shadow: "shadow-blue-200/50",
                 },
                 {

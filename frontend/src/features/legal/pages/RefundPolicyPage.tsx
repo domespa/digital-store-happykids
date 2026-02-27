@@ -24,7 +24,7 @@ export function RefundPolicyPage() {
               <span className="text-sm font-medium">Back to Site</span>
             </button>
             <div className="flex-1 flex items-center justify-center gap-2">
-              <BanknoteArrowDown className="w-5 h-5 text-blue-600" />
+              <BanknoteArrowDown className="w-5 h-5 text-primary" />
               <h1 className="text-lg font-bold text-gray-900">Refund Policy</h1>
             </div>
             <button
@@ -81,10 +81,10 @@ export function RefundPolicyPage() {
                 <p className="text-gray-700 mb-4">Contact Us:</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-blue-600" />
+                    <Mail className="w-4 h-4 text-primary" />
                     <a
                       href="mailto:H4ppyKids@H4ppyKids.com"
-                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-primary hover:text-blue-700 font-medium"
                     >
                       H4ppyKids@H4ppyKids.com
                     </a>
@@ -102,7 +102,7 @@ export function RefundPolicyPage() {
         <div className="text-center mt-8">
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-primary hover:text-blue-700 font-medium"
           >
             ↑ Back to Top
           </button>
@@ -117,7 +117,7 @@ export function RefundPolicyPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => navigate("/")}
-                className="hover:text-blue-600"
+                className="hover:text-primary"
               >
                 Home
               </button>

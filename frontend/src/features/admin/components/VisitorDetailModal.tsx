@@ -268,7 +268,7 @@ export default function VisitorDetailModal({
               {/* ATTIVITÀ SUMMARY */}
               <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-700 dark:to-slate-600 rounded-lg">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  <p className="text-2xl font-bold text-primary dark:text-blue-400">
                     {groupedEvents.scrollDepth}%
                   </p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">

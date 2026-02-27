@@ -67,8 +67,8 @@ export default function ProductsDropdown() {
         aria-haspopup="true"
         className={`flex items-center gap-1 text-base font-medium transition-all pb-1 ${
           isOpen
-            ? "text-blue-600 border-b-2 border-yellow-400"
-            : "text-gray-700 hover:text-blue-600"
+            ? "text-primary font-bold border-b-2 border-primary"
+            : "text-gray-700 hover:text-primary"
         }`}
       >
         Products
@@ -90,7 +90,7 @@ export default function ProductsDropdown() {
             {/* Loading */}
             {isLoading && (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 <span className="ml-2 text-sm text-gray-500">
                   Loading products...
                 </span>
@@ -118,11 +118,11 @@ export default function ProductsDropdown() {
                     key={product.id}
                     to={`/products/${product.id}`}
                     onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 p-2.5 sm:p-3 rounded-lg hover:bg-blue-50 transition-colors group"
+                    className="flex items-center gap-3 p-2.5 sm:p-3 rounded-lg hover:bg-green-50 transition-colors group"
                     role="menuitem"
                   >
                     {/* Immagine */}
-                    <div className="w-12 h-16 sm:w-14 sm:h-18 flex-shrink-0 bg-gradient-to-br from-blue-100 to-purple-100 rounded-md overflow-hidden shadow-sm">
+                    <div className="w-12 h-16 sm:w-14 sm:h-18 flex-shrink-0 bg-gradient-to-br from-green-50 to-emerald-50 rounded-md overflow-hidden shadow-sm">
                       {product.images && product.images.length > 0 ? (
                         <img
                           src={
@@ -135,7 +135,7 @@ export default function ProductsDropdown() {
                         />
                       ) : (
                         // Fallback icon se non ci sono immagini
-                        <div className="w-full h-full flex items-center justify-center text-blue-600">
+                        <div className="w-full h-full flex items-center justify-center text-primary">
                           <svg
                             className="w-6 h-6"
                             fill="none"
@@ -155,7 +155,7 @@ export default function ProductsDropdown() {
 
                     {/* Titolo e info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-gray-800 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                      <h4 className="text-sm font-medium text-gray-800 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                         {product.name}
                       </h4>
 
@@ -169,7 +169,7 @@ export default function ProductsDropdown() {
 
                     {/* Freccia */}
                     <svg
-                      className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0"
+                      className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"

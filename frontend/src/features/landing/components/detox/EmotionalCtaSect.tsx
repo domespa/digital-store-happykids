@@ -51,7 +51,7 @@ export default function EmotionalCTA() {
               {/* LEFT: Book Mockup */}
               <div className="md:col-span-2 flex justify-center items-start">
                 <div className="relative max-w-[180px] sm:max-w-[200px] w-full">
-                  <div className="relative bg-white rounded-lg shadow-lg p-3 border-2 border-blue-600">
+                  <div className="relative bg-white rounded-lg shadow-lg p-3 border-2 border-primary">
                     <img
                       src={config.hero?.image || "/cover.png"}
                       alt="Screen Detox Protocol"
@@ -87,7 +87,7 @@ export default function EmotionalCTA() {
                 {config.pricing.valueStack &&
                   config.pricing.valueStack.length > 5 && (
                     <div className="text-center pt-2">
-                      <span className="text-xs text-blue-600 font-bold">
+                      <span className="text-xs text-primary font-bold">
                         +{config.pricing.valueStack.length - 5} more bonuses
                         included
                       </span>
@@ -113,7 +113,7 @@ export default function EmotionalCTA() {
                 <div className="text-right">
                   <FormattedPrice
                     value={landingCart.formattedMainPrice}
-                    className="text-3xl sm:text-4xl font-bold text-blue-600"
+                    className="text-3xl sm:text-4xl font-bold text-primary"
                     currencyClassName="text-xl font-normal opacity-70"
                   />
                   <div className="text-xs sm:text-sm text-green-600 font-bold mt-1">
@@ -137,7 +137,7 @@ export default function EmotionalCTA() {
               landingCart.addMainProductToCart();
             }}
             disabled={landingCart.isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl text-base sm:text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-5"
+            className="w-full bg-primary hover:bg-primary-hover text-white px-6 sm:px-8 py-4 sm:py-5 rounded-xl text-base sm:text-lg font-bold shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mb-5"
           >
             <span className="flex items-center justify-center gap-3">
               {landingCart.isLoading ? (

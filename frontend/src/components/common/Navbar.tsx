@@ -10,8 +10,8 @@ export default function Navbar() {
             to="/"
             className={({ isActive }) =>
               isActive
-                ? "text-yellow-400 font-bold"
-                : "hover:text-blue-600 transition-colors"
+                ? "text-primary font-bold"
+                : "hover:text-primary transition-colors"
             }
           >
             Home
@@ -25,8 +25,8 @@ export default function Navbar() {
             to="/contact"
             className={({ isActive }) =>
               isActive
-                ? "text-yellow-400 font-bold"
-                : "hover:text-blue-600 transition-colors"
+                ? "text-primary font-bold"
+                : "hover:text-primary transition-colors"
             }
           >
             Contact

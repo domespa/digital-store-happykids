@@ -132,7 +132,7 @@ export default function WorkbookPreviewModal({
           </p>
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+            className="px-6 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold transition-colors"
           >
             Close Preview
           </button>

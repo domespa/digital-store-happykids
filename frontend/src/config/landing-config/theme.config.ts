@@ -7,7 +7,7 @@ export const screenDetoxTheme = {
     300: "#93c5fd",
     400: "#60a5fa",
     500: "#3b82f6", // Base
-    600: "#2563eb", // Main CTA
+    600: "primary", // Main CTA
     700: "#1d4ed8",
     800: "#1e40af",
     900: "#1e3a8a", // Dark headers

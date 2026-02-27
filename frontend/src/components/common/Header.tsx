@@ -41,7 +41,7 @@ export default function Header() {
 
           {/* Loading Spinner */}
           {cart.isConverting && (
-            <span className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full w-3 h-3 animate-spin">
+            <span className="absolute -bottom-1 -right-1 bg-primary rounded-full w-3 h-3 animate-spin">
               <span className="block w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></span>
             </span>
           )}

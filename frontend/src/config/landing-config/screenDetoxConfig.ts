@@ -471,7 +471,7 @@ export const screenDetoxConfig: LandingConfig = {
   settings: {
     theme: "default",
     colors: {
-      primary: "#2563eb",
+      primary: "primary",
       secondary: "#1e293b",
       accent: "#10b981",
       background: "#ffffff",

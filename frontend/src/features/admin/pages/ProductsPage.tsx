@@ -665,7 +665,7 @@ export default function ProductsPage() {
                           key={currency}
                           className={`flex justify-between items-center ${
                             isCurrentCurrency
-                              ? "font-semibold text-blue-600 dark:text-blue-400"
+                              ? "font-semibold text-primary dark:text-blue-400"
                               : "text-gray-700 dark:text-gray-300"
                           }`}
                         >
@@ -927,7 +927,7 @@ function ProductGalleryManager({
             </span>
           </label>
           {uploading && (
-            <div className="text-center text-sm text-blue-600 dark:text-blue-400 mt-2">
+            <div className="text-center text-sm text-primary dark:text-blue-400 mt-2">
               Uploading...
             </div>
           )}
@@ -951,7 +951,7 @@ function ProductGalleryManager({
             {images.map((image) => (
               <div
                 key={image.id}
-                className="relative group border-2 rounded-lg overflow-hidden hover:border-blue-500 dark:hover:border-blue-400 transition-colors border-gray-200 dark:border-gray-700"
+                className="relative group border-2 rounded-lg overflow-hidden hover:border-blue-500 dark:hover:border-primary-light transition-colors border-gray-200 dark:border-gray-700"
               >
                 {image.isMain && (
                   <div className="absolute top-2 left-2 z-10">
@@ -1231,7 +1231,7 @@ function EbookUploadManager({
         {/* INFO BOX */}
         <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
           <div className="flex items-start gap-2">
-            <span className="text-yellow-600 dark:text-yellow-400 text-xl">
+            <span className="text-yellow-600 dark:text-primary text-xl">
               ⚠️
             </span>
             <div className="text-xs text-yellow-800 dark:text-yellow-300 space-y-2">

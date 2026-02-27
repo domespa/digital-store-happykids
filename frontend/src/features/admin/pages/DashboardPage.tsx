@@ -538,7 +538,7 @@ export default function DashboardPage({}: DashboardPageProps) {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 Peak Period
               </h3>
-              <p className="text-3xl font-bold text-blue-600 mb-1">
+              <p className="text-3xl font-bold text-primary mb-1">
                 {analyticsData.insights.peakPeriod.period}
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">

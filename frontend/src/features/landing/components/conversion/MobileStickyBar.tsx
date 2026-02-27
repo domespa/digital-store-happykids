@@ -42,7 +42,7 @@ export default function MobileStickyBar() {
             <div className="flex items-baseline gap-2 mb-1">
               <FormattedPrice
                 value={landingCart.formattedMainPrice}
-                className="text-2xl font-black text-blue-600"
+                className="text-2xl font-black text-primary"
                 currencyClassName="text-lg font-bold opacity-80"
               />
               <span className="text-sm text-gray-400 line-through">
@@ -64,7 +64,7 @@ export default function MobileStickyBar() {
           <button
             onClick={landingCart.addMainProductToCart}
             disabled={landingCart.isLoading}
-            className="flex-shrink-0 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-6 py-3.5 rounded-lg font-bold text-base shadow-lg transition-all disabled:opacity-50"
+            className="flex-shrink-0 bg-primary hover:bg-primary-hover active:scale-95 text-white px-6 py-3.5 rounded-lg font-bold text-base shadow-lg transition-all disabled:opacity-50"
           >
             {landingCart.isLoading ? (
               <div className="flex items-center gap-2">

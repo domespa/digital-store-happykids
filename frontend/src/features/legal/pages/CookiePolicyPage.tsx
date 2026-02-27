@@ -25,7 +25,7 @@ export function CookiePolicyPage() {
               <span className="text-sm font-medium">Back to Site</span>
             </button>
             <div className="flex-1 flex items-center justify-center gap-2">
-              <Cookie className="w-5 h-5 text-blue-600" />
+              <Cookie className="w-5 h-5 text-primary" />
               <h1 className="text-lg font-bold text-gray-900">Cookie Policy</h1>
             </div>
             <button
@@ -276,7 +276,7 @@ export function CookiePolicyPage() {
                         href="https://tools.google.com/dlpage/gaoptout"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         Opt-out →
                       </a>
@@ -326,7 +326,7 @@ export function CookiePolicyPage() {
                         href="https://adssettings.google.com"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         Manage ads →
                       </a>
@@ -397,7 +397,7 @@ export function CookiePolicyPage() {
                         href="https://www.facebook.com/ads/preferences"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         Manage ads →
                       </a>
@@ -452,14 +452,14 @@ export function CookiePolicyPage() {
                         href="https://www.tiktok.com/privacy"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         Privacy policy →
                       </a>
                     </div>
                   </div>
 
-                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-r-lg mt-4">
+                  <div className="bg-yellow-50 border-l-4 border-primary p-3 rounded-r-lg mt-4">
                     <p className="text-xs text-yellow-900">
                       <strong>Note:</strong> Marketing cookies are only
                       activated after you provide explicit consent via our
@@ -507,7 +507,7 @@ export function CookiePolicyPage() {
                           href="https://tools.google.com/dlpage/gaoptout"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-xs"
+                          className="text-primary hover:underline text-xs"
                         >
                           Link
                         </a>
@@ -526,7 +526,7 @@ export function CookiePolicyPage() {
                           href="https://adssettings.google.com"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-xs"
+                          className="text-primary hover:underline text-xs"
                         >
                           Link
                         </a>
@@ -545,7 +545,7 @@ export function CookiePolicyPage() {
                           href="https://www.facebook.com/ads/preferences"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-xs"
+                          className="text-primary hover:underline text-xs"
                         >
                           Link
                         </a>
@@ -562,7 +562,7 @@ export function CookiePolicyPage() {
                           href="https://www.tiktok.com/privacy"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline text-xs"
+                          className="text-primary hover:underline text-xs"
                         >
                           Link
                         </a>
@@ -641,7 +641,7 @@ export function CookiePolicyPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+              <div className="bg-yellow-50 border-l-4 border-primary p-4 rounded-r-lg">
                 <p className="text-sm text-yellow-900">
                   <strong>Note:</strong> Blocking all cookies may prevent you
                   from using certain features like shopping cart and checkout.
@@ -740,10 +740,10 @@ export function CookiePolicyPage() {
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-blue-600" />
+                    <Mail className="w-4 h-4 text-primary" />
                     <a
                       href="mailto:H4ppyKids@H4ppyKids.com"
-                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      className="text-primary hover:text-blue-700 font-medium"
                     >
                       H4ppyKids@H4ppyKids.com
                     </a>
@@ -773,7 +773,7 @@ export function CookiePolicyPage() {
         <div className="text-center mt-8">
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm text-primary hover:text-blue-700 font-medium"
           >
             ↑ Back to Top
           </button>
@@ -788,13 +788,13 @@ export function CookiePolicyPage() {
             <div className="flex gap-4">
               <button
                 onClick={() => navigate("/")}
-                className="hover:text-blue-600"
+                className="hover:text-primary"
               >
                 Home
               </button>
               <button
                 onClick={() => navigate("/privacy-policy")}
-                className="hover:text-blue-600"
+                className="hover:text-primary"
               >
                 Privacy Policy
               </button>

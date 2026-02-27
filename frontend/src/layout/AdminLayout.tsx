@@ -169,7 +169,7 @@ export default function AdminLayout({
     ${
       currentPage === item.href
         ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md"
-        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400"
+        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-blue-400"
     }
   `}
               >
@@ -177,7 +177,7 @@ export default function AdminLayout({
                   className={`mr-3 w-6 h-6 ${
                     currentPage === item.href
                       ? "text-white"
-                      : "text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                      : "text-gray-500 dark:text-gray-400 group-hover:text-primary dark:group-hover:text-blue-400"
                   }`}
                 />
                 {item.name}
@@ -192,7 +192,7 @@ export default function AdminLayout({
         </nav>
 
         <div className="absolute bottom-16 left-0 right-0 px-3">
-          <button className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          <button className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-blue-400 transition-colors">
             <BellIcon className="w-6 h-6" />
             {notifications > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -209,7 +209,7 @@ export default function AdminLayout({
           </button>
           <button
             onClick={() => navigate("/")}
-            className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-blue-900/20 hover:text-primary dark:hover:text-blue-400 transition-colors"
           >
             <ShoppingCartIcon className="mr-3 w-6 h-6 text-blue-500 dark:text-blue-400" />
             Go to landing

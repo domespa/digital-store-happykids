@@ -18,7 +18,7 @@ import { useVisitorTracking } from "../hooks/useVisitorTracking";
 
 // AZIONI
 type CartAction =
-  | { type: "ADD_ITEM"; payload: ProductToAdd }
+  | { type: "ADD_ITEM"; payload: { product: ProductToAdd; openCart: boolean } }
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
   | { type: "CLEAR_CART" }
@@ -113,27 +113,25 @@ const loadCartFromStorage = (): CartStorageData | null => {
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM": {
-      const existItem = state.items.find(
-        (item) => item.id === action.payload.id,
-      );
+      const { product, openCart } = action.payload;
+      const existItem = state.items.find((item) => item.id === product.id);
 
       let newItems: CartItem[];
 
       if (existItem) {
         newItems = state.items.map((item) =>
-          item.id === action.payload.id
+          item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item,
         );
       } else {
         const newItem: CartItem = {
-          ...action.payload,
+          ...product,
           quantity: 1,
-
-          originalPrice: action.payload.price,
-          originalCurrency: action.payload.currency,
-          displayPrice: action.payload.price,
-          displayCurrency: action.payload.currency,
+          originalPrice: product.price,
+          originalCurrency: product.currency,
+          displayPrice: product.price,
+          displayCurrency: product.currency,
           conversionRate: 1,
           conversionTime: Date.now(),
         };
@@ -156,7 +154,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         originalTotal,
         displayTotal,
         itemsCount,
-        isOpen: true,
+        isOpen: openCart,
       };
     }
 
@@ -307,8 +305,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
   const addItem = useCallback(
-    (product: ProductToAdd) => {
-      dispatch({ type: "ADD_ITEM", payload: product });
+    (product: ProductToAdd, openCart: boolean = true) => {
+      dispatch({ type: "ADD_ITEM", payload: { product, openCart } });
       trackEvent("add_to_cart", {
         productId: product.id,
         value: product.price,

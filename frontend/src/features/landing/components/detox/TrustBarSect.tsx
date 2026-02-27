@@ -21,7 +21,7 @@ export default function TrustBarSect() {
     {
       bg: "bg-blue-50",
       border: "border-blue-200",
-      text: "text-blue-600",
+      text: "text-primary",
       icon: "bg-blue-600",
     },
     {

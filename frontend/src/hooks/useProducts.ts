@@ -9,17 +9,15 @@ import type {
 export function useProducts(
   options: UseProductsOptions = {},
 ): UseProductsReturn {
-  // ESTRAGGO I VALORI
   const { autofetch = true, currency: initialCurrency, filters = {} } = options;
 
-  // CREO GLI STATI
   const [products, setProducts] = useState<PublicProductResponse[]>([]);
   const [isLoading, setIsLoading] = useState(autofetch);
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [currency, setCurrency] = useState(initialCurrency || "EUR");
+  const [retryCount, setRetryCount] = useState(0);
 
-  // FETCH PRODOTTI
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
@@ -27,7 +25,6 @@ export function useProducts(
 
       const params = new URLSearchParams();
 
-      // AGGIUNGIAMO I PARAMETRI SE ESISTONO
       if (currency) params.append("currency", currency);
       if (filters.search) params.append("search", filters.search);
       if (filters.minPrice) params.append("minPrice", filters.minPrice);
@@ -61,24 +58,52 @@ export function useProducts(
 
       setProducts(data.products || []);
       setTotal(data.total || 0);
+      setRetryCount(0); // Reset retry on success
 
       if (data.currency?.current) {
         setCurrency(data.currency.current);
       }
     } catch (err) {
       console.error("Error fetching products:", err);
-      setError(err instanceof Error ? err.message : "Failed to load products");
-      setProducts([]);
-      setTotal(0);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load products";
+
+      // Auto-retry con delay progressivo (max 3 tentativi)
+      if (retryCount < 3 && errorMessage.includes("Failed to fetch")) {
+        const delay = (retryCount + 1) * 1000; // 1s, 2s, 3s
+        console.log(
+          `🔄 Backend not ready, retrying in ${delay}ms... (${retryCount + 1}/3)`,
+        );
+
+        setTimeout(() => {
+          setRetryCount((prev) => prev + 1);
+        }, delay);
+
+        setError("Connecting to server...");
+      } else {
+        setError(errorMessage);
+        setProducts([]);
+        setTotal(0);
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     if (autofetch) {
       fetchProducts();
     }
-  }, [autofetch, currency, JSON.stringify(filters)]);
+  }, [
+    autofetch,
+    currency,
+    filters?.search,
+    filters?.isActive,
+    filters?.sortBy,
+    filters?.sortOrder,
+    retryCount,
+  ]);
+
   return {
     products,
     isLoading,

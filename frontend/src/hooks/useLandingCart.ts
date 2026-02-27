@@ -135,35 +135,38 @@ export const useLandingCart = () => {
   // ========================
   //   ADD TO CART
   // ========================
-  const addMainProductToCart = useCallback(() => {
-    if (!config) return;
+  const addMainProductToCart = useCallback(
+    (openCart: boolean = true) => {
+      if (!config) return;
 
-    const product: ProductToAdd = {
-      id: `main-product-${config.productId}`,
-      productId: config.productId || "cml878t320000evywtampu4aj",
-      name: backendProduct?.name || config.hero.title,
-      price: convertedPrices.mainPrice,
-      currency: convertedPrices.currency,
-      image: backendProduct?.images?.[0]?.url || config.hero.image,
-      description: config.hero.subtitle,
-    };
+      const product: ProductToAdd = {
+        id: `main-product-${config.productId}`,
+        productId: config.productId || "cml878t320000evywtampu4aj",
+        name: backendProduct?.name || config.hero.title,
+        price: convertedPrices.mainPrice,
+        currency: convertedPrices.currency,
+        image: backendProduct?.images?.[0]?.url || config.hero.image,
+        description: config.hero.subtitle,
+      };
 
-    cartRef.current.addItem(product);
+      cartRef.current.addItem(product, openCart);
 
-    trackAddToCart({
-      item_id: product.id,
-      item_name: product.name,
-      currency: product.currency,
-      price: product.price,
-      quantity: 1,
-    });
-  }, [
-    config,
-    backendProduct?.name,
-    backendProduct?.images,
-    convertedPrices.mainPrice,
-    convertedPrices.currency,
-  ]);
+      trackAddToCart({
+        item_id: product.id,
+        item_name: product.name,
+        currency: product.currency,
+        price: product.price,
+        quantity: 1,
+      });
+    },
+    [
+      config,
+      backendProduct?.name,
+      backendProduct?.images,
+      convertedPrices.mainPrice,
+      convertedPrices.currency,
+    ],
+  );
   const addBonusToCart = useCallback(
     (bonusId: string) => {
       if (!config) return;

@@ -82,7 +82,7 @@ export function TimeFilters({
             >
               {period.label}
               {isDefault && !isSelected && (
-                <span className="ml-1 text-blue-600">*</span>
+                <span className="ml-1 text-primary">*</span>
               )}
             </button>
           );
@@ -96,7 +96,7 @@ export function TimeFilters({
             height: "28px",
           }}
         >
-          <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
           <span className="ml-2 text-sm text-gray-500">Updating...</span>
         </div>
       )}
@@ -120,7 +120,7 @@ export function useTimeFilters() {
         setLoading(false);
       }, 500);
     },
-    [selectedPeriod]
+    [selectedPeriod],
   );
 
   const getApiParams = useCallback(() => {

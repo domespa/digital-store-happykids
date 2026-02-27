@@ -218,7 +218,7 @@
 @layer components {
   .btn-primary {
     @apply relative overflow-hidden;
-    @apply bg-blue-600 hover:bg-blue-700;
+    @apply bg-primary hover:bg-primary-hover;
     @apply text-white font-bold;
     @apply px-8 py-4 rounded-xl;
     @apply shadow-lg hover:shadow-xl;

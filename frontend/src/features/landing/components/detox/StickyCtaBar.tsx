@@ -77,7 +77,7 @@ export default function StickyCtaBar() {
                 {/* Price with FormattedPrice component */}
                 <FormattedPrice
                   value={landingCart.formattedMainPrice}
-                  className="font-bold text-blue-600 text-base"
+                  className="font-bold text-primary text-base"
                   currencyClassName="text-sm opacity-80"
                 />
 
@@ -98,7 +98,7 @@ export default function StickyCtaBar() {
           <button
             onClick={landingCart.addMainProductToCart}
             disabled={landingCart.isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex-shrink-0"
+            className="bg-primary hover:bg-primary-hover text-white px-5 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex-shrink-0"
           >
             <span className="flex items-center gap-2">
               {landingCart.isLoading ? (

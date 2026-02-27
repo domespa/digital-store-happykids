@@ -33,7 +33,7 @@ export default function FaqSect() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl relative z-10">
         {/* Header */}
         <div className="text-center mb-12 lg:mb-16">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-full text-sm font-bold text-blue-600 mb-6">
+          <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2 rounded-full text-sm font-bold text-primary mb-6">
             <span>❓</span>
             <span>Your Questions Answered</span>
           </div>
@@ -72,7 +72,7 @@ export default function FaqSect() {
                     }`}
                   >
                     <svg
-                      className="w-5 h-5 text-blue-600"
+                      className="w-5 h-5 text-primary"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -146,7 +146,7 @@ export default function FaqSect() {
 
           <a
             href="mailto:support@screendetox.com"
-            className="inline-flex items-center justify-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+            className="inline-flex items-center justify-center px-8 py-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-md hover:shadow-lg transform hover:scale-105"
           >
             <svg
               className="w-5 h-5 mr-2"
