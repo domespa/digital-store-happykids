@@ -178,7 +178,6 @@ export default function HeroSectW() {
                 <div className="text-2xl font-bold">
                   {formatPrice(mainPrice)}
                 </div>
-                <div className="text-xs">Save €475</div>
               </div>
             </div>
 
