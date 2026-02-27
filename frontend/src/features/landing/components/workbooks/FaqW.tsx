@@ -1,4 +1,4 @@
-import { ChevronDown, HelpCircle, Check, Shield, Clock } from "lucide-react";
+import { ChevronDown, HelpCircle, Check, Clock } from "lucide-react";
 import { useState } from "react";
 import { useLandingCart } from "../../../../hooks/useLandingCart";
 

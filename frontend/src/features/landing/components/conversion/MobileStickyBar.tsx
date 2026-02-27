@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLandingContext } from "../../../../context/LandingContext";
 import { useLandingCart } from "../../../../hooks/useLandingCart";
-import FormattedPrice from "../workbooks/FormattedPrice";
+// import FormattedPrice from "../";
 
 export default function MobileStickyBar() {
   const [show, setShow] = useState(false);
@@ -40,11 +40,11 @@ export default function MobileStickyBar() {
           {/* Left: Price Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-2 mb-1">
-              <FormattedPrice
+              {/* <FormattedPrice
                 value={landingCart.formattedMainPrice}
                 className="text-2xl font-black text-primary"
                 currencyClassName="text-lg font-bold opacity-80"
-              />
+              /> */}
               <span className="text-sm text-gray-400 line-through">
                 {landingCart.formattedOriginalPrice}
               </span>
@@ -62,7 +62,7 @@ export default function MobileStickyBar() {
 
           {/* Right: CTA Button */}
           <button
-            onClick={landingCart.addMainProductToCart}
+            onClick={() => landingCart.addMainProductToCart()}
             disabled={landingCart.isLoading}
             className="flex-shrink-0 bg-primary hover:bg-primary-hover active:scale-95 text-white px-6 py-3.5 rounded-lg font-bold text-base shadow-lg transition-all disabled:opacity-50"
           >

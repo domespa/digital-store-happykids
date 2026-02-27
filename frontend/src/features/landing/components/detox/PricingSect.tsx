@@ -169,7 +169,7 @@ export default function PricingSect({}: PricingSect = {}) {
             {/* CTA Button */}
             <div className="text-center space-y-5">
               <button
-                onClick={landingCart.addMainProductToCart}
+                onClick={() => landingCart.addMainProductToCart()}
                 disabled={landingCart.isLoading}
                 className={`
                   w-full py-5 px-8 rounded-xl text-lg font-semibold text-white 
