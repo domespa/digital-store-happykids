@@ -42,8 +42,10 @@ export const getProducts = async (req: Request, res: Response) => {
     const page = getStringParam(req.query.page) || "1";
     const limit = getStringParam(req.query.limit) || "10";
 
-    const targetCurrency = (req.headers["x-user-currency"] as string) || "EUR";
-
+    const targetCurrency =
+      (req.query.currency as string) ||
+      (req.headers["x-user-currency"] as string) ||
+      "EUR";
     console.log("💰 Products list - Currency:", targetCurrency);
 
     const validSortFields = ["name", "price", "createdAt"];

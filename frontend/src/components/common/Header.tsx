@@ -12,7 +12,7 @@ export default function Header() {
         {/* Logo */}
         <div className="flex-shrink-0">
           <img
-            className="h-14 sm:h-16 lg:h-20 transition-transform hover:scale-105"
+            className="h-12 sm:h-16 hover:opacity-100 transition-opacity"
             src="./logohw.png"
             alt="Happy Kids Workbooks"
           />

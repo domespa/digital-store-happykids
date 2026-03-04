@@ -5,6 +5,7 @@ import CartSlideBar from "../../../components/cart/CartSlideBar";
 import { useLandingCart } from "../../../hooks/useLandingCart";
 import { useLandingContext } from "../../../context/LandingContext";
 import MinimalHeader from "../../../components/common/MinimalHeader";
+import { useSavings } from "../../../hooks/useSavings";
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,7 @@ export default function ProductDetailPage() {
   const [showToast, setShowToast] = useState(false);
   const [, setToastMessage] = useState("");
   const [bundleProduct, setBundleProduct] = useState<any>(null);
+  const bundleSavings = useSavings(bundleProduct);
 
   const {
     addMainProductToCart,
@@ -31,6 +33,11 @@ export default function ProductDetailPage() {
 
         const response = await fetch(
           `${apiUrl}/api/products/cml87a3250000140vhvtptbd6`,
+          {
+            headers: {
+              "X-User-Currency": user?.currency || "EUR",
+            },
+          },
         );
         const data = await response.json();
         setBundleProduct(data.product || data.data);
@@ -39,8 +46,10 @@ export default function ProductDetailPage() {
       }
     };
 
-    fetchBundleProduct();
-  }, []);
+    if (user?.currency) {
+      fetchBundleProduct();
+    }
+  }, [user?.currency]);
 
   // FUNZIONE PER AGGIUNTA BUNDLE
   const handleAddBundleToCart = () => {
@@ -308,7 +317,7 @@ export default function ProductDetailPage() {
                   <h3 className="font-bold text-gray-900 mb-1">{wb.name}</h3>
                   <p className="text-sm text-gray-600 mb-3">{wb.pages} pages</p>
                   <div className="text-xl font-bold text-primary mb-3 text-right">
-                    {formatPrice(wb.priceEUR)}
+                    {formatPrice(displayPrice)}
                   </div>
                   <button
                     onClick={(e) => {
@@ -332,17 +341,28 @@ export default function ProductDetailPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-3">
                 ⭐ Save with the Complete Bundle!
               </h2>
-              <p className="text-lg text-gray-700 mb-6">
-                Get all 5 workbooks for <strong>{formatPrice(15)}</strong>{" "}
-                instead of {formatPrice(25)}
-                <span className="text-green-600 font-bold">
-                  {" "}
-                  (Save {formatPrice(10)}!)
-                </span>
-              </p>
+              {bundleSavings.hasSavings ? (
+                <p className="text-lg text-gray-700 mb-6">
+                  Get all 5 workbooks for{" "}
+                  <strong>{bundleSavings.formattedCurrentPrice}</strong> instead
+                  of {bundleSavings.formattedOriginalPrice}
+                  <span className="text-green-600 font-bold">
+                    {" "}
+                    (Save {bundleSavings.formattedSavings} -{" "}
+                    {bundleSavings.savingsPercentage}% OFF!)
+                  </span>
+                </p>
+              ) : (
+                <p className="text-lg text-gray-700 mb-6">
+                  Get all 5 workbooks for{" "}
+                  <strong>{bundleSavings.formattedCurrentPrice}</strong>
+                </p>
+              )}
+
               <button
                 onClick={handleAddBundleToCart}
-                className="bg-gradient-success hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-8 rounded-lg transition-all shadow-md hover:shadow-xl"
+                disabled={!bundleProduct}
+                className="bg-gradient-success hover:from-green-700 hover:to-emerald-700 text-white font-bold py-4 px-8 rounded-lg transition-all shadow-md hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Get the Complete Bundle →
               </button>

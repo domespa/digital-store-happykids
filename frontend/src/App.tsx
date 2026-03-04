@@ -45,6 +45,7 @@ import Header from "./components/common/Header";
 import ProductsPage from "./features/products/pages/ProductsPage";
 import ContactsPage from "./features/contacts/pages/ContactsPage";
 import ProductPage from "./features/products/pages/ProductPage";
+import Homepage from "./features/landing/pages/Homepage";
 
 function CustomerApp() {
   const location = useLocation();
@@ -63,8 +64,9 @@ function CustomerApp() {
           {/* HEADER SOLO SE NON è IN LANDING */}
           {shouldShowHeader && <Header />}
           <Routes>
+            <Route path="/" element={<Homepage />} />
             <Route
-              path="/workbooks-bundle"
+              path="/screen-detox"
               element={<LandingPageDetox config={screenDetoxConfig} />}
             />
             <Route

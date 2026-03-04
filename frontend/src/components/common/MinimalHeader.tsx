@@ -7,7 +7,7 @@ export default function MinimalHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div className="h-20 px-4 sm:px-8 lg:px-20 flex justify-between items-center max-w-[1920px] mx-auto">
         {/* Logo */}
         <Link to="/" className="flex-shrink-0">
           <img

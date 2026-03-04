@@ -571,7 +571,7 @@ export default function LookInsideModal({
                 </div>
               </div>
 
-              {/* KEYBOARD HINTS (desktop only) */}
+              {/* KEYBOARD HINTS */}
               <div className="text-xs text-gray-400 text-center space-y-1 pt-4 border-t">
                 <div>Use ← → arrow keys to navigate</div>
                 <div>Press ESC to close</div>

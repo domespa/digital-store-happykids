@@ -164,25 +164,17 @@ export default function FaqW() {
           </h3>
           <p className="text-lg text-white/90 mb-6 max-w-2xl mx-auto">
             We're here to help! Email us at{" "}
-            <strong>support@happykids.com</strong> and we'll answer within 24
+            <strong>H4ppyKids@H4ppyKids.com</strong> and we'll answer within 24
             hours. Or take advantage of our risk-free guarantee and try it
             yourself.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
-              href="mailto:support@happykids.com"
+              href="mailto:H4ppyKids@H4ppyKids.com"
               className="bg-white text-primary font-bold py-3 px-6 rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2"
             >
               <HelpCircle className="w-5 h-5" />
               Contact Support
-            </a>
-            <span className="text-white/70 text-sm">or</span>
-
-            <a
-              href="#pricing"
-              className="bg-white/20 backdrop-blur-sm text-white font-bold py-3 px-6 rounded-xl hover:bg-white/30 transition-all border border-white/30"
-            >
-              View Guarantee Details
             </a>
           </div>
         </div>

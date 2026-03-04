@@ -146,22 +146,6 @@ export default function FinalCtaW() {
                     </p>
                   </div>
                 </div>
-
-                {/* Guarantee */}
-                <div className="bg-green-50 rounded-xl p-4 border-2 border-green-200">
-                  <div className="flex items-start gap-3">
-                    <Shield className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-bold text-gray-900 mb-1">
-                        30-Day Money-Back Guarantee
-                      </h4>
-                      <p className="text-sm text-gray-700">
-                        If your child won't engage with ANY of the 295 pages,
-                        email us for a full refund. No questions asked.
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -210,10 +194,6 @@ export default function FinalCtaW() {
                     <Shield className="w-4 h-4 text-primary" />
                     <span>Secure checkout</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Check className="w-4 h-4 text-primary" />
-                    <span>30-day guarantee</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -233,10 +213,10 @@ export default function FinalCtaW() {
           <p className="text-white/80 text-sm max-w-2xl mx-auto">
             Questions? Email us at{" "}
             <a
-              href="mailto:support@happykids.com"
+              href="mailto:H4ppyKids@H4ppyKids.com"
               className="underline font-semibold hover:text-white"
             >
-              support@happykids.com
+              H4ppyKids@H4ppyKids.com
             </a>{" "}
             - We respond within 24 hours. Your child's development is too
             important to leave to chance.

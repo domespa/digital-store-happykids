@@ -5,18 +5,9 @@ import {
   ArrowRight,
   Check,
   Clock,
-  Sparkles,
 } from "lucide-react";
-import { useLandingCart } from "../../../../hooks/useLandingCart";
 
 export default function HowItWorksW() {
-  const { addMainProductToCart, formatPrice, isLoading, mainPrice } =
-    useLandingCart();
-
-  const handleAddToCart = () => {
-    addMainProductToCart(true);
-  };
-
   const steps = [
     {
       number: 1,
@@ -102,7 +93,7 @@ export default function HowItWorksW() {
           </p>
         </div>
 
-        {/* Steps - MOBILE OPTIMIZED */}
+        {/* Steps */}
         <div className="space-y-6 md:space-y-8 mb-12 md:mb-16">
           {steps.map((step, index) => {
             const Icon = step.icon;
@@ -110,7 +101,7 @@ export default function HowItWorksW() {
 
             return (
               <div key={step.number} className="relative">
-                {/* Connecting Line - Desktop Only */}
+                {/* Connecting Line  */}
                 {!isLast && (
                   <div className="hidden md:block absolute left-[47px] top-24 w-0.5 h-16 bg-gradient-to-b from-gray-300 to-transparent z-0"></div>
                 )}
@@ -173,69 +164,11 @@ export default function HowItWorksW() {
           })}
         </div>
 
-        {/* Bottom CTA Card - MOBILE OPTIMIZED */}
-        <div className="bg-gradient-to-br from-primary/5 to-emerald-50 rounded-2xl p-6 md:p-8 lg:p-12 border-2 border-primary/20">
-          {/* Text Content */}
-          <div className="text-center md:text-left mb-6 md:mb-8">
-            <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
-              Ready to Replace Screen Time Today?
-            </h3>
-            <p className="text-base md:text-lg text-gray-700 mb-4 md:mb-6">
-              Join 10,000+ parents who chose real learning over screen
-              addiction.
-              <strong> Start in the next 5 minutes.</strong>
-            </p>
-
-            {/* Trust Features */}
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6 text-sm text-gray-600 mb-6 md:mb-0">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                <span>Instant download</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                <span>Print unlimited</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-primary flex-shrink-0" />
-                <span>30-day guarantee</span>
-              </div>
-            </div>
-          </div>
-
-          {/* CTA Button - Full Width on Mobile */}
-          <div className="text-center">
-            <button
-              onClick={handleAddToCart}
-              disabled={isLoading}
-              className="group bg-primary hover:bg-primary-hover text-white font-bold py-4 px-6 md:px-8 rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-98 disabled:bg-gray-400 inline-flex items-center justify-center gap-2 w-full md:w-auto"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Loading...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  <span>Get Bundle - {formatPrice(mainPrice)}</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-            <p className="text-xs text-gray-500 mt-3">
-              Secure payment • Instant access
-            </p>
-          </div>
-        </div>
-
-        {/* Timeline Visual Summary - MOBILE OPTIMIZED */}
+        {/* Timeline Visual Summary */}
         <div className="mt-8 md:mt-12 bg-gray-50 rounded-xl p-6 md:p-8 border border-gray-200">
           <h4 className="text-center text-base md:text-lg font-bold text-gray-900 mb-6">
             Your Timeline to Screen-Free Learning
           </h4>
-
-          {/* Mobile: Vertical Stack, Desktop: Horizontal */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-center gap-6 md:gap-8">
             {/* Step 1 */}
             <div className="flex items-center gap-3 w-full md:w-auto">
