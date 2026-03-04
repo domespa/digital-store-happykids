@@ -107,7 +107,7 @@ export function CookieBanner() {
     window.dispatchEvent(
       new CustomEvent("consent-updated", {
         detail: preferences,
-      })
+      }),
     );
 
     // GTM
@@ -162,7 +162,7 @@ export function CookieBanner() {
     if (enableLogs) {
       console.log("🎯 Marketing consent granted");
       console.log(
-        "   GTM will load Meta Pixel, Google Ads, TikTok via Consent Mode"
+        "   GTM will load Meta Pixel, Google Ads, TikTok via Consent Mode",
       );
     }
   };
@@ -353,7 +353,7 @@ export function CookieBanner() {
         </div>
       )}
 
-      {/* Customization Modal - MOBILE OPTIMIZED */}
+      {/* Modal */}
       {showCustomize && (
         <div className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black bg-opacity-50 p-0 md:p-4">
           <div
@@ -545,12 +545,12 @@ export function useCookieConsent(): CookieConsent | null {
 
     window.addEventListener(
       "consent-updated",
-      handleConsentUpdate as EventListener
+      handleConsentUpdate as EventListener,
     );
     return () => {
       window.removeEventListener(
         "consent-updated",
-        handleConsentUpdate as EventListener
+        handleConsentUpdate as EventListener,
       );
     };
   }, []);
