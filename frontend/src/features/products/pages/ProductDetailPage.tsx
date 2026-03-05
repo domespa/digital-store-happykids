@@ -14,6 +14,7 @@ export default function ProductDetailPage() {
   const [, setToastMessage] = useState("");
   const [bundleProduct, setBundleProduct] = useState<any>(null);
   const bundleSavings = useSavings(bundleProduct);
+  const [otherWorkbooksBackend, setOtherWorkbooksBackend] = useState<any[]>([]);
 
   const {
     addMainProductToCart,
@@ -50,6 +51,40 @@ export default function ProductDetailPage() {
       fetchBundleProduct();
     }
   }, [user?.currency]);
+
+  // CARICHIAMO TUTTI GLI ALTRI WORKBOOKS DAL BACKEND
+  useEffect(() => {
+    const fetchOtherWorkbooks = async () => {
+      if (!user?.currency || !id) return;
+
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL;
+
+        const otherWorkbooksIds =
+          workbooksConfig.workbooksShowcase?.workbooks
+            .filter((wb) => wb.id !== id)
+            .map((wb) => wb.id) || [];
+
+        const promises = otherWorkbooksIds.map((workbookId) =>
+          fetch(`${apiUrl}/api/products/${workbookId}`, {
+            headers: {
+              "X-User-Currency": user.currency,
+            },
+          }).then((res) => res.json()),
+        );
+
+        const results = await Promise.all(promises);
+
+        const products = results.map((data) => data.product || data.data);
+
+        setOtherWorkbooksBackend(products);
+      } catch (error) {
+        console.error("Errore caricamento altri workbooks:", error);
+      }
+    };
+
+    fetchOtherWorkbooks();
+  }, [user?.currency, id]);
 
   // FUNZIONE PER AGGIUNTA BUNDLE
   const handleAddBundleToCart = () => {
@@ -95,8 +130,11 @@ export default function ProductDetailPage() {
 
   // METTIAMO GLI ALTRI EBOOK DENTRO UN ALTRA VARIABILI PER POI MOSTRARLI IN FONDO
   const otherWorkbooks =
-    workbooksConfig.workbooksShowcase?.workbooks.filter((wb) => wb.id !== id) ||
-    [];
+    otherWorkbooksBackend.length > 0
+      ? otherWorkbooksBackend
+      : workbooksConfig.workbooksShowcase?.workbooks.filter(
+          (wb) => wb.id !== id,
+        ) || [];
 
   // FUNZIONE PER AGGIUNTA AL CARRELLO
   const handleAddToCart = () => {
@@ -106,12 +144,14 @@ export default function ProductDetailPage() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleAddOtherWorkbooks = (wb: typeof workbook) => {
+  const handleAddOtherWorkbooks = (wb: any) => {
+    const workbookPrice = wb.displayPrice || wb.priceEUR || 5;
+
     cartActions.addItem({
       id: `workbook-${wb.id}`,
       productId: wb.id,
       name: wb.name,
-      price: wb.priceEUR,
+      price: workbookPrice,
       currency: user?.currency || "EUR",
       image: wb.image,
       description: `${wb.pages} pages workbook for ages 3-5`,
