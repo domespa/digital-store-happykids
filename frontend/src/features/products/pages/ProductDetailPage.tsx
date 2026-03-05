@@ -350,14 +350,15 @@ export default function ProductDetailPage() {
                   className="bg-white rounded-xl border-2 border-gray-200 hover:border-primary-light p-4 transition-all block"
                 >
                   <img
-                    src={wb.image}
+                    src={wb.images?.[0]?.url || wb.image}
                     alt={wb.name}
                     className="w-full aspect-[3/4] object-contain rounded-lg mb-3"
                   />
                   <h3 className="font-bold text-gray-900 mb-1">{wb.name}</h3>
                   <p className="text-sm text-gray-600 mb-3">{wb.pages} pages</p>
                   <div className="text-xl font-bold text-primary mb-3 text-right">
-                    {formatPrice(displayPrice)}
+                    {wb.formattedPrice ||
+                      formatPrice(wb.displayPrice || displayPrice)}
                   </div>
                   <button
                     onClick={(e) => {
