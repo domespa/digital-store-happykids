@@ -531,7 +531,10 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
 
                           <div className="flex items-center justify-between mt-3">
                             <div className="font-semibold text-primary">
-                              {formatPrice(item.displayPrice)}
+                              {formatPriceWithCurrency(
+                                item.displayPrice,
+                                item.displayCurrency,
+                              )}
                             </div>
 
                             <div className="flex items-center gap-2">

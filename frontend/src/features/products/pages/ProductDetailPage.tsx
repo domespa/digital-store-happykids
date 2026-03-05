@@ -98,8 +98,8 @@ export default function ProductDetailPage() {
       id: `workbook-${bundleProduct.id}`,
       productId: bundleProduct.id,
       name: bundleProduct.name,
-      price: bundleProduct.displayPrice || bundleProduct.price,
-      currency: bundleProduct.currency,
+      price: bundleProduct.price,
+      currency: user?.currency || "EUR",
       image:
         bundleProduct.images?.[0]?.url ||
         bundleProduct.image ||
@@ -146,14 +146,13 @@ export default function ProductDetailPage() {
 
   const handleAddOtherWorkbooks = (wb: any) => {
     const workbookPrice = wb.displayPrice || wb.priceEUR || 5;
-    const workbookCurrency = wb.currency || user?.currency || "EUR";
 
     cartActions.addItem({
       id: `workbook-${wb.id}`,
       productId: wb.id,
       name: wb.name,
       price: workbookPrice,
-      currency: workbookCurrency,
+      currency: user?.currency || "EUR",
       image: wb.image,
       description: `${wb.pages} pages workbook for ages 3-5`,
     });
