@@ -153,7 +153,7 @@ export default function ProductDetailPage() {
       name: wb.name,
       price: workbookPrice,
       currency: user?.currency || "EUR",
-      image: wb.image,
+      image: wb.images?.[0]?.url || wb.image,
       description: `${wb.pages} pages workbook for ages 3-5`,
     });
 
