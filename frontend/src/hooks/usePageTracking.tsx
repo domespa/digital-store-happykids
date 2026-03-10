@@ -57,7 +57,12 @@ export function usePageTracking(
         if (level > 0 && !trackedScrollLevels.current.has(level)) {
           trackedScrollLevels.current.add(level);
           console.log(`📜 Scroll depth: ${level}%`);
-          trackEvent("scroll_depth", { metadata: { depth: level } });
+          trackEvent("scroll_depth", {
+            page: window.location.pathname,
+            pageTitle: document.title,
+            value: level,
+            metadata: { depth: level },
+          });
         }
       }
     };
@@ -76,6 +81,8 @@ export function usePageTracking(
               sectionsViewedRef.current.add(sectionId);
               console.log(`📑 Section viewed: ${sectionId}`);
               trackEvent("section_view", {
+                page: window.location.pathname,
+                pageTitle: document.title,
                 metadata: { section: sectionId },
               });
             }
@@ -104,6 +111,8 @@ export function usePageTracking(
         const ctaName = cta.getAttribute("data-cta") || "unknown";
         console.log(`🎯 CTA clicked: ${ctaName}`);
         trackEvent("cta_click", {
+          page: window.location.pathname,
+          pageTitle: document.title,
           metadata: { cta: ctaName },
         });
       }

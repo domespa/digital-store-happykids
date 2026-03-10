@@ -212,7 +212,13 @@ export function useVisitorTracking(options: VisitorTrackingOptions = {}) {
 
   useEffect(() => {
     if (trackPageViews && isConnected) {
-      trackEvent("page_view");
+      console.log(
+        `📄 Page view: ${window.location.pathname} - ${document.title}`,
+      );
+      trackEvent("page_view", {
+        page: window.location.pathname,
+        pageTitle: document.title,
+      });
     }
   }, [window.location.pathname, isConnected, trackPageViews]);
 
