@@ -76,6 +76,7 @@ class UnifiedTrackingWebSocket {
 
     this.setupVisitorTracking();
     this.setupAdminTracking();
+    this.setupCleanupTasks(); // ✅ CLEANUP ATTIVATO
 
     console.log("🚀 UnifiedTrackingWebSocket initialized");
     console.log("   📍 Visitor tracking: /tracking");
@@ -105,7 +106,7 @@ class UnifiedTrackingWebSocket {
 
           const ipAddress = socket.handshake.address || null;
           const userAgent = socket.handshake.headers["user-agent"] || null;
-          const sessionToken = locationData.sessionToken; //
+          const sessionToken = locationData.sessionToken;
 
           console.log(`🔑 Session token: ${sessionToken?.slice(0, 30)}...`);
 
@@ -388,6 +389,111 @@ class UnifiedTrackingWebSocket {
         console.log(`👨‍💼 Admin disconnected: ${socket.id}`);
       });
     });
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //        CLEANUP TASKS (SESSIONI STALE)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  private setupCleanupTasks(): void {
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    //    CLEANUP SESSIONI STALE (ogni 2 minuti)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    setInterval(
+      async () => {
+        try {
+          const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+          // 1️⃣ Trova sessioni "online" ma senza attività da 5+ minuti
+          const staleSessions = await prisma.session.findMany({
+            where: {
+              isOnline: true,
+              lastActivity: {
+                lt: fiveMinutesAgo,
+              },
+            },
+            select: {
+              sessionId: true,
+              visitorId: true,
+              connectedAt: true,
+            },
+          });
+
+          if (staleSessions.length > 0) {
+            console.log(
+              `🧹 Found ${staleSessions.length} stale sessions to clean`,
+            );
+          }
+
+          // 2️⃣ Marca come offline + calcola duration
+          for (const session of staleSessions) {
+            const duration = Math.floor(
+              (Date.now() - session.connectedAt.getTime()) / 1000,
+            );
+
+            await prisma.session.update({
+              where: { sessionId: session.sessionId },
+              data: {
+                isOnline: false,
+                disconnectedAt: new Date(),
+                duration,
+              },
+            });
+
+            // 3️⃣ Aggiorna visitor total time
+            await prisma.visitor.update({
+              where: { id: session.visitorId },
+              data: {
+                totalTimeSpent: { increment: duration },
+              },
+            });
+
+            // 4️⃣ Rimuovi da activeVisitors se presente
+            this.activeVisitors.delete(session.sessionId);
+
+            console.log(
+              `🧹 Cleaned stale session: ${session.sessionId} (${duration}s)`,
+            );
+          }
+        } catch (error) {
+          console.error("❌ Error cleaning stale sessions:", error);
+        }
+      },
+      2 * 60 * 1000,
+    ); // OGNI 2 MINUTI
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    //    DELETE SESSIONI VECCHIE (ogni ora)
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    setInterval(
+      async () => {
+        try {
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+          const deleted = await prisma.session.deleteMany({
+            where: {
+              isOnline: false,
+              disconnectedAt: {
+                lt: oneDayAgo,
+              },
+            },
+          });
+
+          if (deleted.count > 0) {
+            console.log(`🗑️ Deleted ${deleted.count} old sessions`);
+          }
+        } catch (error) {
+          console.error("❌ Error deleting old sessions:", error);
+        }
+      },
+      60 * 60 * 1000,
+    ); // OGNI ORA
+
+    console.log("🧹 Cleanup tasks initialized");
+    console.log("   ⏰ Stale sessions cleanup: every 2 minutes");
+    console.log("   🗑️ Old sessions deletion: every hour");
   }
 
   /**
