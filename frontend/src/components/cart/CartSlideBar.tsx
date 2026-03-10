@@ -334,12 +334,7 @@ export default function CartSlideBar({ className }: CartSlideBar = {}) {
   };
   const processCheckout = async () => {
     try {
-      const hasBundle = cart.items.some(
-        (item) => item.productId === WORKBOOKS_BUNDLE_ID,
-      );
-
-      const discountCode = hasBundle ? "BUNDLE20" : undefined;
-      const result = await processCheckoutData(formData, discountCode);
+      const result = await processCheckoutData(formData, undefined);
 
       if (result.success) {
         trackAddPaymentInfo(
